@@ -7,7 +7,7 @@ var htmlToJs = require('gulp-html-to-js');
 
 var combineFiles = function(name,deps,out){
     return gulp.src(deps).pipe(concat(name))
-        .pipe(uglify())
+        //.pipe(uglify())
         .pipe(gulp.dest(out));
 };
 

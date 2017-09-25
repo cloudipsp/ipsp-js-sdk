@@ -576,13 +576,15 @@ $checkout.factory('AcsFrame', function(ns){
         init: function (params){
             this.checkout = params.checkout;
             this.data     = params.data;
+            this.template = ns.views['3ds.html'];
             this.initModal();
+            this.initEvents();
             this.initFrame();
             this.initConnector();
         },
         initFrame: function () {
             this.name = [this.name, Math.round(Math.random() * 1000000000)].join('');
-            this.wrapper = document.createElement('div');
+            this.wrapper = this.find('.ipsp-modal-content');
             this.iframe  = document.createElement('iframe');
             this.iframe.setAttribute('name',this.name);
             this.iframe.setAttribute('id',this.name);
@@ -592,24 +594,30 @@ $checkout.factory('AcsFrame', function(ns){
             this.form = this.prepareForm(this.data.url, this.data.send_data, this.name );
             this.wrapper.appendChild(this.iframe);
             this.wrapper.appendChild(this.form);
-            this.modal.appendChild(this.wrapper);
             this.form.submit();
         },
         initModal: function () {
             this.modal = document.createElement('div');
-            this.modal.className = 'ipsp-modal';
-            this.addCss(this.modal,{
-                'position':'absolute',
-                'top':'100px',
-                'left':'50%',
-                'margin-left':'-340px',
-                'width':'680px',
-                'z-index':'999999',
-                'border-radius':'5px',
-                'box-shadow':'0 1px 5px rgba(0,0,0, 0.3)',
-                'height':'720px'
-            });
+            this.modal.innerHTML = this.template;
             document.querySelector('body').appendChild(this.modal);
+        },
+        find:function(selector){
+            return this.modal.querySelector(selector);
+        },
+        initEvents:function(){
+            var close = this.find('.ipsp-modal-close');
+            var link  = this.find('.ipsp-modal-title a');
+            ns.proxy('addEvent',close,'click',this.proxy(function(el,ev){
+                ev.preventDefault();
+                this.removeModal();
+            }));
+            ns.proxy('addEvent',link,'click',this.proxy(function(el,ev){
+                ev.preventDefault();
+                this.form.submit();
+            }));
+        },
+        removeModal:function(){
+            ns.proxy('removeElement',this.modal);
         },
         prepareForm: function (url, data, target, method) {
             var elem;
@@ -639,7 +647,7 @@ $checkout.factory('AcsFrame', function(ns){
                     method: 'send',
                     params: data
                 });
-                ns.proxy('removeElement',this.modal);
+                this.removeModal();
             }, this));
         },
         addCss: function (elem, styles) {
