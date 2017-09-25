@@ -1,11 +1,12 @@
+'use strict';
 (function () {
-    var version = '1.0.0';
+    var version  = '1.0.0';
     var modules  = {};
     var instance = {};
     this.$checkout = function(name,params){
         if (instance[name])
             return instance[name];
-        return (instance[name] = arguments.callee.get(name,params||{}) );
+        return (instance[name] = this.get(name,params||{}) );
     };
     this.$checkout.get = function(name,params) {
         if (!modules[name]) throw Error('module is undefined');
@@ -14,6 +15,10 @@
     this.$checkout.module = function (name) {
         if (!modules[name]) throw Error('module is undefined');
         return modules[name];
+    };
+    this.$checkout.proxy  = function(name){
+        if (!modules[name]) throw Error('module is undefined');
+        return modules[name].apply(this,Array.prototype.slice.call(arguments,1));
     };
     this.$checkout.add = function (name, module) {
         if (modules[name]) {
@@ -40,60 +45,20 @@
         this.add(name,module(this));
     };
 }).call(window || {});
-(function () {
-    var type = function (o) {
-        return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-    };
-    this.isObject = function (o) {
-        return type(o) === 'object';
-    };
-    this.isFunction = function (o) {
-        return type(o) === 'function';
-    };
-    this.isRegexp = function (o) {
-        return type(o) === 'regexp';
-    };
-    this.isArguments = function (o) {
-        return type(o) === 'arguments';
-    };
-    this.isError = function (o) {
-        return type(o) === 'error';
-    };
-    this.isArray = function (o) {
-        return type(o) === 'array';
-    };
-    this.isDate = function (o) {
-        return type(o) === 'date';
-    };
-    this.isString = function (o) {
-        return type(o) === 'string';
-    };
-    this.isNumber = function (o) {
-        return type(o) === 'number';
-    };
-    this.isBoolean = function (o) {
-        return type(o) === 'boolean';
-    };
-    this.isElement = function (o) {
-        return o && o.nodeType === 1;
-    };
-    this.getType = type;
-}).call(window || {});
 
-
-(function () {
-    this.removeElement = function(el){
+$checkout.factory('removeElement',function(){
+    return function(el){
         el.parentNode.removeChild(el);
     };
-})();
-(function () {
-    this.addEvent = function(el,type,callback){
+});
+
+$checkout.factory('addEvent',function(){
+    return function(el,type,callback){
         if (!el) return false;
         if (el.addEventListener) el.addEventListener(type,callback);
         else if (el.attachEvent) el.attachEvent('on' + type,callback);
-    };
-})();
-
+    }
+});
 
 $checkout.factory('popupBlocker',function(ns){
     return function (poppedWindow) {
@@ -135,7 +100,7 @@ $checkout.factory('Class',function(ns){
         }
     };
     Class.extend = function (instance, name) {
-        var prop, proto, parent = this.prototype;
+        var prop, proto, parent = this.prototype , self = Class.extend;
         init = true;
         proto = new this();
         init = false;
@@ -165,7 +130,7 @@ $checkout.factory('Class',function(ns){
         Class.prototype = proto;
         Class.prototype.name = name;
         Class.prototype.constructor = Class;
-        Class.extend = arguments.callee;
+        Class.extend = self;
         return Class;
     };
     return Class;
@@ -397,7 +362,7 @@ $checkout.factory('Deferred',function(ns){
                 var df = D(),
                     size = args.length,
                     done = 0,
-                    rp = new Array(size);	// resolve params: params of each resolve, we need to track down them to be able to pass them in the correct order if the master needs to be resolved
+                    rp = new Array(size);
 
                 for (var i = 0; i < args.length; i++) {
                     (function(j) {
@@ -422,7 +387,6 @@ $checkout.factory('Deferred',function(ns){
     }
     return D;
 });
-
 
 $checkout.factory('Event',function(ns){
     return ns.module('Class').extend({
@@ -459,7 +423,7 @@ $checkout.factory('Connector',function(ns){
         },
         create: function () {
             this.listener = ns.get('Event');
-            addEvent(window,'message',this.proxy('router'));
+            ns.proxy('addEvent',window,'message',this.proxy('router'));
         },
         setTarget: function (target) {
             this.target = target;
@@ -563,7 +527,6 @@ $checkout.factory('Api',function(ns){
     });
 });
 
-
 $checkout.factory('StyleSheet', function(ns){
     return ns.module('Class').extend({
         init:function(){
@@ -588,6 +551,7 @@ $checkout.factory('StyleSheet', function(ns){
         }
     });
 });
+
 
 $checkout.factory('AcsFrame', function(ns){
     return ns.module('Class').extend({
@@ -675,7 +639,7 @@ $checkout.factory('AcsFrame', function(ns){
                     method: 'send',
                     params: data
                 });
-                removeElement(this.modal);
+                ns.proxy('removeElement',this.modal);
             }, this));
         },
         addCss: function (elem, styles) {
