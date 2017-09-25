@@ -2,12 +2,15 @@ var gulp     = require('gulp');
 var concat   = require('gulp-concat');
 var del      = require('del');
 var uglify   = require('gulp-uglify');
+var rename   = require('gulp-rename');
 var htmlToJs = require('gulp-html-to-js');
 
 
 var combineFiles = function(name,deps,out){
     return gulp.src(deps).pipe(concat(name))
-        //.pipe(uglify())
+        .pipe(gulp.dest(out))
+        .pipe(uglify())
+        .pipe(rename({extname:'.min.js'}))
         .pipe(gulp.dest(out));
 };
 

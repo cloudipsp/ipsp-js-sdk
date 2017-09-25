@@ -622,7 +622,7 @@ $checkout.factory('AcsFrame', function(ns){
 
 $checkout.factory('Api',function(ns){
     return ns.module('Class').extend({
-        origin: 'https://api.fondy.eu',
+        origin: 'https://api.dev.fondy.eu',
         endpoint: {
             gateway: '/checkout/'
         },
@@ -633,13 +633,10 @@ $checkout.factory('Api',function(ns){
             this.connector = ns.get('Connector');
             this.params    = {};
         },
-        setOrigin: function(origin){
-            this.origin = origin;
-        },
-        url: function(type, url){
+        url: function (type, url) {
             return [this.origin,this.endpoint[type]||'/',url||''].join('');
         },
-        loadFrame: function(url){
+        loadFrame: function (url) {
             this.iframe     = document.createElement('iframe');
             this.iframe.src = url;
             this.iframe.style.display = 'none';
