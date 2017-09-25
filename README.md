@@ -54,6 +54,10 @@ Or clone from GitHub the latest developer version
 git clone git@github.com:cloudipsp/ipsp-js-sdk.git
 ```
 
+License
+
+[MIT](https://github.com/cloudipsp/ipsp-js-sdk/blob/HEAD/LICENSE)
+
 ## Author
 
 Stepan Kosatyi, stepan@kosatyi.com
