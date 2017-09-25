@@ -1,0 +1,13 @@
+{
+  "name":"ipsp-js-sdk",
+  "title":"Checkout SDK",
+  "description":"fondy payment service provider javascript sdk",
+  "version":"1.0",
+  "homepage": "https://fondy.eu",
+  "main": "dist/checkout.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cloudipsp/ipsp-js-sdk.git"
+  }
+}
