@@ -633,10 +633,6 @@ $checkout.factory('Api',function(ns){
             this.connector = ns.get('Connector');
             this.params    = {};
         },
-        setOrigin:function(origin){
-            this.origin = origin;
-            return this;
-        },
         url: function (type, url) {
             return [this.origin,this.endpoint[type]||'/',url||''].join('');
         },
