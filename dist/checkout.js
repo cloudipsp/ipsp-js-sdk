@@ -500,99 +500,6 @@ $checkout.factory('Connector',function(ns){
     });
 });
 
-$checkout.factory('Api',function(ns){
-    return ns.module('Class').extend({
-        origin: 'https://api.dev.fondy.eu',
-        endpoint: {
-            gateway: '/checkout/'
-        },
-        init: function(){
-            this.loaded    = false;
-            this.created   = false;
-            this.listener  = ns.get('Event');
-            this.connector = ns.get('Connector');
-            this.params    = {};
-        },
-        url: function (type, url) {
-            return [this.origin,this.endpoint[type]||'/',url||''].join('');
-        },
-        loadFrame: function (url) {
-            this.iframe     = document.createElement('iframe');
-            this.iframe.src = url;
-            this.iframe.style.display = 'none';
-            document.getElementsByTagName('body')[0].appendChild(this.iframe);
-            return this.iframe;
-        },
-        create: function () {
-            if( this.created === false ){
-                this.created = true;
-                this.iframe  = this.loadFrame(this.url('gateway'));
-                this.connector.setTarget(this.iframe.contentWindow);
-                this.connector.action('load',this.proxy('load'));
-                this.connector.action('form3ds',this.proxy('form3ds'));
-            }
-            return this;
-        },
-        form3ds: function (xhr, data) {
-            this.acsframe = ns.get('AcsFrame',{checkout:this,data:data});
-        },
-        load: function () {
-            this.loaded = true;
-            this.listener.trigger('checkout.api');
-            this.listener.off('checkout.api');
-        },
-        scope: function (callback) {
-            callback = this.proxy(callback);
-            if( this.create().loaded === true ){
-                callback();
-            } else{
-                this.listener.on('checkout.api',callback);
-            }
-        },
-        defer: function () {
-            return ns.get('Deferred');
-        },
-        request: function (model, method, params) {
-            var defer   = this.defer();
-            var data    = {};
-            data.uid    = this.connector.getUID();
-            data.action = model;
-            data.method = method;
-            data.params = params || {};
-            this.connector.send('request',data);
-            this.connector.action(data.uid, this.proxy(function (ev, response) {
-                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [response]);
-            }, this));
-            return defer;
-        }
-    });
-});
-
-$checkout.factory('StyleSheet', function(ns){
-    return ns.module('Class').extend({
-        init:function(){
-            this.element = document.createElement("style");
-            this.element.type = 'text/css';
-        },
-        append:function(wrapper){
-            wrapper.appendChild(this.element);
-        },
-        value:function(data){
-            if (style.styleSheet && !style.sheet) {
-                style.styleSheet.cssText = data;
-            }
-            else {
-                try {
-                    style.innerHTML = '';
-                    style.appendChild(document.createTextNode(data));
-                } catch (e) {
-                    style.innerHTML = data;
-                }
-            }
-        }
-    });
-});
-
 
 $checkout.factory('AcsFrame', function(ns){
     return ns.module('Class').extend({
@@ -709,6 +616,77 @@ $checkout.factory('AcsFrame', function(ns){
                     elem.setAttribute(prop, attributes[prop]);
                 }
             }
+        }
+    });
+});
+
+$checkout.factory('Api',function(ns){
+    return ns.module('Class').extend({
+        origin: 'https://api.fondy.eu',
+        endpoint: {
+            gateway: '/checkout/'
+        },
+        init: function(){
+            this.loaded    = false;
+            this.created   = false;
+            this.listener  = ns.get('Event');
+            this.connector = ns.get('Connector');
+            this.params    = {};
+        },
+        setOrigin: function(origin){
+            this.origin = origin;
+        },
+        url: function(type, url){
+            return [this.origin,this.endpoint[type]||'/',url||''].join('');
+        },
+        loadFrame: function(url){
+            this.iframe     = document.createElement('iframe');
+            this.iframe.src = url;
+            this.iframe.style.display = 'none';
+            document.getElementsByTagName('body')[0].appendChild(this.iframe);
+            return this.iframe;
+        },
+        create: function () {
+            if( this.created === false ){
+                this.created = true;
+                this.iframe  = this.loadFrame(this.url('gateway'));
+                this.connector.setTarget(this.iframe.contentWindow);
+                this.connector.action('load',this.proxy('load'));
+                this.connector.action('form3ds',this.proxy('form3ds'));
+            }
+            return this;
+        },
+        form3ds: function (xhr, data) {
+            this.acsframe = ns.get('AcsFrame',{checkout:this,data:data});
+        },
+        load: function () {
+            this.loaded = true;
+            this.listener.trigger('checkout.api');
+            this.listener.off('checkout.api');
+        },
+        scope: function (callback) {
+            callback = this.proxy(callback);
+            if( this.create().loaded === true ){
+                callback();
+            } else{
+                this.listener.on('checkout.api',callback);
+            }
+        },
+        defer: function () {
+            return ns.get('Deferred');
+        },
+        request: function (model, method, params) {
+            var defer   = this.defer();
+            var data    = {};
+            data.uid    = this.connector.getUID();
+            data.action = model;
+            data.method = method;
+            data.params = params || {};
+            this.connector.send('request',data);
+            this.connector.action(data.uid, this.proxy(function (ev, response) {
+                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [response]);
+            }, this));
+            return defer;
         }
     });
 });
