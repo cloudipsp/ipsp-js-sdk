@@ -583,7 +583,7 @@ $checkout.factory('Api',function(ns){
     return ns.module('Class').extend({
         origin: 'https://api.dev.fondy.eu',
         endpoint: {
-            gateway: '/checkout/'
+            gateway: '/checkout/v2/'
         },
         init: function(){
             this.loaded    = false;
