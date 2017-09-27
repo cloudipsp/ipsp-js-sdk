@@ -1,0 +1,44 @@
+gems:
+  - jekyll-seo-tag
+
+port: 4001
+
+styles:
+  - //fonts.googleapis.com/css?family=Open+Sans:300,400,700
+  - /sjt/assets/css/main.css
+
+javascript:
+  - /sjt/assets/js/main.js
+
+markdown: kramdown
+
+title:        Simple Jekyll Theme
+tagline:      Short Description
+baseurl: /ipsp-js-sdk
+
+author:
+  name: Stepan Kosatyi
+  url: https://kosatyi.com/
+
+
+toolbar:
+
+
+buttons:
+  -
+    name: View on GitHub
+    link: https://github.com/cloudipsp/ipsp-js-sdk
+  -
+    name: Download .zip
+    link: http://github.com/cloudipsp/ipsp-js-sdk/archive/master.zip
+  -
+    name: Download .tar.gz
+    link: http://github.com/cloudipsp/ipsp-js-sdk/archive/master.tar.gz
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: default

@@ -1,0 +1,19 @@
+<header class="page-toolbar">
+    <div class="container">
+        <div class="page-brand">
+            <a href="{{site.baseurl | prepend:site.url}}/" data-rel="^{{site.baseurl}}">{{ site.title }}</a>
+        </div>
+        <nav class="page-menu">
+            <a href="#" data-rel="^/menu" data-toggle="true">Menu</a>
+            <ul>
+                {% for item in site.toolbar %}
+                <li class="{{ item.class }}">
+                    <a href="{{item.link | prepend: site.baseurl | prepend:site.url }}">
+                        {{ item.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+</header>
