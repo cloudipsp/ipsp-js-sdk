@@ -2,6 +2,8 @@
 title:
 ---
 
+# IPSP Checkout SDK
+
 ## Installation
 
 ### Node
