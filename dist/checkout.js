@@ -177,7 +177,7 @@ $checkout.factory('Class',function(ns){
     return Class;
 });
 
-$checkout.factory('Deferred',function(ns){
+$checkout.factory('Deferred',function(){
     function isArray(arr) {
         return Object.prototype.toString.call(arr) === '[object Array]';
     }
@@ -231,7 +231,6 @@ $checkout.factory('Deferred',function(ns){
                                 if (status === 'rejected') {
                                     arr[j].apply(this, resultArgs);
                                 }
-
                                 failFuncs.push(arr[j]);
                             }
                         }
@@ -239,7 +238,6 @@ $checkout.factory('Deferred',function(ns){
                             if (status === 'rejected') {
                                 arguments[i].apply(this, resultArgs);
                             }
-
                             failFuncs.push(arguments[i]);
                         }
                     }
@@ -279,6 +277,7 @@ $checkout.factory('Deferred',function(ns){
                     if (arguments.length > 2 && arguments[2]) {
                         this.progress(arguments[2]);
                     }
+                    return this;
                 },
                 promise: function (obj) {
                     if (obj === null) {
@@ -302,7 +301,7 @@ $checkout.factory('Deferred',function(ns){
                 isResolved: function () {
                     return status === 'resolved';
                 },
-                pipe: function (done, fail, progress) {
+                pipe: function (done, fail) {
                     return D(function (def) {
                         foreach(done, function (func) {
                             if (typeof func === 'function') {
@@ -320,12 +319,10 @@ $checkout.factory('Deferred',function(ns){
                                 deferred.done(def.resolve);
                             }
                         });
-
-                        foreach(fail, function (func) {
+                        foreach(fail,function(func){
                             if (typeof func === 'function') {
                                 deferred.fail(function () {
                                     var returnval = func.apply(this, arguments);
-
                                     if (returnval && typeof returnval === 'function') {
                                         returnval.promise().then(def.resolve, def.reject, def.notify);
                                     } else {
