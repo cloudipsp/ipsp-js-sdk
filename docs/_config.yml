@@ -5,21 +5,20 @@ port: 4001
 
 styles:
   - //fonts.googleapis.com/css?family=Open+Sans:300,400,700
-  - /sjt/assets/css/main.css
+  - /ipsp-js-sdk/assets/css/main.css
 
 javascript:
-  - /sjt/assets/js/main.js
+  - /ipsp-js-sdk/assets/js/main.js
 
 markdown: kramdown
 
-title:        Simple Jekyll Theme
-tagline:      Short Description
+title:        IPSP JS SDK
+tagline:      In-page Checkout SDK
 baseurl: /ipsp-js-sdk
 
 author:
-  name: Stepan Kosatyi
-  url: https://kosatyi.com/
-
+  name: Fondy Developer Team
+  url: https://fondy.eu/
 
 toolbar:
 
