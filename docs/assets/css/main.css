@@ -1190,3 +1190,9 @@ ol.page-breadcrumbs > li > span {
 .footer-copyright.col {
   padding-bottom: 0;
 }
+.st-sticky-share-buttons .st-btn,
+.st-sticky-share-buttons .st-toggle {
+  border: 1px solid #ffffff;
+  margin-top: -1px;
+  border-left: 0;
+}
