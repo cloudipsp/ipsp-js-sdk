@@ -21,6 +21,10 @@ banner:
   url: https://fondy.eu/
   image: /assets/img/banner.svg
 
+
+facebook:
+  publisher: https://www.facebook.com/ipsp.sdk/
+
 author:
   name: Fondy Developer Team
   url: https://fondy.eu/
