@@ -1,6 +1,6 @@
 ---
 title: Checkout Rocks
-description: Fondy payment provider in-page Checkout SDK.
+description: Start e-commerce on your website.
 ---
 
 ## Installation
