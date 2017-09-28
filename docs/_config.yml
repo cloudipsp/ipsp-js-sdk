@@ -15,6 +15,7 @@ markdown: kramdown
 
 title:        Checkout<span>.Rocks</span>
 tagline:      In-page Checkout SDK
+url:  https://checkout.rocks
 baseurl:
 banner:
   url: https://fondy.eu/
