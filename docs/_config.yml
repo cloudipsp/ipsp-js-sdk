@@ -51,3 +51,4 @@ defaults:
       type: "pages"
     values:
       layout: default
+      sharethis: property=59ccda6b55a6eb001239a098&product=sticky-share-buttons
