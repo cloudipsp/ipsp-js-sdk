@@ -1192,7 +1192,7 @@ ol.page-breadcrumbs > li > span {
 }
 .st-sticky-share-buttons .st-btn,
 .st-sticky-share-buttons .st-toggle {
-  border: 1px solid #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   margin-top: -1px;
   border-left: 0;
 }
