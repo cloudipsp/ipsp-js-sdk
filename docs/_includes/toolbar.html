@@ -8,9 +8,15 @@
             <ul>
                 {% for item in site.toolbar %}
                 <li class="{{ item.class }}">
+                    {% if item.link contains 'http' %}
+                    <a href="{{item.link }}">
+                        {{ item.name }}
+                    </a>
+                    {% else %}
                     <a href="{{item.link | prepend: site.baseurl | prepend:site.url }}">
                         {{ item.name }}
                     </a>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>

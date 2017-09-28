@@ -5,22 +5,32 @@ port: 4001
 
 styles:
   - //fonts.googleapis.com/css?family=Open+Sans:300,400,700
-  - /ipsp-js-sdk/assets/css/main.css
+  - /assets/css/main.css
 
 javascript:
-  - /ipsp-js-sdk/assets/js/main.js
+  - /assets/js/main.js
 
 markdown: kramdown
 
-title:        IPSP JS SDK
+
+title:        Checkout<span>.Rocks</span>
 tagline:      In-page Checkout SDK
-baseurl: /ipsp-js-sdk
+baseurl:
+banner:
+  url: https://fondy.eu/
+  image: /assets/img/banner.svg
 
 author:
   name: Fondy Developer Team
   url: https://fondy.eu/
 
 toolbar:
+-
+  name: Examples
+  link: /examples/
+-
+  name: Signup
+  link: https://bit.ly/fondy-payments
 
 
 buttons:

@@ -9,6 +9,11 @@
     </div>
     {% else %}
     <div class="page-banner container">
+        {% if site.banner %}
+        <a href="{{site.banner.url}}">
+        <img src="{{site.banner.image}}" class="project-banner" />
+        </a>
+        {% endif %}
         <h2 class="project-name"><a href="{{site.baseurl}}/">{{ site.title }}</a></h2>
         {% if site.tagline %}
         <h3 class="project-tagline">{{ site.tagline }}</h3>
