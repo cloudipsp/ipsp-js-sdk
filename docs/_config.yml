@@ -54,6 +54,6 @@ defaults:
       layout: default
       sharethis: property=59ccda6b55a6eb001239a098&product=sticky-share-buttons
       image:
-        path:  /assets/img/cover.png
+        path:  /assets/img/cover.jpg
         height: 1200
         width: 630

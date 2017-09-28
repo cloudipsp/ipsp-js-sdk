@@ -139,29 +139,29 @@ a {
 
 .page-toolbar{
   position: fixed;
-  z-index:10;
   border-bottom:1px solid @light-border;
   left:0;
   right:0;
   top: 0;
   z-index: 20;
-  &.scrolled{
-    background-image:@header-gradient;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-  }
+  background-image:@toolbar-gradient;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
   .container {
     padding: 0rem 2rem;
     @media screen and (min-width: 64em) {
       padding: 0rem 2rem;
     }
-    @media screen and (min-width: 42em) and (max-width: 64em) {
+    @media screen and (min-width: 50em) and (max-width: 64em) {
       padding: 0rem 2rem;
     }
-    @media screen and (max-width: 42em) {
+    @media screen and (max-width: 50em) {
       padding: 0rem;
     }
   }
 }
+
+
+
 
 .page-brand{
   font-weight: 300;
@@ -253,13 +253,6 @@ a {
   :last-child{
     margin-bottom:0;
   }
-  box-shadow:0 0 5px rgba(0, 0, 0, 0.2);
-  border-bottom-left-radius: 2rem;
-  border-bottom-right-radius: 2rem;
-  @media screen and (max-width: 42em) {
-    border-bottom-left-radius: 1rem;
-    border-bottom-right-radius: 1rem;
-  }
 }
 
 .page-footer{
@@ -317,6 +310,9 @@ a {
 .project-banner{
   display:block;
   margin:0 auto;
+  &-link{
+    display:inline-block;
+  }
 }
 
 .project-name {
