@@ -12,9 +12,8 @@ javascript:
 
 markdown: kramdown
 
-
 title:        Checkout Rocks
-tagline:      In-page Checkout SDK
+tagline:      Fondy Checkout SDK
 url:  https://checkout.rocks
 baseurl:
 banner:
