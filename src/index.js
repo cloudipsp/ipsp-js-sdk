@@ -1,66 +1,69 @@
 'use strict';
-(function () {
-    var version  = '1.0.0';
-    var modules  = {};
+(function (ns) {
+    var modules = {};
     var instance = {};
-    this.$checkout = function(name,params){
-        if (instance[name])
-            return instance[name];
-        return (instance[name] = this.get(name,params||{}) );
-    };
-    this.$checkout.get = function(name,params) {
-        if (!modules[name]) throw Error('module is undefined');
-        return new modules[name](params||{});
-    };
-    this.$checkout.module = function (name) {
-        if (!modules[name]) throw Error('module is undefined');
+    var getModule = function (name) {
+        if (!modules[name]) {
+            throw Error('module is undefined');
+        }
         return modules[name];
     };
-    this.$checkout.proxy  = function(name){
-        if (!modules[name]) throw Error('module is undefined');
-        return modules[name].apply(this,Array.prototype.slice.call(arguments,1));
+    var newModule = function (name, params) {
+        if (!modules[name]) {
+            throw Error('module is undefined');
+        }
+        return new modules[name](params || {});
     };
-    this.$checkout.add = function (name, module) {
+    var addModule = function (name, module) {
         if (modules[name]) {
             throw Error('module already added');
         }
         modules[name] = module;
     };
-    this.$checkout.version = function (v) {
-        version = v;
+    ns.$checkout = function (name, params) {
+        if (instance[name]) return instance[name];
+        return ( instance[name] = newModule(name, params) );
+    };
+    ns.$checkout.get = function (name, params) {
+        return newModule(name, params);
+    };
+    ns.$checkout.module = function (name) {
+        return getModule(name);
+    };
+    ns.$checkout.proxy = function (name) {
+        return getModule(name).apply(this, Array.prototype.slice.call(arguments, 1));
+    };
+    ns.$checkout.add = function (name, module) {
+        addModule(name, module);
         return this;
     };
-    this.$checkout._debug_  = (function(){
-        return Number(document.cookie.replace(/(?:(?:^|.*;\s*)checkout_debug\s*\=\s*([^;]*).*$)|^.*$/,"$1"));
-    })();
-    this.$checkout.debug    = function(state){
-        document.cookie = ['checkout_debug',Number(state)].join('=');
+    ns.$checkout.scope = function (name, module) {
+        addModule(name, module(this));
+        return this;
     };
-    this.$checkout.log = function(){
-        if(this._debug_ && 'console' in window){
-            console.log.apply(console,arguments);
-        }
-    };
-    this.$checkout.factory = function(name,module){
-        this.add(name,module(this));
-    };
-}).call(window || {});
-
-$checkout.factory('removeElement',function(){
-    return function(el){
+})(window || {});
+/**
+ *
+ */
+$checkout.scope('removeElement', function () {
+    return function (el) {
         el.parentNode.removeChild(el);
     };
 });
-
-$checkout.factory('addEvent',function(){
-    return function(el,type,callback){
+/**
+ *
+ */
+$checkout.scope('addEvent', function () {
+    return function (el, type, callback) {
         if (!el) return false;
-        if (el.addEventListener) el.addEventListener(type,callback);
-        else if (el.attachEvent) el.attachEvent('on' + type,callback);
+        if (el.addEventListener) el.addEventListener(type, callback);
+        else if (el.attachEvent) el.attachEvent('on' + type, callback);
     }
 });
-
-$checkout.factory('popupBlocker',function(ns){
+/**
+ *
+ */
+$checkout.scope('popupBlocker', function (ns) {
     return function (poppedWindow) {
         var result = false;
         try {
@@ -79,14 +82,18 @@ $checkout.factory('popupBlocker',function(ns){
         return result;
     };
 });
-
-$checkout.factory('Class',function(ns){
+/**
+ *
+ */
+$checkout.scope('Class', function () {
     var init = false;
-    var fnTest = /xyz/.test((function(){return 'xyz'}).toString()) ? /\b_super\b/ : /.*/;
-    var Class = function(){
+    var fnTest = /xyz/.test((function () {
+        return 'xyz'
+    }).toString()) ? /\b_super\b/ : /.*/;
+    var Core = function () {
 
     };
-    Class.prototype = {
+    Core.prototype = {
         instance: function (params) {
             return new this.constructor(params);
         },
@@ -99,8 +106,8 @@ $checkout.factory('Class',function(ns){
             })(this, fn);
         }
     };
-    Class.extend = function (instance, name) {
-        var prop, proto, parent = this.prototype , self = Class.extend;
+    Core.extend = function (instance) {
+        var prop, proto, parent = this.prototype;
         init = true;
         proto = new this();
         init = false;
@@ -124,22 +131,26 @@ $checkout.factory('Class',function(ns){
                 }
             }
         }
+
         function Class() {
             if (!init && this.init) this.init.apply(this, arguments);
         }
+
         Class.prototype = proto;
-        Class.prototype.name = name;
-        Class.prototype.constructor = Class;
-        Class.extend = self;
+        Class.prototype.constructor = Core;
+        Class.extend = Core.extend;
         return Class;
     };
-    return Class;
+    return Core;
 });
-
-$checkout.factory('Deferred',function(){
+/**
+ *
+ */
+$checkout.scope('Deferred', function () {
     function isArray(arr) {
         return Object.prototype.toString.call(arr) === '[object Array]';
     }
+
     function foreach(arr, handler) {
         if (isArray(arr)) {
             for (var i = 0; i < arr.length; i++) {
@@ -149,7 +160,8 @@ $checkout.factory('Deferred',function(){
         else
             handler(arr);
     }
-    function D(fn){
+
+    function D(fn) {
         var status = 'pending',
             doneFuncs = [],
             failFuncs = [],
@@ -278,7 +290,7 @@ $checkout.factory('Deferred',function(){
                                 deferred.done(def.resolve);
                             }
                         });
-                        foreach(fail,function(func){
+                        foreach(fail, function (func) {
                             if (typeof func === 'function') {
                                 deferred.fail(function () {
                                     var returnval = func.apply(this, arguments);
@@ -339,12 +351,13 @@ $checkout.factory('Deferred',function(){
 
         var obj = promise.promise(deferred);
 
-        if(isFunction(fn)){
+        if (isFunction(fn)) {
             fn.apply(obj, [obj]);
         }
         return obj;
     }
-    D.when = function() {
+
+    D.when = function () {
         if (arguments.length < 2) {
             var obj = arguments.length ? arguments[0] : undefined;
             if (obj && (typeof obj.isResolved === 'function' && typeof obj.isRejected === 'function')) {
@@ -355,25 +368,39 @@ $checkout.factory('Deferred',function(){
             }
         }
         else {
-            return (function(args){
+            return (function (args) {
                 var df = D(),
                     size = args.length,
                     done = 0,
                     rp = new Array(size);
 
                 for (var i = 0; i < args.length; i++) {
-                    (function(j) {
+                    (function (j) {
                         var obj = null;
 
                         if (args[j].done) {
-                            args[j].done(function() { rp[j] = (arguments.length < 2) ? arguments[0] : arguments; if (++done == size) { df.resolve.apply(df, rp); }})
-                                .fail(function() { df.reject(arguments); });
+                            args[j].done(function () {
+                                rp[j] = (arguments.length < 2) ? arguments[0] : arguments;
+                                if (++done == size) {
+                                    df.resolve.apply(df, rp);
+                                }
+                            })
+                                .fail(function () {
+                                    df.reject(arguments);
+                                });
                         } else {
                             obj = args[j];
                             args[j] = new Deferred();
 
-                            args[j].done(function() { rp[j] = (arguments.length < 2) ? arguments[0] : arguments; if (++done == size) { df.resolve.apply(df, rp); }})
-                                .fail(function() { df.reject(arguments); }).resolve(obj);
+                            args[j].done(function () {
+                                rp[j] = (arguments.length < 2) ? arguments[0] : arguments;
+                                if (++done == size) {
+                                    df.resolve.apply(df, rp);
+                                }
+                            })
+                                .fail(function () {
+                                    df.reject(arguments);
+                                }).resolve(obj);
                         }
                     })(i);
                 }
@@ -385,13 +412,13 @@ $checkout.factory('Deferred',function(){
     return D;
 });
 
-$checkout.factory('Event',function(ns){
+$checkout.scope('Event', function (ns) {
     return ns.module('Class').extend({
         init: function () {
             this.events = {};
             this.empty = [];
         },
-        on: function (type,callback){
+        on: function (type, callback) {
             (this.events[type] = this.events[type] || []).push(callback);
             return this;
         },
@@ -401,26 +428,26 @@ $checkout.factory('Event',function(ns){
             while (i--) callback === list[i][0] && list.splice(i, 1);
             return this;
         },
-        trigger:function(type){
+        trigger: function (type) {
             var e = this.events[type] || this.empty, list = e.length > 0 ? e.slice(0, e.length) : e, i = 0, j;
-            while(j = list[i++]) j.apply(j,this.empty.slice.call(arguments,1));
+            while (j = list[i++]) j.apply(j, this.empty.slice.call(arguments, 1));
             return this;
         }
     });
 });
 
-$checkout.factory('Connector',function(ns){
+$checkout.scope('Connector', function (ns) {
     return ns.module('Class').extend({
         ns: 'crossDomain',
         origin: '*',
         uniqueId: 1,
-        init: function(params){
+        init: function (params) {
             this.setTarget(params.target);
             this.create();
         },
         create: function () {
             this.listener = ns.get('Event');
-            ns.proxy('addEvent',window,'message',this.proxy('router'));
+            ns.proxy('addEvent', window, 'message', this.proxy('router'));
         },
         setTarget: function (target) {
             this.target = target;
@@ -429,57 +456,51 @@ $checkout.factory('Connector',function(ns){
         getUID: function () {
             return ++this.uniqueId;
         },
-        unbind: function (action, callback){
-            this.listener.off([this.ns,action].join('.'), callback);
+        unbind: function (action, callback) {
+            this.listener.off([this.ns, action].join('.'), callback);
         },
-        action: function (action,callback){
-            this.listener.on([this.ns,action].join('.'),callback);
+        action: function (action, callback) {
+            this.listener.on([this.ns, action].join('.'), callback);
         },
-        publish: function(action,data){
-            this.listener.trigger([this.ns,action].join('.'),data);
+        publish: function (action, data) {
+            this.listener.trigger([this.ns, action].join('.'), data);
         },
-        router: function(window,ev,response){
+        router: function (window, ev, response) {
             try {
                 response = JSON.parse(ev.data);
             } catch (e) {
             }
-            if (response.action && response.data){
-                this.publish(response.action,response.data);
+            if (response.action && response.data) {
+                this.publish(response.action, response.data);
             }
         },
-        send: function (action,data){
+        send: function (action, data) {
             this.target.postMessage(JSON.stringify({
-                action: action ,
+                action: action,
                 data: data
-            }),this.origin,[]);
+            }), this.origin, []);
         }
     });
 });
 
-
-$checkout.factory('AcsFrame', function(ns){
+$checkout.scope('AcsFrame', function (ns) {
     return ns.module('Class').extend({
-        name:'acsframe',
-        attrs:{
+        name: 'acsframe',
+        attrs: {
             'frameborder': '0',
             'allowtransparency': 'true',
             'scrolling': 'no'
         },
         styles: {
-            'zIndex': '9999',
             'overflowX': 'hidden',
             'border': '0',
             'display': 'block',
-            'top': '0px',
-            'left': '0px',
-            'bottom': '0px',
-            'right': '0px',
             'width': '100%',
             'height': '750px'
         },
-        init: function (params){
+        init: function (params) {
             this.checkout = params.checkout;
-            this.data     = params.data;
+            this.data = params.data;
             this.template = ns.views['3ds.html'];
             this.initModal();
             this.initEvents();
@@ -489,13 +510,13 @@ $checkout.factory('AcsFrame', function(ns){
         initFrame: function () {
             this.name = [this.name, Math.round(Math.random() * 1000000000)].join('');
             this.wrapper = this.find('.ipsp-modal-content');
-            this.iframe  = document.createElement('iframe');
-            this.iframe.setAttribute('name',this.name);
-            this.iframe.setAttribute('id',this.name);
+            this.iframe = document.createElement('iframe');
+            this.iframe.setAttribute('name', this.name);
+            this.iframe.setAttribute('id', this.name);
             this.iframe.className = 'ipsp-modal-iframe';
-            this.addAttr(this.iframe,this.attrs);
-            this.addCss(this.iframe,this.styles);
-            this.form = this.prepareForm(this.data.url, this.data.send_data, this.name );
+            this.addAttr(this.iframe, this.attrs);
+            this.addCss(this.iframe, this.styles);
+            this.form = this.prepareForm(this.data.url, this.data.send_data, this.name);
             this.wrapper.appendChild(this.iframe);
             this.wrapper.appendChild(this.form);
             this.form.submit();
@@ -505,23 +526,23 @@ $checkout.factory('AcsFrame', function(ns){
             this.modal.innerHTML = this.template;
             document.querySelector('body').appendChild(this.modal);
         },
-        find:function(selector){
+        find: function (selector) {
             return this.modal.querySelector(selector);
         },
-        initEvents:function(){
+        initEvents: function () {
             var close = this.find('.ipsp-modal-close');
-            var link  = this.find('.ipsp-modal-title a');
-            ns.proxy('addEvent',close,'click',this.proxy(function(el,ev){
+            var link = this.find('.ipsp-modal-title a');
+            ns.proxy('addEvent', close, 'click', this.proxy(function (el, ev) {
                 ev.preventDefault();
                 this.removeModal();
             }));
-            ns.proxy('addEvent',link,'click',this.proxy(function(el,ev){
+            ns.proxy('addEvent', link, 'click', this.proxy(function (el, ev) {
                 ev.preventDefault();
                 this.form.submit();
             }));
         },
-        removeModal:function(){
-            ns.proxy('removeElement',this.modal);
+        removeModal: function () {
+            ns.proxy('removeElement', this.modal);
         },
         prepareForm: function (url, data, target, method) {
             var elem;
@@ -543,10 +564,10 @@ $checkout.factory('AcsFrame', function(ns){
         },
         initConnector: function () {
             this.connector = ns.get('Connector');
-            this.connector.action('response', this.proxy(function(ev,data){
+            this.connector.action('response', this.proxy(function (ev, data) {
                 this.connector.unbind('response');
                 this.checkout.connector.send('request', {
-                    uid: data.uid ,
+                    uid: data.uid,
                     action: 'api.checkout.proxy',
                     method: 'send',
                     params: data
@@ -576,45 +597,152 @@ $checkout.factory('AcsFrame', function(ns){
     });
 });
 
-$checkout.factory('Api',function(ns){
+$checkout.scope('Model', function (ns) {
+    return ns.module('Class').extend({
+        init: function (data) {
+            if (data) {
+                this.data = data;
+            } else {
+                this.data = {};
+            }
+        },
+        each: function () {
+            var args = arguments;
+            var name = args[1] ? args[0] : null;
+            var callback = args[1] ? args[1] : args[0];
+            var prop, value = name ? this.alt(name, []) : this.data;
+            for (prop in value) {
+                if (value.hasOwnProperty(prop)) {
+                    callback(this.instance(value[prop]), value[prop], prop);
+                }
+            }
+        },
+        isPlainObject: function (value) {
+            return isPlainObject(value);
+        },
+        isArray: function (value) {
+            return isArray(value);
+        },
+        attr: function (key, value) {
+            var i = 0,
+                data = this.data,
+                name = (key || '').split('.'),
+                prop = name.pop(),
+                len = arguments.length;
+            for (; i < name.length; i++) {
+                if (data && data.hasOwnProperty(name[i])) {
+                    data = data[name[i]];
+                }
+                else {
+                    if (len == 2) {
+                        data = (data[name[i]] = {});
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            if (len == 1) {
+                return data ? data[prop] : undefined;
+            }
+            if (len == 2) {
+                data[prop] = value;
+            }
+            return this;
+        }
+    });
+});
+
+$checkout.scope('Response', function (ns) {
+    return ns.module('Model').extend({
+        formData: function (url, data, target, method) {
+            var elem;
+            var form = document.createElement('form');
+            var body = document.getElementsByTagName('body')[0];
+            form.action = url;
+            form.target = target || '_self';
+            form.method = method || 'POST';
+            for (var prop in data) {
+                if (data.hasOwnProperty(prop)) {
+                    elem = document.createElement('input');
+                    elem.type = 'hidden';
+                    elem.name = prop;
+                    elem.value = data[prop];
+                    form.appendChild(elem);
+                }
+            }
+            form.style.display = 'none';
+            return {
+                submit: function () {
+                    body.appendChild(form);
+                    form.submit();
+                    form.parentNode.removeChild(form);
+                }
+            };
+        },
+        redirectUrl: function () {
+            if( this.attr('url') ){
+                location.assign(this.attr('url'));
+                return true;
+            }
+        },
+        submitForm:function(){
+            var method = this.attr('method');
+            var url = this.attr('url');
+            var data = this.attr('send_data');
+            this.formData(url, data, '_top', method).submit();
+            return true;
+        },
+        sendResponse: function () {
+            var action = this.attr('action');
+            if (action == 'submit')
+                return this.submitForm();
+            if (action == 'redirect')
+                return this.redirectUrl();
+            return false;
+        }
+    });
+});
+
+$checkout.scope('Api', function (ns) {
     return ns.module('Class').extend({
         origin: 'https://api.dev.fondy.eu',
         endpoint: {
             gateway: '/checkout/v2/'
         },
-        init: function(){
-            this.loaded    = false;
-            this.created   = false;
-            this.listener  = ns.get('Event');
+        init: function () {
+            this.loaded = false;
+            this.created = false;
+            this.listener = ns.get('Event');
             this.connector = ns.get('Connector');
-            this.params    = {};
+            this.params = {};
         },
-        setOrigin:function(origin){
+        setOrigin: function (origin) {
             this.origin = origin;
             return this;
         },
         url: function (type, url) {
-            return [this.origin,this.endpoint[type]||'/',url||''].join('');
+            return [this.origin, this.endpoint[type] || '/', url || ''].join('');
         },
         loadFrame: function (url) {
-            this.iframe     = document.createElement('iframe');
+            this.iframe = document.createElement('iframe');
             this.iframe.src = url;
             this.iframe.style.display = 'none';
             document.getElementsByTagName('body')[0].appendChild(this.iframe);
             return this.iframe;
         },
         create: function () {
-            if( this.created === false ){
+            if (this.created === false) {
                 this.created = true;
-                this.iframe  = this.loadFrame(this.url('gateway'));
+                this.iframe = this.loadFrame(this.url('gateway'));
                 this.connector.setTarget(this.iframe.contentWindow);
-                this.connector.action('load',this.proxy('load'));
-                this.connector.action('form3ds',this.proxy('form3ds'));
+                this.connector.action('load', this.proxy('load'));
+                this.connector.action('form3ds', this.proxy('form3ds'));
             }
             return this;
         },
         form3ds: function (xhr, data) {
-            this.acsframe = ns.get('AcsFrame',{checkout:this,data:data});
+            this.acsframe = ns.get('AcsFrame', {checkout: this, data: data});
         },
         load: function () {
             this.loaded = true;
@@ -623,25 +751,25 @@ $checkout.factory('Api',function(ns){
         },
         scope: function (callback) {
             callback = this.proxy(callback);
-            if( this.create().loaded === true ){
+            if (this.create().loaded === true) {
                 callback();
-            } else{
-                this.listener.on('checkout.api',callback);
+            } else {
+                this.listener.on('checkout.api', callback);
             }
         },
         defer: function () {
             return ns.get('Deferred');
         },
         request: function (model, method, params) {
-            var defer   = this.defer();
-            var data    = {};
-            data.uid    = this.connector.getUID();
+            var defer = this.defer();
+            var data = {};
+            data.uid = this.connector.getUID();
             data.action = model;
             data.method = method;
             data.params = params || {};
-            this.connector.send('request',data);
+            this.connector.send('request', data);
             this.connector.action(data.uid, this.proxy(function (ev, response) {
-                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [response]);
+                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ns.get('Response', response)]);
             }, this));
             return defer;
         }

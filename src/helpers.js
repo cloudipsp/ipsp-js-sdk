@@ -6,6 +6,9 @@
     this.isObject = function (o) {
         return type(o) === 'object';
     };
+    this.isPlainObject = function(o){
+        return (!!o && typeof o === 'object' && o.constructor === Object);
+    };
     this.isFunction = function (o) {
         return type(o) === 'function';
     };
