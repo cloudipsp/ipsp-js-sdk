@@ -743,7 +743,7 @@ a:hover {
   line-height: 3.5rem;
   font-size: 23px;
 }
-@media screen and (max-width: 42em) {
+@media screen and (max-width: 50em) {
   .page-brand {
     padding-left: 1rem;
   }
@@ -752,6 +752,12 @@ a:hover {
   line-height: 0px;
   text-decoration: none;
   color: #fff;
+}
+.page-brand a img {
+  display: block;
+  float: left;
+  height: 1.5rem;
+  margin: 1rem 0;
 }
 .page-menu {
   float: right;
@@ -1062,7 +1068,6 @@ a:hover {
   margin-bottom: 0;
 }
 .page-content table {
-  display: block;
   width: 100%;
   overflow: auto;
   word-break: normal;

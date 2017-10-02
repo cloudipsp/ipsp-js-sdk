@@ -725,12 +725,12 @@ $checkout.scope('Response', function (ns) {
             };
         },
         redirectUrl: function () {
-            if( this.attr('url') ){
+            if (this.attr('url')) {
                 location.assign(this.attr('url'));
                 return true;
             }
         },
-        submitForm:function(){
+        submitForm: function () {
             var method = this.attr('method');
             var url = this.attr('url');
             var data = this.attr('send_data');
@@ -744,6 +744,128 @@ $checkout.scope('Response', function (ns) {
             if (action == 'redirect')
                 return this.redirectUrl();
             return false;
+        }
+    });
+});
+
+$checkout.scope('Form', function (ns) {
+    return ns.module('Class').extend({
+        init: function (form) {
+            this.form = form;
+        },
+        getData: function (filter, coerce, spaces) {
+            var params = this.deparam(this.serializeAndEncode(), coerce, false);
+            return filter == true ? this.clean(params) : params;
+        },
+        clean: function (obj) {
+            var prop;
+            for (prop in obj) {
+                if (obj.hasOwnProperty(prop)) {
+                    if (obj[prop].length === 0) {
+                        if (isArray(obj)) obj.splice(prop, 1);
+                        if (isPlainObject(obj)) delete obj[prop];
+                    } else if (typeof(obj[prop]) == 'object') {
+                        this.clean(obj[prop]);
+                    }
+                }
+            }
+            return obj;
+        },
+        map: function (list, callback) {
+            var T, A, k;
+            if (list == null) {
+                throw new TypeError('this is null or not defined');
+            }
+            if (typeof callback !== 'function') {
+                throw new TypeError(callback + ' is not a function');
+            }
+            var O = Object(list);
+            var len = O.length >>> 0;
+            if (arguments.length > 1) {
+                T = arguments[1];
+            }
+            A = new Array(len);
+            k = 0;
+            while (k < len) {
+                var kValue, mappedValue;
+                if (k in O) {
+                    kValue = O[k];
+                    mappedValue = callback.call(T, kValue, k, O);
+                    if(mappedValue!==undefined)
+                        A[k] = mappedValue;
+                }
+                k++;
+            }
+            return A;
+        },
+        serializeArray: function () {
+            var list = Array.prototype.slice.call(this.form.elements);
+            var data = this.map(list, function (field) {
+                if(field.disabled || field.name=='' ) return;
+                if(field.type.match('checkbox|radio') && !field.checked) return;
+                return {
+                    name  : field.name ,
+                    value : field.value
+                };
+            });
+            return data;
+        },
+        serializeAndEncode: function () {
+            return this.map(this.serializeArray(), function (field) {
+                return [field.name, encodeURIComponent(field.value)].join('=');
+            }).join('&');
+        },
+        deparam: function (params, coerce, spaces) {
+            var obj = {},
+                coerce_types = {'true': !0, 'false': !1, 'null': null};
+            if (spaces) params = params.replace(/\+/g, ' ');
+            params.split('&').forEach(function (v) {
+                var param = v.split('='),
+                    key = decodeURIComponent(param[0]),
+                    val,
+                    cur = obj,
+                    i = 0,
+                    keys = key.split(']['),
+                    keys_last = keys.length - 1;
+                if (/\[/.test(keys[0]) && /\]$/.test(keys[keys_last])) {
+                    keys[keys_last] = keys[keys_last].replace(/\]$/, '');
+                    keys = keys.shift().split('[').concat(keys);
+                    keys_last = keys.length - 1;
+                } else {
+                    keys_last = 0;
+                }
+                if (param.length === 2) {
+                    val = decodeURIComponent(param[1]);
+                    if (coerce) {
+                        val = val && !isNaN(val) && ((+val + '') === val) ? +val
+                            : val === 'undefined' ? undefined
+                                : coerce_types[val] !== undefined ? coerce_types[val]
+                                    : val;
+                    }
+                    if (keys_last) {
+                        for (; i <= keys_last; i++) {
+                            key = keys[i] === '' ? cur.length : keys[i];
+                            cur = cur[key] = i < keys_last
+                                ? cur[key] || ( keys[i + 1] && isNaN(keys[i + 1]) ? {} : [] )
+                                : val;
+                        }
+                    } else {
+                        if (Object.prototype.toString.call(obj[key]) === '[object Array]') {
+                            obj[key].push(val);
+                        } else if ({}.hasOwnProperty.call(obj, key)) {
+                            obj[key] = [obj[key], val];
+                        } else {
+                            obj[key] = val;
+                        }
+                    }
+
+                } else if (key) {
+                    obj[key] = coerce
+                        ? undefined
+                        : '';
+                }
+            });
+            return obj;
         }
     });
 });

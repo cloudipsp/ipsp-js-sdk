@@ -169,13 +169,19 @@ a {
   padding: 0 @grid-gutter-width 0 0;
   line-height: 2rem + 1.5rem;
   font-size:23px;
-  @media screen and (max-width: 42em) {
+  @media screen and (max-width: 50em) {
     padding-left:@grid-gutter-width;
   }
   a{
     line-height:0px;
     text-decoration:none;
     color:#fff;
+    img{
+      display:block;
+      float:left;
+      height:1.5rem;
+      margin:1rem 0;
+    }
   }
 }
 
@@ -454,7 +460,6 @@ a {
     margin-bottom: 0;
   }
   table {
-    display: block;
     width: 100%;
     overflow: auto;
     word-break: normal;

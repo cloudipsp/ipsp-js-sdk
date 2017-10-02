@@ -30,6 +30,9 @@ author:
 
 toolbar:
 -
+  name: Documentation
+  link: /docs/
+-
   name: Examples
   link: /examples/
 -
