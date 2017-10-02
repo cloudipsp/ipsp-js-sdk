@@ -1081,6 +1081,7 @@ a:hover {
 .page-content table td {
   padding: 0.5rem 1rem;
   border: 1px solid #e9ebec;
+  vertical-align: top;
 }
 .page-content dl {
   padding: 0;
@@ -1191,4 +1192,40 @@ ol.page-breadcrumbs > li > span {
   border: 1px solid #ffffff;
   margin-top: -1px;
   border-left: 0;
+}
+table.details {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+table.details tr td,
+table.details tr th {
+  padding: 0.5rem;
+  line-height: 1.5;
+}
+table.details tr td:first-child,
+table.details tr th:first-child {
+  padding-left: 0;
+}
+table.details tr td:last-child,
+table.details tr th:last-child {
+  padding-right: 0;
+}
+table.details tr td {
+  border-width: 0 0 1px 0;
+  vertical-align: top;
+}
+table.details tr th {
+  border-width: 0 0 1px 0;
+  color: #159957;
+  border-color: #1bc671;
+  text-align: left;
+}
+table.details .param {
+  line-height: 1.7;
+  font-size: 0.8rem;
+  padding: 0.1rem 0.5rem;
+  display: inline-block;
+  background-color: #1bc671;
+  color: rgba(255, 255, 255, 0.9);
+  vertical-align: top;
 }
