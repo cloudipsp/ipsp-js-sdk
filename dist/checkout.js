@@ -750,7 +750,7 @@ $checkout.scope('Response', function (ns) {
 
 $checkout.scope('Form', function (ns) {
     return ns.module('Class').extend({
-        init: function (form) {
+        init: function(form){
             this.form = form;
         },
         getData: function (filter, coerce, spaces) {
