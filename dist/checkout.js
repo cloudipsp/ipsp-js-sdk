@@ -48,19 +48,19 @@
     var instance = {};
     var getModule = function (name) {
         if (!modules[name]) {
-            throw Error('module is undefined');
+            throw Error(['module is undefined',name].join(' '));
         }
         return modules[name];
     };
     var newModule = function (name, params) {
         if (!modules[name]) {
-            throw Error('module is undefined');
+            throw Error(['module is undefined',name].join(' '));
         }
         return new modules[name](params || {});
     };
     var addModule = function (name, module) {
         if (modules[name]) {
-            throw Error('module already added');
+            throw Error(['module already added',name].join(' '));
         }
         modules[name] = module;
     };
@@ -102,6 +102,16 @@ $checkout.scope('addEvent', function () {
         if (!el) return false;
         if (el.addEventListener) el.addEventListener(type, callback);
         else if (el.attachEvent) el.attachEvent('on' + type, callback);
+    }
+});
+/**
+ *
+ */
+$checkout.scope('removeEvent', function () {
+    return function (el, type, callback) {
+        if (!el) return false;
+        if (el.removeEventListener) el.removeEventListener(type, callback, false);
+        else if (el.detachEvent) el.detachEvent('on' + type, callback);
     }
 });
 /**
@@ -748,10 +758,15 @@ $checkout.scope('Response', function (ns) {
     });
 });
 
-$checkout.scope('Form', function (ns) {
+$checkout.scope('FormData', function (ns) {
     return ns.module('Class').extend({
-        init: function(form){
-            this.form = form;
+        init: function (form) {
+            this.setFormElement(form);
+        },
+        setFormElement: function (form) {
+            if (isElement(form)) {
+                this.form = form;
+            }
         },
         getData: function (filter, coerce, spaces) {
             var params = this.deparam(this.serializeAndEncode(), coerce, false);
@@ -791,7 +806,7 @@ $checkout.scope('Form', function (ns) {
                 if (k in O) {
                     kValue = O[k];
                     mappedValue = callback.call(T, kValue, k, O);
-                    if(mappedValue!==undefined)
+                    if (mappedValue !== undefined)
                         A[k] = mappedValue;
                 }
                 k++;
@@ -801,11 +816,11 @@ $checkout.scope('Form', function (ns) {
         serializeArray: function () {
             var list = Array.prototype.slice.call(this.form.elements);
             var data = this.map(list, function (field) {
-                if(field.disabled || field.name=='' ) return;
-                if(field.type.match('checkbox|radio') && !field.checked) return;
+                if (field.disabled || field.name == '') return;
+                if (field.type.match('checkbox|radio') && !field.checked) return;
                 return {
-                    name  : field.name ,
-                    value : field.value
+                    name: field.name,
+                    value: field.value
                 };
             });
             return data;
@@ -872,16 +887,15 @@ $checkout.scope('Form', function (ns) {
 
 $checkout.scope('Api', function (ns) {
     return ns.module('Class').extend({
-        origin: 'https://api.dev.fondy.eu',
+        origin: 'https://api.fondy.eu',
         endpoint: {
             gateway: '/checkout/v2/'
         },
-        init: function () {
-            this.loaded = false;
-            this.created = false;
-            this.listener = ns.get('Event');
+        init: function(){
+            this.loaded    = false;
+            this.created   = false;
+            this.listener  = ns.get('Event');
             this.connector = ns.get('Connector');
-            this.params = {};
         },
         setOrigin: function (origin) {
             this.origin = origin;

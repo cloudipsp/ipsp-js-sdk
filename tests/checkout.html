@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
+    <script src="../dist/checkout.js"></script>
+</head>
+<body>
+<div class="container">
+    <form class="form form-horizontal" id="checkout-form">
+        <div class="form-group">
+            <input type="hidden" name="payment_system" value="card">
+            <input type="hidden" name="merchant_id" value="900204">
+            <input type="hidden" name="amount" value="100">
+            <input type="hidden" name="currency" value="USD">
+            <input type="hidden" name="email" value="client@example.com"/>
+        </div>
+        <div class="form-group row">
+            <div class="col-12">
+                <input type="text" name="card_number" class="form-control" pattern="\d{16}|\d{19}"
+                       placeholder="Card Number"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-6">
+                <input type="text" name="expiry_month" maxlength="2" pattern="\d{2}" class="form-control"
+                       placeholder="Expiry Month"/>
+            </div>
+            <div class="col-6">
+                <input type="text" name="expiry_year" maxlength="4" pattern="\d{2}|\d{4}" class="form-control"
+                       placeholder="Expiry Year"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-6">
+                <input type="text" name="cvv2" maxlength="3" class="form-control" placeholder="CVV"/>
+            </div>
+            <div class="col-6">
+                <button type="submit" class="btn btn-block btn-primary">
+                    Checkout
+                </button>
+            </div>
+        </div>
+    </form>
+    <div class="result">
+
+    </div>
+</div>
+<script>
+    $checkout.scope('FormWidget', function (ns) {
+        return ns.module('Api').extend({
+            init: function (params) {
+                this._super();
+                this.initWidget(params);
+            },
+            initWidget: function (params) {
+                if (isString(params.element)) {
+                    this.initForm(params.element);
+                }
+                if (isString(params.origin)) {
+                    this.setOrigin(params.origin);
+                }
+            },
+            initForm: function (element) {
+                this.form = document.getElementById(element);
+                this.formData = ns.get('FormData', this.form);
+                ns.proxy('addEvent', this.form, 'submit', this.proxy('onSubmit'));
+            },
+            onSubmit: function (el, ev) {
+                ev.preventDefault();
+                this.scope(function () {
+                    this.request('api.checkout.form', 'request', this.formData.getData())
+                        .done(this.proxy('onSuccess')).fail(this.proxy('onError'));
+                });
+            },
+            onSuccess: function (def, model) {
+                model.sendResponse();
+                console.log('success', model.data);
+            },
+            onError: function (def, model) {
+                console.log('error', model.data);
+            }
+        });
+    });
+    $checkout('FormWidget', {
+        element: 'checkout-form',
+        origin: 'https://api.dev.fondy.eu'
+    });
+</script>
+
+</body>
+</html>
