@@ -33,7 +33,7 @@ gulp.task('clean', function() {
 });
 
 gulp.task('watcher', function(){
-    gulp.watch("src/*.js",['sdk']);
+    gulp.watch(['src/*.js','src/html/*.html'],['sdk']);
 });
 
 gulp.task('default', ['watcher','clean','sdk']);
