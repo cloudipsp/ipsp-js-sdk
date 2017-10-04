@@ -68,18 +68,18 @@
             initForm: function (element) {
                 this.form = document.getElementById(element);
                 this.formData = ns.get('FormData', this.form);
-                ns.proxy('addEvent', this.form, 'submit', this.proxy('onSubmit'));
+                ns.proxy('addEvent',this.form,'submit',this.proxy('onSubmit'));
             },
             onSubmit: function (el, ev) {
                 ev.preventDefault();
-                this.scope(function () {
+                this.scope(function(){
                     this.request('api.checkout.form', 'request', this.formData.getData())
                         .done(this.proxy('onSuccess')).fail(this.proxy('onError'));
                 });
             },
-            onSuccess: function (def, model) {
+            onSuccess: function (def,model){
                 model.sendResponse();
-                console.log('success', model.data);
+                console.log('success',model.data);
             },
             onError: function (def, model) {
                 console.log('error', model.data);
