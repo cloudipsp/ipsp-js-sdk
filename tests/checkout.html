@@ -14,7 +14,7 @@
     <form class="form form-horizontal" id="checkout-form">
         <div class="form-group">
             <input type="hidden" name="payment_system" value="card">
-            <input type="hidden" name="merchant_id" value="900204">
+            <input type="hidden" name="merchant_id" value="1396424">
             <input type="hidden" name="amount" value="100">
             <input type="hidden" name="currency" value="USD">
             <input type="hidden" name="email" value="client@example.com"/>
@@ -46,50 +46,90 @@
             </div>
         </div>
     </form>
+
+
+    <button type="submit"
+            data-merchant_id="1396424"
+            data-amount="100"
+            data-currency="UAH"
+            class="btn btn-pay btn-success" >
+        Приват 24
+    </button>
+
+
     <div class="result">
 
     </div>
 </div>
 <script>
-    $checkout.scope('FormWidget', function (ns) {
+
+    $checkout.scope('Widget', function (ns) {
         return ns.module('Api').extend({
             init: function (params) {
                 this._super();
-                this.initWidget(params);
+                this.listener  = ns.get('Event');
+                this.params    = params;
+                this.initWidget();
             },
-            initWidget: function (params) {
-                if (isString(params.element)) {
-                    this.initForm(params.element);
+            initWidget: function() {
+                if (isString(this.params.element)) {
+                    this.initElement(this.params.element);
                 }
-                if (isString(params.origin)) {
-                    this.setOrigin(params.origin);
+                if (isString(this.params.origin)) {
+                    this.setOrigin(this.params.origin);
                 }
             },
-            initForm: function (element) {
-                this.form = document.getElementById(element);
-                this.formData = ns.get('FormData', this.form);
-                ns.proxy('addEvent',this.form,'submit',this.proxy('onSubmit'));
+            initElement: function (element) {
+
             },
-            onSubmit: function (el, ev) {
+            getParams:function(){
+                return {};
+            },
+            sendRequest: function (el,ev){
                 ev.preventDefault();
                 this.scope(function(){
-                    this.request('api.checkout.form', 'request', this.formData.getData())
+                    this.request('api.checkout.form', 'request',this.getParams(el))
                         .done(this.proxy('onSuccess')).fail(this.proxy('onError'));
                 });
             },
             onSuccess: function (def,model){
                 model.sendResponse();
-                console.log('success',model.data);
+                this.listener.trigger('success',model);
             },
             onError: function (def, model) {
-                console.log('error', model.data);
+                this.listener.trigger('error',model);
+            },
+            on:function(type,callback){
+                this.listener.on(type,callback);
+                return this;
+            },
+            off:function(type,callback){
+                this.listener.off(type,callback);
+                return this;
             }
         });
     });
-    $checkout('FormWidget', {
-        element: 'checkout-form',
-        origin: 'https://api.dev.fondy.eu'
+
+    $checkout.scope('FormWidget', function (ns) {
+        return ns.module('Widget').extend({
+            initElement: function( element ){
+                this.element = document.querySelector(element);
+                ns.proxy('addEvent', this.element , 'submit' , this.proxy('sendRequest') );
+            },
+            getParams:function( element ){
+                return ns.get('FormData',element).getData();
+            }
+        });
     });
+
+    $checkout('FormWidget', {
+        element: '#checkout-form'
+    }).on('success',function(model){
+        console.log('success',model);
+    }).on('error',function(model){
+        console.log('error',model);
+    });
+
 </script>
 
 </body>

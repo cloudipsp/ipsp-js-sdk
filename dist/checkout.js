@@ -100,13 +100,11 @@ $checkout.scope('removeElement', function () {
 $checkout.scope('addEvent', function () {
     return function (el, type, callback) {
         if (!el) return false;
-        if (el.addEventListener) el.addEventListener(type, callback);
+        if (el.addEventListener) el.addEventListener(type,callback);
         else if (el.attachEvent) el.attachEvent('on' + type, callback);
     }
 });
-/**
- *
- */
+
 $checkout.scope('removeEvent', function () {
     return function (el, type, callback) {
         if (!el) return false;
@@ -114,9 +112,7 @@ $checkout.scope('removeEvent', function () {
         else if (el.detachEvent) el.detachEvent('on' + type, callback);
     }
 });
-/**
- *
- */
+
 $checkout.scope('popupBlocker', function (ns) {
     return function (poppedWindow) {
         var result = false;
@@ -136,9 +132,7 @@ $checkout.scope('popupBlocker', function (ns) {
         return result;
     };
 });
-/**
- *
- */
+
 $checkout.scope('Class', function () {
     var init = false;
     var fnTest = /xyz/.test((function () {
@@ -197,9 +191,7 @@ $checkout.scope('Class', function () {
     };
     return Core;
 });
-/**
- *
- */
+
 $checkout.scope('Deferred', function () {
     function isArray(arr) {
         return Object.prototype.toString.call(arr) === '[object Array]';
