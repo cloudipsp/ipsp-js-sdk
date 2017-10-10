@@ -22,7 +22,6 @@ gulp.task('views', function() {
 
 gulp.task('sdk',['views'],function(){
     return combineFiles('checkout.js',[
-        'src/helpers.js',
         'src/index.js',
         'src/views.js'
     ],'dist');

@@ -4,19 +4,19 @@
     var instance = {};
     var getModule = function (name) {
         if (!modules[name]) {
-            throw Error(['module is undefined',name].join(' '));
+            throw Error(['module is undefined', name].join(' '));
         }
         return modules[name];
     };
     var newModule = function (name, params) {
         if (!modules[name]) {
-            throw Error(['module is undefined',name].join(' '));
+            throw Error(['module is undefined', name].join(' '));
         }
         return new modules[name](params || {});
     };
     var addModule = function (name, module) {
         if (modules[name]) {
-            throw Error(['module already added',name].join(' '));
+            throw Error(['module already added', name].join(' '));
         }
         modules[name] = module;
     };
@@ -42,52 +42,7 @@
         return this;
     };
 })(window || {});
-/**
- *
- */
-$checkout.scope('removeElement', function () {
-    return function (el) {
-        el.parentNode.removeChild(el);
-    };
-});
-/**
- *
- */
-$checkout.scope('addEvent', function () {
-    return function (el, type, callback) {
-        if (!el) return false;
-        if (el.addEventListener) el.addEventListener(type,callback);
-        else if (el.attachEvent) el.attachEvent('on' + type, callback);
-    }
-});
 
-$checkout.scope('removeEvent', function () {
-    return function (el, type, callback) {
-        if (!el) return false;
-        if (el.removeEventListener) el.removeEventListener(type, callback, false);
-        else if (el.detachEvent) el.detachEvent('on' + type, callback);
-    }
-});
-
-$checkout.scope('popupBlocker', function (ns) {
-    return function (poppedWindow) {
-        var result = false;
-        try {
-            if (typeof poppedWindow == 'undefined') {
-                result = true;
-            } else if (poppedWindow && poppedWindow.closed) {
-                result = false;
-            } else if (poppedWindow && poppedWindow.test) {
-                result = false;
-            } else {
-                result = true;
-            }
-        } catch (err) {
-
-        }
-        return result;
-    };
-});
 
 $checkout.scope('Class', function () {
     var init = false;
@@ -148,10 +103,99 @@ $checkout.scope('Class', function () {
     return Core;
 });
 
-$checkout.scope('Deferred', function () {
-    function isArray(arr) {
-        return Object.prototype.toString.call(arr) === '[object Array]';
-    }
+
+$checkout.scope('Utils', function (ns) {
+    return ns.module('Class').extend({
+        getType: function (o) {
+            return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+        },
+        isObject: function (o) {
+            return this.getType(o) === 'object';
+        },
+        isPlainObject: function (o) {
+            return (!!o && typeof o === 'object' && o.constructor === Object);
+        },
+        isFunction: function (o) {
+            return this.getType(o) === 'function';
+        },
+        isRegexp: function (o) {
+            return this.getType(o) === 'regexp';
+        },
+        isArguments: function (o) {
+            return this.getType(o) === 'arguments';
+        },
+        isError: function (o) {
+            return this.getType(o) === 'error';
+        },
+        isArray: function (o) {
+            return this.getType(o) === 'array';
+        },
+        isDate: function (o) {
+            return this.getType(o) === 'date';
+        },
+        isString: function (o) {
+            return this.getType(o) === 'string';
+        },
+        isNumber: function (o) {
+            return this.getType(o) === 'number';
+        },
+        isElement: function (o) {
+            return o && o.nodeType === 1;
+        },
+        toArray: function (o) {
+            return [].slice.call(o);
+        },
+        querySelectorAll: function (o, p) {
+            return this.toArray((p || document).querySelectorAll(o));
+        },
+        querySelector: function (o, p) {
+            return (p || document).querySelector(o);
+        },
+        forEach: function (ob, cb, cx) {
+            var p;
+            for (p in ob)
+                if (ob.hasOwnProperty(p))
+                    cb.call(cx || null, ob[p], p);
+        },
+        map: function (ob, cb, cx) {
+            var p, t, r = [];
+            for (p in ob)
+                if (ob.hasOwnProperty(p))
+                    if ((t = cb.call(cx || null, ob[p], p)) !== undefined)
+                        r[p] = t;
+            return r;
+        },
+        removeElement: function (el) {
+            el.parentNode.removeChild(el);
+        },
+        createElement: function (el) {
+            return document.createElement(el);
+        },
+        extend: function (obj) {
+            this.forEach(Array.prototype.slice.call(arguments, 1), function (o) {
+                if (o !== null) {
+                    this.forEach(o, function (value, key) {
+                        obj[key] = value;
+                    });
+                }
+            }, this);
+            return obj;
+        }
+    });
+});
+
+
+$checkout.scope('Deferred', function (ns) {
+
+    var utils = ns('Utils');
+
+    function isArray(o) {
+        return utils.isArray(o);
+    };
+
+    function isFunction(o) {
+        return utils.isFunction(o);
+    };
 
     function foreach(arr, handler) {
         if (isArray(arr)) {
@@ -161,7 +205,7 @@ $checkout.scope('Deferred', function () {
         }
         else
             handler(arr);
-    }
+    };
 
     function D(fn) {
         var status = 'pending',
@@ -224,7 +268,7 @@ $checkout.scope('Deferred', function () {
                         if (!arguments[i]) {
                             continue;
                         }
-                        if (isArray(arguments[i])) {
+                        if (utils.isArray(arguments[i])) {
                             var arr = arguments[i];
                             for (var j = 0; j < arr.length; j++) {
                                 if (status === 'pending') {
@@ -352,67 +396,14 @@ $checkout.scope('Deferred', function () {
             };
 
         var obj = promise.promise(deferred);
-
         if (isFunction(fn)) {
             fn.apply(obj, [obj]);
         }
         return obj;
-    }
-
-    D.when = function () {
-        if (arguments.length < 2) {
-            var obj = arguments.length ? arguments[0] : undefined;
-            if (obj && (typeof obj.isResolved === 'function' && typeof obj.isRejected === 'function')) {
-                return obj.promise();
-            }
-            else {
-                return D().resolve(obj).promise();
-            }
-        }
-        else {
-            return (function (args) {
-                var df = D(),
-                    size = args.length,
-                    done = 0,
-                    rp = new Array(size);
-
-                for (var i = 0; i < args.length; i++) {
-                    (function (j) {
-                        var obj = null;
-
-                        if (args[j].done) {
-                            args[j].done(function () {
-                                rp[j] = (arguments.length < 2) ? arguments[0] : arguments;
-                                if (++done == size) {
-                                    df.resolve.apply(df, rp);
-                                }
-                            })
-                                .fail(function () {
-                                    df.reject(arguments);
-                                });
-                        } else {
-                            obj = args[j];
-                            args[j] = new Deferred();
-
-                            args[j].done(function () {
-                                rp[j] = (arguments.length < 2) ? arguments[0] : arguments;
-                                if (++done == size) {
-                                    df.resolve.apply(df, rp);
-                                }
-                            })
-                                .fail(function () {
-                                    df.reject(arguments);
-                                }).resolve(obj);
-                        }
-                    })(i);
-                }
-
-                return df.promise();
-            })(arguments);
-        }
-    }
+    };
     return D;
 });
+
 
 $checkout.scope('Event', function (ns) {
     return ns.module('Class').extend({
@@ -438,8 +429,66 @@ $checkout.scope('Event', function (ns) {
     });
 });
 
-$checkout.scope('Connector', function (ns) {
+$checkout.scope('Module', function (ns) {
     return ns.module('Class').extend({
+        utils: ns('Utils'),
+        proxy: function (fn) {
+            if (!this._p_c_) this._p_c_ = {};
+            if (!this._p_c_[fn]) this._p_c_[fn] = this._super(fn);
+            return this._p_c_[fn];
+        },
+        each: function (ob, cb) {
+            this.utils.forEach(ob, this.proxy(cb));
+        },
+
+        addAttr: function (el, ob) {
+            if (!this.utils.isElement(el)) return false;
+            this.utils.forEach(ob, function (v, k) {
+                el.setAttribute(k, v);
+            });
+        },
+        addCss: function (el, ob) {
+            if (!this.utils.isElement(el)) return false;
+            this.utils.forEach(ob, function (v, k) {
+                el.style[k] = v;
+            });
+        },
+        addEvent: function (el, ev, cb) {
+            if (!el || !ev || !cb) return false;
+            cb = this.proxy(cb);
+            if (el.addEventListener) el.addEventListener(ev, cb);
+            else if (el.attachEvent) el.attachEvent('on' + ev, cb);
+        },
+        removeEvent: function (el, ev, cb) {
+            if (!el || !ev || !cb) return false;
+            cb = this.proxy(cb);
+            if (el.removeEventListener) el.removeEventListener(ev, cb, false);
+            else if (el.detachEvent) el.detachEvent('on' + ev, cb);
+        },
+        prepareForm: function (url, data, target, method) {
+            var form = this.utils.createElement('form');
+            this.addAttr(form, {
+                'action': url,
+                'target': target || '_self',
+                'method': method || 'POST'
+            });
+            this.addCss(form, {
+                'display': 'none'
+            });
+            this.utils.forEach(data, function (v, k, el) {
+                el = this.utils.createElement('input');
+                el.type = 'hidden';
+                el.name = k;
+                el.value = v;
+                form.appendChild(el);
+            }, this);
+            return form;
+        }
+    });
+});
+
+$checkout.scope('Connector', function (ns) {
+    return ns.module('Module').extend({
         ns: 'crossDomain',
         origin: '*',
         uniqueId: 1,
@@ -449,7 +498,7 @@ $checkout.scope('Connector', function (ns) {
         },
         create: function () {
             this.listener = ns.get('Event');
-            ns.proxy('addEvent', window, 'message', this.proxy('router'));
+            this.addEvent(window, 'message', 'router');
         },
         setTarget: function (target) {
             this.target = target;
@@ -486,8 +535,9 @@ $checkout.scope('Connector', function (ns) {
 });
 
 $checkout.scope('AcsFrame', function (ns) {
-    return ns.module('Class').extend({
+    return ns.module('Module').extend({
         name: 'acsframe',
+        className: 'ipsp-modal-iframe',
         attrs: {
             'frameborder': '0',
             'allowtransparency': 'true',
@@ -509,13 +559,20 @@ $checkout.scope('AcsFrame', function (ns) {
             this.initFrame();
             this.initConnector();
         },
+        initModal: function () {
+            this.modal = this.utils.createElement('div');
+            this.modal.innerHTML = this.template;
+            this.utils.querySelector('body').appendChild(this.modal);
+        },
         initFrame: function () {
             this.name = [this.name, Math.round(Math.random() * 1000000000)].join('');
             this.wrapper = this.find('.ipsp-modal-content');
-            this.iframe = document.createElement('iframe');
-            this.iframe.setAttribute('name', this.name);
-            this.iframe.setAttribute('id', this.name);
-            this.iframe.className = 'ipsp-modal-iframe';
+            this.iframe = this.utils.createElement('iframe');
+            this.addAttr(this.iframe, {
+                'id': this.id,
+                'name': this.name,
+                'class': this.className
+            });
             this.addAttr(this.iframe, this.attrs);
             this.addCss(this.iframe, this.styles);
             this.form = this.prepareForm(this.data.url, this.data.send_data, this.name);
@@ -523,46 +580,23 @@ $checkout.scope('AcsFrame', function (ns) {
             this.wrapper.appendChild(this.form);
             this.form.submit();
         },
-        initModal: function () {
-            this.modal = document.createElement('div');
-            this.modal.innerHTML = this.template;
-            document.querySelector('body').appendChild(this.modal);
-        },
         find: function (selector) {
-            return this.modal.querySelector(selector);
+            return this.utils.querySelector(selector, this.modal);
         },
         initEvents: function () {
             var close = this.find('.ipsp-modal-close');
             var link = this.find('.ipsp-modal-title a');
-            ns.proxy('addEvent', close, 'click', this.proxy(function (el, ev) {
+            this.addEvent(close, 'click', function (el, ev) {
                 ev.preventDefault();
                 this.removeModal();
-            }));
-            ns.proxy('addEvent', link, 'click', this.proxy(function (el, ev) {
+            });
+            this.addEvent(link, 'click', function (el, ev) {
                 ev.preventDefault();
                 this.form.submit();
-            }));
+            });
         },
         removeModal: function () {
-            ns.proxy('removeElement', this.modal);
-        },
-        prepareForm: function (url, data, target, method) {
-            var elem;
-            var form = document.createElement('form');
-            form.action = url;
-            form.target = target || '_self';
-            form.method = method || 'POST';
-            for (var prop in data) {
-                if (data.hasOwnProperty(prop)) {
-                    elem = document.createElement('input');
-                    elem.type = 'hidden';
-                    elem.name = prop;
-                    elem.value = data[prop];
-                    form.appendChild(elem);
-                }
-            }
-            form.style.display = 'none';
-            return form;
+            this.utils.removeElement(this.modal);
         },
         initConnector: function () {
             this.connector = ns.get('Connector');
@@ -576,54 +610,18 @@ $checkout.scope('AcsFrame', function (ns) {
                 });
                 this.removeModal();
             }, this));
-        },
-        addCss: function (elem, styles) {
-            if (!elem)
-                return false;
-            for (var prop in styles) {
-                if (styles.hasOwnProperty(prop)) {
-                    elem.style[prop] = styles[prop];
-                }
-            }
-        },
-        addAttr: function (elem, attributes) {
-            var prop;
-            if (!elem)
-                return false;
-            for (prop in attributes) {
-                if (attributes.hasOwnProperty(prop)) {
-                    elem.setAttribute(prop, attributes[prop]);
-                }
-            }
         }
     });
 });
 
 $checkout.scope('Model', function (ns) {
-    return ns.module('Class').extend({
+    return ns.module('Module').extend({
         init: function (data) {
             if (data) {
                 this.data = data;
             } else {
                 this.data = {};
             }
-        },
-        each: function () {
-            var args = arguments;
-            var name = args[1] ? args[0] : null;
-            var callback = args[1] ? args[1] : args[0];
-            var prop, value = name ? this.alt(name, []) : this.data;
-            for (prop in value) {
-                if (value.hasOwnProperty(prop)) {
-                    callback(this.instance(value[prop]), value[prop], prop);
-                }
-            }
-        },
-        isPlainObject: function (value) {
-            return isPlainObject(value);
-        },
-        isArray: function (value) {
-            return isArray(value);
         },
         attr: function (key, value) {
             var i = 0,
@@ -657,30 +655,12 @@ $checkout.scope('Model', function (ns) {
 
 $checkout.scope('Response', function (ns) {
     return ns.module('Model').extend({
-        formData: function (url, data, target, method) {
-            var elem;
-            var form = document.createElement('form');
-            var body = document.getElementsByTagName('body')[0];
-            form.action = url;
-            form.target = target || '_self';
-            form.method = method || 'POST';
-            for (var prop in data) {
-                if (data.hasOwnProperty(prop)) {
-                    elem = document.createElement('input');
-                    elem.type = 'hidden';
-                    elem.name = prop;
-                    elem.value = data[prop];
-                    form.appendChild(elem);
-                }
-            }
-            form.style.display = 'none';
-            return {
-                submit: function () {
-                    body.appendChild(form);
-                    form.submit();
-                    form.parentNode.removeChild(form);
-                }
-            };
+        formDataSubmit: function (url, data, target, method) {
+            var form = this.prepareForm(url, data, target, method);
+            var body = this.utils.querySelector('body');
+            body.appendChild(form);
+            form.submit();
+            form.parentNode.removeChild(form);
         },
         redirectUrl: function () {
             if (this.attr('url')) {
@@ -692,7 +672,7 @@ $checkout.scope('Response', function (ns) {
             var method = this.attr('method');
             var url = this.attr('url');
             var data = this.attr('send_data');
-            this.formData(url, data, '_top', method).submit();
+            this.formDataSubmit(url, data, '_top', method);
             return true;
         },
         sendResponse: function () {
@@ -707,17 +687,17 @@ $checkout.scope('Response', function (ns) {
 });
 
 $checkout.scope('FormData', function (ns) {
-    return ns.module('Class').extend({
+    return ns.module('Module').extend({
         init: function (form) {
             this.setFormElement(form);
         },
         setFormElement: function (form) {
-            if (isElement(form)) {
+            if (this.utils.isElement(form)) {
                 this.form = form;
             }
         },
-        getData: function (filter, coerce, spaces) {
-            var params = this.deparam(this.serializeAndEncode(), coerce, false);
+        getData: function(filter){
+            var params = this.deparam(this.serializeArray());
             return filter == true ? this.clean(params) : params;
         },
         clean: function (obj) {
@@ -725,45 +705,18 @@ $checkout.scope('FormData', function (ns) {
             for (prop in obj) {
                 if (obj.hasOwnProperty(prop)) {
                     if (obj[prop].length === 0) {
-                        if (isArray(obj)) obj.splice(prop, 1);
-                        if (isPlainObject(obj)) delete obj[prop];
-                    } else if (typeof(obj[prop]) == 'object') {
+                        if (this.utils.isArray(obj)) obj.splice(prop, 1);
+                        if (this.utils.isPlainObject(obj)) delete obj[prop];
+                    } else if (this.utils.isPlainObject(obj[prop])) {
                         this.clean(obj[prop]);
                     }
                 }
             }
             return obj;
         },
-        map: function (list, callback) {
-            var T, A, k;
-            if (list == null) {
-                throw new TypeError('this is null or not defined');
-            }
-            if (typeof callback !== 'function') {
-                throw new TypeError(callback + ' is not a function');
-            }
-            var O = Object(list);
-            var len = O.length >>> 0;
-            if (arguments.length > 1) {
-                T = arguments[1];
-            }
-            A = new Array(len);
-            k = 0;
-            while (k < len) {
-                var kValue, mappedValue;
-                if (k in O) {
-                    kValue = O[k];
-                    mappedValue = callback.call(T, kValue, k, O);
-                    if (mappedValue !== undefined)
-                        A[k] = mappedValue;
-                }
-                k++;
-            }
-            return A;
-        },
         serializeArray: function () {
-            var list = Array.prototype.slice.call(this.form.elements);
-            var data = this.map(list, function (field) {
+            var list = this.utils.toArray(this.form.elements);
+            var data = this.utils.map(list, function (field) {
                 if (field.disabled || field.name == '') return;
                 if (field.type.match('checkbox|radio') && !field.checked) return;
                 return {
@@ -774,75 +727,47 @@ $checkout.scope('FormData', function (ns) {
             return data;
         },
         serializeAndEncode: function () {
-            return this.map(this.serializeArray(), function (field) {
+            return this.utils.map(this.serializeArray(), function (field) {
                 return [field.name, encodeURIComponent(field.value)].join('=');
             }).join('&');
         },
-        deparam: function (params, coerce, spaces) {
-            var obj = {},
-                coerce_types = {'true': !0, 'false': !1, 'null': null};
-            if (spaces) params = params.replace(/\+/g, ' ');
-            params.split('&').forEach(function (v) {
-                var param = v.split('='),
-                    key = decodeURIComponent(param[0]),
-                    val,
-                    cur = obj,
-                    i = 0,
-                    keys = key.split(']['),
-                    keys_last = keys.length - 1;
-                if (/\[/.test(keys[0]) && /\]$/.test(keys[keys_last])) {
-                    keys[keys_last] = keys[keys_last].replace(/\]$/, '');
-                    keys = keys.shift().split('[').concat(keys);
-                    keys_last = keys.length - 1;
+        deparam: function( obj ){
+            var prop;
+            var result  = {};
+            var breaker = /[^\[\]]+|\[\]$/g;
+            var attr = function(name,value){
+                var i,data = result,last=name.pop(),len=name.length;
+                for(i=0;i<len;i++){
+                    if(!data[name[i]])
+                        data[name[i]] = len == i+1 && last=='[]' ?  [] : {};
+                    data = data[name[i]];
+                }
+                if( last=='[]' ){
+                    data.push(value);
                 } else {
-                    keys_last = 0;
+                    data[last] = value;
                 }
-                if (param.length === 2) {
-                    val = decodeURIComponent(param[1]);
-                    if (coerce) {
-                        val = val && !isNaN(val) && ((+val + '') === val) ? +val
-                            : val === 'undefined' ? undefined
-                                : coerce_types[val] !== undefined ? coerce_types[val]
-                                    : val;
-                    }
-                    if (keys_last) {
-                        for (; i <= keys_last; i++) {
-                            key = keys[i] === '' ? cur.length : keys[i];
-                            cur = cur[key] = i < keys_last
-                                ? cur[key] || ( keys[i + 1] && isNaN(keys[i + 1]) ? {} : [] )
-                                : val;
-                        }
-                    } else {
-                        if (Object.prototype.toString.call(obj[key]) === '[object Array]') {
-                            obj[key].push(val);
-                        } else if ({}.hasOwnProperty.call(obj, key)) {
-                            obj[key] = [obj[key], val];
-                        } else {
-                            obj[key] = val;
-                        }
-                    }
-
-                } else if (key) {
-                    obj[key] = coerce
-                        ? undefined
-                        : '';
+            };
+            for(prop in obj){
+                if(obj.hasOwnProperty(prop)){
+                    attr(obj[prop].name.match(breaker),obj[prop].value);
                 }
-            });
-            return obj;
+            }
+            return result;
         }
     });
 });
 
 $checkout.scope('Api', function (ns) {
-    return ns.module('Class').extend({
+    return ns.module('Module').extend({
         origin: 'https://api.fondy.eu',
         endpoint: {
             gateway: '/checkout/v2/'
         },
-        init: function(){
-            this.loaded    = false;
-            this.created   = false;
-            this.listener  = ns.get('Event');
+        init: function () {
+            this.loaded = false;
+            this.created = false;
+            this.listener = ns.get('Event');
             this.connector = ns.get('Connector');
         },
         setOrigin: function (origin) {
@@ -853,10 +778,10 @@ $checkout.scope('Api', function (ns) {
             return [this.origin, this.endpoint[type] || '/', url || ''].join('');
         },
         loadFrame: function (url) {
-            this.iframe = document.createElement('iframe');
-            this.iframe.src = url;
-            this.iframe.style.display = 'none';
-            document.getElementsByTagName('body')[0].appendChild(this.iframe);
+            this.iframe = this.utils.createElement('iframe');
+            this.addAttr(this.iframe, {'src': url});
+            this.addCss(this.iframe, {'display': 'none'});
+            this.utils.querySelector('body').appendChild(this.iframe);
             return this.iframe;
         },
         create: function () {

@@ -16,7 +16,7 @@
             <input type="hidden" name="payment_system" value="card">
             <input type="hidden" name="merchant_id" value="1396424">
             <input type="hidden" name="amount" value="100">
-            <input type="hidden" name="currency" value="USD">
+            <input type="hidden" name="currency" value="UAH">
             <input type="hidden" name="email" value="client@example.com"/>
         </div>
         <div class="form-group row">
@@ -47,15 +47,9 @@
         </div>
     </form>
 
-
-    <button type="submit"
-            data-merchant_id="1396424"
-            data-amount="100"
-            data-currency="UAH"
-            class="btn btn-pay btn-success" >
-        Приват 24
-    </button>
-
+    <button type="submit" data-pay="100" data-type="p24" class="btn btn-pay btn-success">Приват 24</button>
+    <button type="submit" data-pay="100" data-type="qiwi" class="btn btn-pay btn-success">Qiwi</button>
+    <button type="submit" data-pay="100" data-type="yandex" class="btn btn-pay btn-success">Yandex Money</button>
 
     <div class="result">
 
@@ -67,44 +61,50 @@
         return ns.module('Api').extend({
             init: function (params) {
                 this._super();
-                this.listener  = ns.get('Event');
-                this.params    = params;
+                this.events   = ns.get('Event');
+                this.params   = params;
                 this.initWidget();
             },
-            initWidget: function() {
-                if (isString(this.params.element)) {
+            initWidget: function () {
+                if (this.utils.isString(this.params.element)) {
                     this.initElement(this.params.element);
                 }
-                if (isString(this.params.origin)) {
+                if (this.utils.isString(this.params.origin)) {
                     this.setOrigin(this.params.origin);
                 }
             },
-            initElement: function (element) {
+            initElement: function (el) {
 
             },
-            getParams:function(){
+            addSelectorEvent: function (el, ev, cb) {
+                this.each(this.utils.querySelectorAll(el),function(cx,element){
+                    this.addEvent(element,ev,cb);
+                });
+                return this;
+            },
+            getRequestParams: function () {
                 return {};
             },
             sendRequest: function (el,ev){
                 ev.preventDefault();
-                this.scope(function(){
-                    this.request('api.checkout.form', 'request',this.getParams(el))
+                this.scope(function () {
+                    this.request('api.checkout.form', 'request', this.getRequestParams(el))
                         .done(this.proxy('onSuccess')).fail(this.proxy('onError'));
                 });
             },
-            onSuccess: function (def,model){
+            onSuccess: function (cx, model) {
                 model.sendResponse();
-                this.listener.trigger('success',model);
+                this.events.trigger('success', model);
             },
-            onError: function (def, model) {
-                this.listener.trigger('error',model);
+            onError: function (cx, model) {
+                this.events.trigger('error', model);
             },
-            on:function(type,callback){
-                this.listener.on(type,callback);
+            on: function (type, callback) {
+                this.events.on(type, callback);
                 return this;
             },
-            off:function(type,callback){
-                this.listener.off(type,callback);
+            off: function (type, callback) {
+                this.events.off(type, callback);
                 return this;
             }
         });
@@ -112,23 +112,105 @@
 
     $checkout.scope('FormWidget', function (ns) {
         return ns.module('Widget').extend({
-            initElement: function( element ){
-                this.element = document.querySelector(element);
-                ns.proxy('addEvent', this.element , 'submit' , this.proxy('sendRequest') );
+            initElement: function (element) {
+                this.addSelectorEvent(element, 'submit', 'sendRequest');
             },
-            getParams:function( element ){
+            getRequestParams: function (element) {
                 return ns.get('FormData',element).getData();
+            }
+        });
+    });
+
+    $checkout.scope('ButtonWidget', function (ns) {
+        return ns.module('Widget').extend({
+            attributes: {
+                'data-type': 'payment_system',
+                'data-pay': 'amount'
+            },
+            initElement: function (el) {
+                this.addSelectorEvent(el,'click','sendRequest');
+            },
+            getRequestParams: function (el) {
+                return this.utils.extend({},this.params.options,this.getElementData(el));
+            },
+            getElementData: function (el) {
+                var result = {};
+                this.utils.forEach(this.attributes,function(value,key){
+                    if(el.hasAttribute(key)){
+                        result[value] = el.getAttribute(key);
+                    }
+                });
+                return result;
             }
         });
     });
 
     $checkout('FormWidget', {
         element: '#checkout-form'
-    }).on('success',function(model){
-        console.log('success',model);
-    }).on('error',function(model){
-        console.log('error',model);
+    }).on('success', function (model) {
+        console.log('success', model);
+    }).on('error', function (model) {
+        console.log('error', model);
     });
+
+    $checkout('ButtonWidget', {
+        element: '.btn-pay',
+        options: {
+            merchant_id: '1396424',
+            currency: 'UAH',
+            response_url:'http://checkout-sdk.dev/tests/checkout.html'
+        }
+    }).on('success', function (model) {
+        console.log('success', model);
+    }).on('error', function (model) {
+        console.log('error', model);
+    });
+
+
+    function deparam( obj ){
+        var prop;
+        var result  = {};
+        var breaker = /[^\[\]]+|\[\]$/g;
+        var attr = function(name,value){
+            var i,data = result,last=name.pop(),len=name.length;
+            for(i=0;i<len;i++){
+                if(!data[name[i]])
+                    data[name[i]] = len == i+1 && last=='[]' ?  [] : {};
+                data = data[name[i]];
+            }
+            if( last=='[]' ){
+                data.push(value);
+            } else {
+                data[last] = value;
+            }
+        };
+        for(prop in obj){
+            if(obj.hasOwnProperty(prop)){
+                attr(obj[prop].name.match(breaker),obj[prop].value);
+            }
+        }
+        return result;
+    };
+
+    deparam([
+        {name:'test[]',value:'1'},
+        {name:'test[]',value:'2'},
+        {name:'test[]',value:'3'},
+        {name:'test[]',value:'4'},
+        {name:'test[]',value:'5'},
+        {name:'deep[test][]',value:'1'},
+        {name:'deep[test][]',value:'2'},
+        {name:'deep[test][]',value:'3'},
+        {name:'deep[test][]',value:'4'},
+        {name:'deep[test][]',value:'5'},
+        {name:'test1',value:'adksfjkasdfjk'},
+        {name:'deep[key1]',value:'1'},
+        {name:'deep[key2]',value:'2'},
+        {name:'deep[key3][test]',value:'3'}
+    ]);
+
+
+
 
 </script>
 
