@@ -167,51 +167,6 @@
     });
 
 
-    function deparam( obj ){
-        var prop;
-        var result  = {};
-        var breaker = /[^\[\]]+|\[\]$/g;
-        var attr = function(name,value){
-            var i,data = result,last=name.pop(),len=name.length;
-            for(i=0;i<len;i++){
-                if(!data[name[i]])
-                    data[name[i]] = len == i+1 && last=='[]' ?  [] : {};
-                data = data[name[i]];
-            }
-            if( last=='[]' ){
-                data.push(value);
-            } else {
-                data[last] = value;
-            }
-        };
-        for(prop in obj){
-            if(obj.hasOwnProperty(prop)){
-                attr(obj[prop].name.match(breaker),obj[prop].value);
-            }
-        }
-        return result;
-    };
-
-    deparam([
-        {name:'test[]',value:'1'},
-        {name:'test[]',value:'2'},
-        {name:'test[]',value:'3'},
-        {name:'test[]',value:'4'},
-        {name:'test[]',value:'5'},
-        {name:'deep[test][]',value:'1'},
-        {name:'deep[test][]',value:'2'},
-        {name:'deep[test][]',value:'3'},
-        {name:'deep[test][]',value:'4'},
-        {name:'deep[test][]',value:'5'},
-        {name:'test1',value:'adksfjkasdfjk'},
-        {name:'deep[key1]',value:'1'},
-        {name:'deep[key2]',value:'2'},
-        {name:'deep[key3][test]',value:'3'}
-    ]);
-
-
-
-
 </script>
 
 </body>
