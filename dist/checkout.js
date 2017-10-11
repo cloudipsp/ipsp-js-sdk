@@ -187,12 +187,15 @@ $checkout.scope('Utils', function (ns) {
 
 $checkout.scope('Deferred', function (ns) {
     var utils = ns('Utils');
+
     function isArray(o) {
         return utils.isArray(o);
     };
+
     function isFunction(o) {
         return utils.isFunction(o);
     };
+
     function foreach(arr, handler) {
         if (isArray(arr)) {
             for (var i = 0; i < arr.length; i++) {
@@ -202,6 +205,7 @@ $checkout.scope('Deferred', function (ns) {
         else
             handler(arr);
     };
+
     function D(fn) {
         var status = 'pending',
             doneFuncs = [],
@@ -412,12 +416,15 @@ $checkout.scope('Event', function (ns) {
         },
         off: function (type, callback) {
             type || (this.events = {});
-            var list = this.events[type] || this.empty, i = list.length = callback ? list.length : 0;
+            var list = this.events[type] || this.empty,
+                i = list.length = callback ? list.length : 0;
             while (i--) callback === list[i][0] && list.splice(i, 1);
             return this;
         },
         trigger: function (type) {
-            var e = this.events[type] || this.empty, list = e.length > 0 ? e.slice(0, e.length) : e, i = 0, j;
+            var e = this.events[type] || this.empty,
+                list = e.length > 0 ? e.slice(0, e.length) : e,
+                i = 0, j;
             while (j = list[i++]) j.apply(j, this.empty.slice.call(arguments, 1));
             return this;
         }
@@ -426,9 +433,9 @@ $checkout.scope('Event', function (ns) {
 
 $checkout.scope('Module', function (ns) {
     return ns.module('Class').extend({
-        utils: ns('Utils') ,
+        utils: ns('Utils'),
         each: function (ob, cb) {
-            this.utils.forEach(ob,this.proxy(cb));
+            this.utils.forEach(ob, this.proxy(cb));
         },
         addAttr: function (el, ob) {
             if (!this.utils.isElement(el)) return false;
@@ -685,7 +692,7 @@ $checkout.scope('FormData', function (ns) {
                 this.form = form;
             }
         },
-        getData: function(filter){
+        getData: function (filter) {
             var params = this.deparam(this.serializeArray());
             return filter == true ? this.clean(params) : params;
         },
@@ -720,26 +727,26 @@ $checkout.scope('FormData', function (ns) {
                 return [field.name, encodeURIComponent(field.value)].join('=');
             }).join('&');
         },
-        deparam: function( obj ){
+        deparam: function (obj) {
             var prop;
-            var result  = {};
+            var result = {};
             var breaker = /[^\[\]]+|\[\]$/g;
-            var attr = function(name,value){
-                var i,data = result,last=name.pop(),len=name.length;
-                for(i=0;i<len;i++){
-                    if(!data[name[i]])
-                        data[name[i]] = len == i+1 && last=='[]' ?  [] : {};
+            var attr = function (name, value) {
+                var i, data = result, last = name.pop(), len = name.length;
+                for (i = 0; i < len; i++) {
+                    if (!data[name[i]])
+                        data[name[i]] = len == i + 1 && last == '[]' ? [] : {};
                     data = data[name[i]];
                 }
-                if( last=='[]' ){
+                if (last == '[]') {
                     data.push(value);
                 } else {
                     data[last] = value;
                 }
             };
-            for(prop in obj){
-                if(obj.hasOwnProperty(prop)){
-                    attr(obj[prop].name.match(breaker),obj[prop].value);
+            for (prop in obj) {
+                if (obj.hasOwnProperty(prop)) {
+                    attr(obj[prop].name.match(breaker), obj[prop].value);
                 }
             }
             return result;
@@ -768,8 +775,8 @@ $checkout.scope('Api', function (ns) {
         },
         loadFrame: function (url) {
             this.iframe = this.utils.createElement('iframe');
-            this.addAttr(this.iframe,{'src': url});
-            this.addCss(this.iframe,{'display': 'none'});
+            this.addAttr(this.iframe, {'src': url});
+            this.addCss(this.iframe, {'display': 'none'});
             this.utils.querySelector('body').appendChild(this.iframe);
             return this.iframe;
         },
@@ -809,11 +816,105 @@ $checkout.scope('Api', function (ns) {
             data.action = model;
             data.method = method;
             data.params = params || {};
-            this.connector.send( 'request', data );
-            this.connector.action( data.uid , this.proxy(function(ev,response){
-                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ ns.get('Response' , response)]);
+            this.connector.send('request', data);
+            this.connector.action(data.uid, this.proxy(function (ev, response) {
+                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ns.get('Response', response)]);
             }));
             return defer;
+        }
+    });
+});
+
+$checkout.scope('Widget', function (ns) {
+    return ns.module('Api').extend({
+        init: function (params) {
+            this._super(params);
+            this.events = ns.get('Event');
+            this.params = params;
+            this.initWidget();
+        },
+        initWidget: function () {
+            this.initOptions(this.params.options);
+            if (this.utils.isString(this.params.element)) {
+                this.initElement(this.params.element);
+            }
+            if (this.utils.isString(this.params.origin)) {
+                this.setOrigin(this.params.origin);
+            }
+        },
+        initOptions: function () {
+            if (this.utils.isPlainObject(this.params.options)) {
+                this.params.options = this.params.options || {};
+            }
+        },
+        initElement: function (el) {
+
+        },
+        addSelectorEvent: function (el, ev, cb) {
+            this.each(this.utils.querySelectorAll(el), function (cx, element) {
+                this.addEvent(element, ev, cb);
+            });
+            return this;
+        },
+        getRequestParams: function () {
+            return {};
+        },
+        sendRequest: function (el, ev) {
+            ev.preventDefault();
+            this.scope(function () {
+                this.request('api.checkout.form', 'request', this.getRequestParams(el))
+                    .done(this.proxy('onSuccess')).fail(this.proxy('onError'));
+            });
+        },
+        onSuccess: function (cx, model) {
+            model.sendResponse();
+            this.events.trigger('success', model);
+        },
+        onError: function (cx, model) {
+            this.events.trigger('error', model);
+        },
+        on: function (type, callback) {
+            this.events.on(type, callback);
+            return this;
+        },
+        off: function (type, callback) {
+            this.events.off(type, callback);
+            return this;
+        }
+    });
+});
+
+$checkout.scope('FormWidget', function (ns) {
+    return ns.module('Widget').extend({
+        initElement: function (el) {
+            this.addSelectorEvent(el, 'submit', 'sendRequest');
+        },
+        getRequestParams: function (el) {
+            return this.utils.extend({}, this.params.options, ns.get('FormData', el).getData());
+        }
+    });
+});
+
+$checkout.scope('ButtonWidget', function (ns) {
+    return ns.module('Widget').extend({
+        attributes: {},
+        initElement: function (el) {
+            if (this.utils.isPlainObject(this.params.attributes)) {
+                this.utils.extend(this.attributes, this.params.attributes);
+            }
+            this.addSelectorEvent(el, 'click', 'sendRequest');
+        },
+        getRequestParams: function (el) {
+            return this.utils.extend({}, this.params.options, this.getElementData(el));
+        },
+        getElementData: function (el) {
+            var result = {};
+            this.utils.forEach(this.attributes, function (value, key) {
+                if (el.hasAttribute(key)) {
+                    result[value] = el.getAttribute(key);
+                }
+            });
+            return result;
         }
     });
 });
