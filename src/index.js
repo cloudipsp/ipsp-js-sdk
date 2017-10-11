@@ -186,17 +186,13 @@ $checkout.scope('Utils', function (ns) {
 
 
 $checkout.scope('Deferred', function (ns) {
-
     var utils = ns('Utils');
-
     function isArray(o) {
         return utils.isArray(o);
     };
-
     function isFunction(o) {
         return utils.isFunction(o);
     };
-
     function foreach(arr, handler) {
         if (isArray(arr)) {
             for (var i = 0; i < arr.length; i++) {
@@ -206,7 +202,6 @@ $checkout.scope('Deferred', function (ns) {
         else
             handler(arr);
     };
-
     function D(fn) {
         var status = 'pending',
             doneFuncs = [],
@@ -431,8 +426,8 @@ $checkout.scope('Event', function (ns) {
 
 $checkout.scope('Module', function (ns) {
     return ns.module('Class').extend({
-        utils: ns('Utils'),
-        proxy: function (fn) {
+        utils: ns('Utils') ,
+        proxy: function (fn){
             if (!this._p_c_) this._p_c_ = {};
             if (!this._p_c_[fn]) this._p_c_[fn] = this._super(fn);
             return this._p_c_[fn];
@@ -440,7 +435,6 @@ $checkout.scope('Module', function (ns) {
         each: function (ob, cb) {
             this.utils.forEach(ob, this.proxy(cb));
         },
-
         addAttr: function (el, ob) {
             if (!this.utils.isElement(el)) return false;
             this.utils.forEach(ob, function (v, k) {
@@ -820,10 +814,10 @@ $checkout.scope('Api', function (ns) {
             data.action = model;
             data.method = method;
             data.params = params || {};
-            this.connector.send('request', data);
-            this.connector.action(data.uid, this.proxy(function (ev, response) {
-                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ns.get('Response', response)]);
-            }, this));
+            this.connector.send( 'request', data );
+            this.connector.action( data.uid , this.proxy(function(ev,response){
+                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ ns.get('Response' , response)]);
+            }));
             return defer;
         }
     });

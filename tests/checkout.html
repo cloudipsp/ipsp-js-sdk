@@ -13,11 +13,19 @@
 <div class="container">
     <form class="form form-horizontal" id="checkout-form">
         <div class="form-group">
-            <input type="hidden" name="payment_system" value="card">
             <input type="hidden" name="merchant_id" value="1396424">
             <input type="hidden" name="amount" value="100">
             <input type="hidden" name="currency" value="UAH">
             <input type="hidden" name="email" value="client@example.com"/>
+        </div>
+        <div class="form-group row">
+            <div class="col-12">
+                <select name="payment_system" class="form-control">
+                    <option value="card">Card</option>
+                    <option value="p24">Privat 24</option>
+                    <option value="webmoney">Webmoney</option>
+                </select>
+            </div>
         </div>
         <div class="form-group row">
             <div class="col-12">
@@ -59,8 +67,8 @@
 
     $checkout.scope('Widget', function (ns) {
         return ns.module('Api').extend({
-            init: function (params) {
-                this._super();
+            init: function(params){
+                this._super(params);
                 this.events   = ns.get('Event');
                 this.params   = params;
                 this.initWidget();
@@ -117,7 +125,7 @@
                 this.addSelectorEvent(el, 'submit', 'sendRequest');
             },
             getRequestParams: function (el) {
-                this.utils.extend({},this.params.options,ns.get('FormData',el).getData());
+                return this.utils.extend({},this.params.options,ns.get('FormData',el).getData());
             }
         });
     });
@@ -147,7 +155,11 @@
     });
 
     $checkout('FormWidget', {
-        element: '#checkout-form'
+        element: '#checkout-form',
+        options: {
+            amount: '100',
+            currency: 'UAH'
+        }
     }).on('success', function (model){
         console.log('success',model);
     }).on('error', function(model){
