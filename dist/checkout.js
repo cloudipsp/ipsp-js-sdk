@@ -427,11 +427,6 @@ $checkout.scope('Event', function (ns) {
 $checkout.scope('Module', function (ns) {
     return ns.module('Class').extend({
         utils: ns('Utils') ,
-        proxy: function (fn){
-            if (!this._p_c_) this._p_c_ = {};
-            if (!this._p_c_[fn]) this._p_c_[fn] = this._super(fn);
-            return this._p_c_[fn];
-        },
         each: function (ob, cb) {
             this.utils.forEach(ob, this.proxy(cb));
         },
