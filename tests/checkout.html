@@ -66,6 +66,7 @@
                 this.initWidget();
             },
             initWidget: function () {
+                this.params.options = this.params.options || {};
                 if (this.utils.isString(this.params.element)) {
                     this.initElement(this.params.element);
                 }
@@ -112,22 +113,22 @@
 
     $checkout.scope('FormWidget', function (ns) {
         return ns.module('Widget').extend({
-            initElement: function (element) {
-                this.addSelectorEvent(element, 'submit', 'sendRequest');
+            initElement: function (el) {
+                this.addSelectorEvent(el, 'submit', 'sendRequest');
             },
-            getRequestParams: function (element) {
-                return ns.get('FormData',element).getData();
+            getRequestParams: function (el) {
+                this.utils.extend({},this.params.options,ns.get('FormData',el).getData());
             }
         });
     });
 
     $checkout.scope('ButtonWidget', function (ns) {
         return ns.module('Widget').extend({
-            attributes: {
-                'data-type': 'payment_system',
-                'data-pay': 'amount'
-            },
+            attributes: {},
             initElement: function (el) {
+                if( this.utils.isPlainObject(this.params.attributes) ){
+                    this.utils.extend(this.attributes,this.params.attributes);
+                }
                 this.addSelectorEvent(el,'click','sendRequest');
             },
             getRequestParams: function (el) {
@@ -147,18 +148,21 @@
 
     $checkout('FormWidget', {
         element: '#checkout-form'
-    }).on('success', function (model) {
-        console.log('success', model);
-    }).on('error', function (model) {
-        console.log('error', model);
+    }).on('success', function (model){
+        console.log('success',model);
+    }).on('error', function(model){
+        console.log('error',model);
     });
 
     $checkout('ButtonWidget', {
         element: '.btn-pay',
         options: {
             merchant_id: '1396424',
-            currency: 'UAH',
-            response_url:'http://checkout-sdk.dev/tests/checkout.html'
+            currency: 'UAH'
+        },
+        attributes: {
+            'data-type': 'payment_system',
+            'data-pay': 'amount'
         }
     }).on('success', function (model) {
         console.log('success', model);

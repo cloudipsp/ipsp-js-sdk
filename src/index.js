@@ -779,8 +779,8 @@ $checkout.scope('Api', function (ns) {
         },
         loadFrame: function (url) {
             this.iframe = this.utils.createElement('iframe');
-            this.addAttr(this.iframe, {'src': url});
-            this.addCss(this.iframe, {'display': 'none'});
+            this.addAttr(this.iframe,{'src': url});
+            this.addCss(this.iframe,{'display': 'none'});
             this.utils.querySelector('body').appendChild(this.iframe);
             return this.iframe;
         },
