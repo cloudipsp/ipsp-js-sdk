@@ -428,7 +428,7 @@ $checkout.scope('Module', function (ns) {
     return ns.module('Class').extend({
         utils: ns('Utils') ,
         each: function (ob, cb) {
-            this.utils.forEach(ob, this.proxy(cb));
+            this.utils.forEach(ob,this.proxy(cb));
         },
         addAttr: function (el, ob) {
             if (!this.utils.isElement(el)) return false;
