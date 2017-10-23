@@ -619,6 +619,21 @@ $checkout.scope('Model', function (ns) {
                 this.data = {};
             }
         },
+        each: function () {
+            var args = arguments;
+            var name = args[1] ? args[0] : null;
+            var callback = args[1] ? args[1] : args[0];
+            var prop, value = name ? this.alt(name, []) : this.data;
+            for (prop in value) {
+                if (value.hasOwnProperty(prop)) {
+                    callback(this.instance(value[prop]), value[prop], prop);
+                }
+            }
+        },
+        alt: function (prop, defaults) {
+            prop = this.attr(prop);
+            return typeof(prop) == 'undefined' ? defaults : prop;
+        },
         attr: function (key, value) {
             var i = 0,
                 data = this.data,

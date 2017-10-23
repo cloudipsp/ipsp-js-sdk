@@ -14,8 +14,8 @@
 
     <form class="form form-horizontal checkout-form">
         <div class="form-group">
-            <input type="hidden" name="merchant_id" value="1396424">
-            <input type="hidden" name="amount" value="100">
+            <input type="hidden" name="merchant_id" value="900204">
+            <input type="hidden" name="amount" value="100.20">
             <input type="hidden" name="currency" value="UAH">
             <input type="hidden" name="email" value="client@example.com"/>
         </div>
@@ -35,20 +35,58 @@
             </div>
         </div>
         <div class="form-group row">
-            <div class="col-6">
+            <div class="col-4">
                 <input type="text" name="expiry_month" maxlength="2" pattern="\d{2}" class="form-control"
                        placeholder="Expiry Month"/>
             </div>
-            <div class="col-6">
+            <div class="col-4">
                 <input type="text" name="expiry_year" maxlength="4" pattern="\d{2}|\d{4}" class="form-control"
                        placeholder="Expiry Year"/>
             </div>
-        </div>
-        <div class="form-group row">
-            <div class="col-6">
+            <div class="col-4">
                 <input type="text" name="cvv2" maxlength="3" class="form-control" placeholder="CVV"/>
             </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-12">
+                <input type="checkbox" name="recurring" value="y"> Recurring
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <input type="hidden" >
             <div class="col-6">
+                <input type="date" name="recurring_data[start_time]" maxlength="4" class="form-control"
+                       placeholder="yyyy-mm-dd"/>
+            </div>
+            <div class="col-6">
+                <input type="date" name="recurring_data[end_time]" maxlength="4" class="form-control"
+                       placeholder="yyyy-mm-dd"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-4">
+                <input type="tel" name="recurring_data[every]" maxlength="4" class="form-control"
+                       placeholder="Every"/>
+            </div>
+            <div class="col-4">
+                <select data-valid="required" class="form-control" name="recurring_data[period]">
+                    <option value="" selected="selected" disabled="disabled">---</option>
+                    <option value="day">day</option>
+                    <option value="week">week</option>
+                    <option value="month">month</option>
+                    <option value="year">year</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <input type="tel" name="recurring_data[amount]" maxlength="4" class="form-control"
+                       placeholder="Amount"/>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-12">
                 <button type="submit" class="btn btn-block btn-primary">
                     Checkout
                 </button>
@@ -56,30 +94,27 @@
         </div>
     </form>
 
-    <button type="submit" data-pay="100" data-type="p24" class="btn btn-pay btn-success">Приват 24</button>
-    <button type="submit" data-pay="100" data-type="qiwi" class="btn btn-pay btn-success">Qiwi</button>
-    <button type="submit" data-pay="100" data-type="yandex" class="btn btn-pay btn-success">Yandex Money</button>
-
     <div class="result">
 
     </div>
+
+    <button type="submit" data-pay="100" data-type="p24" class="btn btn-pay btn-success">Приват 24</button>
+    <button type="submit" data-pay="100" data-type="qiwi" class="btn btn-pay btn-success">Qiwi</button>
+    <button type="submit" data-pay="100" data-type="yandex" class="btn btn-pay btn-success">Yandex Money</button>
 
 </div>
 <script>
 
     $checkout('FormWidget', {
         element: '.checkout-form',
-        options: {
-            amount: '100',
-            currency: 'UAH'
-        }
+        origin:'https://api.dev.fondy.eu'
     }).on('success', function (model){
         console.log('success',model);
     }).on('error', function(model){
         console.log('error',model);
     });
 
-    $checkout('ButtonWidget', {
+    $checkout('ButtonWidget',{
         element: '.btn-pay',
         options: {
             merchant_id: '1396424',
