@@ -1,4 +1,3 @@
-'use strict';
 (function (ns) {
     var modules = {};
     var instance = {};
@@ -46,18 +45,18 @@
 
 $checkout.scope('Class', function () {
     var init = false;
-    var fnTest = /xyz/.test((function () {
-        return 'xyz'
-    }).toString()) ? /\b_super\b/ : /.*/;
-    var Core = function () {
+    var fnTest = /xyz/.test(function () {
+        xyz;
+    }) ? /\b_super\b/ : /.*/;
+    var Class = function () {
 
     };
-    Core.prototype = {
+    Class.prototype = {
         instance: function (params) {
             return new this.constructor(params);
         },
         proxy: function (fn) {
-            fn = typeof(fn) === 'string' ? this[fn] : fn;
+            fn = typeof(fn) == 'string' ? this[fn] : fn;
             return (function (cx, cb) {
                 return function () {
                     return cb.apply(cx, [this].concat(Array.prototype.slice.call(arguments)))
@@ -65,15 +64,15 @@ $checkout.scope('Class', function () {
             })(this, fn);
         }
     };
-    Core.extend = function (instance) {
+    Class.extend = function (instance, name) {
         var prop, proto, parent = this.prototype;
         init = true;
         proto = new this();
         init = false;
         for (prop in instance) {
             if (instance.hasOwnProperty(prop)) {
-                if (typeof(parent[prop]) === 'function' &&
-                    typeof(instance[prop]) === 'function' &&
+                if (typeof(parent[prop]) == 'function' &&
+                    typeof(instance[prop]) == 'function' &&
                     fnTest.test(instance[prop])
                 ) {
                     proto[prop] = (function (name, fn) {
@@ -90,17 +89,16 @@ $checkout.scope('Class', function () {
                 }
             }
         }
-
         function Class() {
             if (!init && this.init) this.init.apply(this, arguments);
-        }
-
+        };
         Class.prototype = proto;
-        Class.prototype.constructor = Core;
-        Class.extend = Core.extend;
+        Class.prototype.name = name;
+        Class.prototype.constructor = Class;
+        Class.extend = arguments.callee;
         return Class;
     };
-    return Core;
+    return Class;
 });
 
 

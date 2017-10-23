@@ -1,4 +1,3 @@
-'use strict';
 (function (ns) {
     var modules = {};
     var instance = {};
@@ -46,18 +45,18 @@
 
 $checkout.scope('Class', function () {
     var init = false;
-    var fnTest = /xyz/.test((function () {
-        return 'xyz'
-    }).toString()) ? /\b_super\b/ : /.*/;
-    var Core = function () {
+    var fnTest = /xyz/.test(function () {
+        xyz;
+    }) ? /\b_super\b/ : /.*/;
+    var Class = function () {
 
     };
-    Core.prototype = {
+    Class.prototype = {
         instance: function (params) {
             return new this.constructor(params);
         },
         proxy: function (fn) {
-            fn = typeof(fn) === 'string' ? this[fn] : fn;
+            fn = typeof(fn) == 'string' ? this[fn] : fn;
             return (function (cx, cb) {
                 return function () {
                     return cb.apply(cx, [this].concat(Array.prototype.slice.call(arguments)))
@@ -65,15 +64,15 @@ $checkout.scope('Class', function () {
             })(this, fn);
         }
     };
-    Core.extend = function (instance) {
+    Class.extend = function (instance, name) {
         var prop, proto, parent = this.prototype;
         init = true;
         proto = new this();
         init = false;
         for (prop in instance) {
             if (instance.hasOwnProperty(prop)) {
-                if (typeof(parent[prop]) === 'function' &&
-                    typeof(instance[prop]) === 'function' &&
+                if (typeof(parent[prop]) == 'function' &&
+                    typeof(instance[prop]) == 'function' &&
                     fnTest.test(instance[prop])
                 ) {
                     proto[prop] = (function (name, fn) {
@@ -90,17 +89,16 @@ $checkout.scope('Class', function () {
                 }
             }
         }
-
         function Class() {
             if (!init && this.init) this.init.apply(this, arguments);
-        }
-
+        };
         Class.prototype = proto;
-        Class.prototype.constructor = Core;
-        Class.extend = Core.extend;
+        Class.prototype.name = name;
+        Class.prototype.constructor = Class;
+        Class.extend = arguments.callee;
         return Class;
     };
-    return Core;
+    return Class;
 });
 
 
@@ -936,6 +934,7 @@ $checkout.scope('ButtonWidget', function (ns) {
         }
     });
 });
-'use strict';
+(function($){ 'use strict';
 $checkout.views = Object.create(null);
 $checkout.views['3ds.html'] = '<style>\n    .ipsp-modal-show{\n        overflow:hidden;\n    }\n    .ipsp-modal{\n        margin:100px auto;\n        max-width:680px;\n        background-color:#fff;\n        border-radius:5px;\n        box-shadow:0px 2px 2px rgba(0,0,0,0.2);\n        overflow: hidden;\n    }\n    @media (max-width:850px){\n        .ipsp-modal{\n            margin:50px auto;\n        }\n    }\n    @media (max-width:695px){\n        .ipsp-modal{\n            max-width:100%;\n            margin:5px;\n        }\n    }\n    .ipsp-modal-wrapper{\n        overflow: auto;\n        position:fixed;\n        z-index:99999;\n        left:0;\n        bottom:0;\n        top:0;\n        right:0;\n        background-color: rgba(0,0,0,0.2);\n    }\n    .ipsp-modal-header{\n        background-color:#fafafa;\n        height:50px;\n        box-shadow:0px 0px 2px rgba(0,0,0,0.2);\n        border-top-left-radius:5px;\n        border-top-right-radius:5px;\n    }\n    .ipsp-modal-close{\n        float:right;\n        overflow:hidden;\n        height:50px;\n        text-decoration:none;\n        border-top-right-radius:5px;\n        color:#949494;\n    }\n    .ipsp-modal-close:hover,.ipsp-modal-close:focus,.ipsp-modal-close:active{\n        text-decoration:none;\n        color:#646464;\n    }\n    .ipsp-modal-close:before{\n        content:"×";\n        font-size:50px;\n        line-height:50px;\n        padding:0 10px;\n    }\n    .ipsp-modal-title{\n        border-top-left-radius:5px;\n        line-height:20px;\n        height:50px;\n        padding:5px 15px;\n        font-size:12px;\n        display:table-cell;\n        vertical-align: middle;\n    }\n    .ipsp-modal-content{\n        border-bottom-left-radius:5px;\n        border-bottom-left-radius:5px;\n        min-height:650px;\n    }\n</style>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content"></div>\n    </div>\n</div>';
+ })(jQuery);
