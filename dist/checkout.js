@@ -661,6 +661,9 @@ $checkout.scope('Model', function (ns) {
         },
         stringify: function () {
             return JSON.stringify(this.serialize());
+        },
+        serialize:function(){
+            return this.data;
         }
     });
 });
