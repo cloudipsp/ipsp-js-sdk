@@ -660,6 +660,9 @@ $checkout.scope('Model', function (ns) {
                 data[prop] = value;
             }
             return this;
+        },
+        stringify: function () {
+            return JSON.stringify(this.serialize());
         }
     });
 });
