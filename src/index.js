@@ -677,6 +677,9 @@ $checkout.scope('Response', function (ns) {
             form.submit();
             form.parentNode.removeChild(form);
         },
+        needVerifyCode:function(){
+            return this.attr('order.need_verify_code');
+        },
         redirectUrl: function () {
             if (this.attr('url')) {
                 location.assign(this.attr('url'));
