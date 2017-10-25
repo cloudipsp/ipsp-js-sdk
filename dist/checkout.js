@@ -431,7 +431,23 @@ $checkout.scope('Event', function (ns) {
 
 $checkout.scope('Module', function (ns) {
     return ns.module('Class').extend({
-        utils: ns('Utils'),
+        utils: ns('Utils') ,
+        getListener:function(){
+            if(!this._listener_) this._listener_ = ns.get('Event');
+            return this._listener_;
+        },
+        on: function (type, callback) {
+            this.getListener().on(type, callback);
+            return this;
+        },
+        off: function (type, callback) {
+            this.getListener().off(type, callback);
+            return this;
+        },
+        trigger:function(){
+            this.getListener().trigger.apply(this.getListener(),arguments);
+            return this;
+        },
         each: function (ob, cb) {
             this.utils.forEach(ob, this.proxy(cb));
         },
@@ -484,14 +500,13 @@ $checkout.scope('Module', function (ns) {
 $checkout.scope('Connector', function (ns) {
     return ns.module('Module').extend({
         ns: 'crossDomain',
-        origin: '*',
-        uniqueId: 1,
+        origin: '*' ,
+        uniqueId: 1 ,
         init: function (params) {
             this.setTarget(params.target);
             this.create();
         },
         create: function () {
-            this.listener = ns.get('Event');
             this.addEvent(window, 'message', 'router');
         },
         setTarget: function (target) {
@@ -501,22 +516,13 @@ $checkout.scope('Connector', function (ns) {
         getUID: function () {
             return ++this.uniqueId;
         },
-        unbind: function (action, callback) {
-            this.listener.off([this.ns, action].join('.'), callback);
-        },
-        action: function (action, callback) {
-            this.listener.on([this.ns, action].join('.'), callback);
-        },
-        publish: function (action, data) {
-            this.listener.trigger([this.ns, action].join('.'), data);
-        },
         router: function (window, ev, response) {
             try {
                 response = JSON.parse(ev.data);
             } catch (e) {
             }
             if (response.action && response.data) {
-                this.publish(response.action, response.data);
+                this.trigger(response.action, response.data);
             }
         },
         send: function (action, data) {
@@ -546,7 +552,7 @@ $checkout.scope('AcsFrame', function (ns) {
         },
         init: function (params) {
             this.checkout = params.checkout;
-            this.data = params.data;
+            this.data     = params.data;
             this.template = ns.views['3ds.html'];
             this.initModal();
             this.initEvents();
@@ -580,30 +586,33 @@ $checkout.scope('AcsFrame', function (ns) {
         initEvents: function () {
             var close = this.find('.ipsp-modal-close');
             var link = this.find('.ipsp-modal-title a');
-            this.addEvent(close, 'click', function (el, ev) {
-                ev.preventDefault();
-                this.removeModal();
-            });
-            this.addEvent(link, 'click', function (el, ev) {
-                ev.preventDefault();
-                this.form.submit();
-            });
+            this.addEvent(close,'click','closeModal');
+            this.addEvent(link,'click','submitForm');
+        },
+        closeModal: function(el,ev){
+            ev.preventDefault();
+            this.removeModal();
+        },
+        submitForm: function(el,ev){
+            ev.preventDefault();
+            this.form.submit();
         },
         removeModal: function () {
             this.utils.removeElement(this.modal);
         },
         initConnector: function () {
             this.connector = ns.get('Connector');
-            this.connector.action('response', this.proxy(function (ev, data) {
-                this.connector.unbind('response');
-                this.checkout.connector.send('request', {
-                    uid: data.uid,
-                    action: 'api.checkout.proxy',
-                    method: 'send',
-                    params: data
-                });
-                this.removeModal();
-            }, this));
+            this.connector.on('response',this.proxy('onResponse'));
+        },
+        onResponse:function(ev,data){
+            this.connector.off('response');
+            this.checkout.connector.send('request', {
+                uid: data.uid ,
+                action: 'api.checkout.proxy',
+                method: 'send',
+                params: data
+            });
+            this.removeModal();
         }
     });
 });
@@ -630,7 +639,7 @@ $checkout.scope('Model', function (ns) {
         },
         alt: function (prop, defaults) {
             prop = this.attr(prop);
-            return typeof(prop) == 'undefined' ? defaults : prop;
+            return typeof(prop) === 'undefined' ? defaults : prop;
         },
         attr: function (key, value) {
             var i = 0,
@@ -643,7 +652,7 @@ $checkout.scope('Model', function (ns) {
                     data = data[name[i]];
                 }
                 else {
-                    if (len == 2) {
+                    if (len === 2) {
                         data = (data[name[i]] = {});
                     }
                     else {
@@ -651,10 +660,10 @@ $checkout.scope('Model', function (ns) {
                     }
                 }
             }
-            if (len == 1) {
+            if (len === 1) {
                 return data ? data[prop] : undefined;
             }
-            if (len == 2) {
+            if (len === 2) {
                 data[prop] = value;
             }
             return this;
@@ -695,9 +704,9 @@ $checkout.scope('Response', function (ns) {
         },
         sendResponse: function () {
             var action = this.attr('action');
-            if (action == 'submit')
+            if (action === 'submit')
                 return this.submitForm();
-            if (action == 'redirect')
+            if (action === 'redirect')
                 return this.redirectUrl();
             return false;
         }
@@ -735,7 +744,7 @@ $checkout.scope('FormData', function (ns) {
         serializeArray: function () {
             var list = this.utils.toArray(this.form.elements);
             var data = this.utils.map(list, function (field) {
-                if (field.disabled || field.name == '') return;
+                if (field.disabled || field.name === '') return;
                 if (field.type.match('checkbox|radio') && !field.checked) return;
                 return {
                     name: field.name,
@@ -783,9 +792,8 @@ $checkout.scope('Api', function (ns) {
             gateway: '/checkout/v2/'
         },
         init: function () {
-            this.loaded = false;
+            this.loaded  = false;
             this.created = false;
-            this.listener = ns.get('Event');
             this.connector = ns.get('Connector');
         },
         setOrigin: function (origin) {
@@ -807,39 +815,37 @@ $checkout.scope('Api', function (ns) {
                 this.created = true;
                 this.iframe = this.loadFrame(this.url('gateway'));
                 this.connector.setTarget(this.iframe.contentWindow);
-                this.connector.action('load', this.proxy('load'));
-                this.connector.action('form3ds', this.proxy('form3ds'));
+                this.connector.on('load',this.proxy('load'));
+                this.connector.on('form3ds',this.proxy('form3ds'));
             }
             return this;
         },
         form3ds: function (xhr, data) {
-            this.acsframe = ns.get('AcsFrame', {checkout: this, data: data});
+            this.acsframe = ns.get('AcsFrame',{checkout: this,data:data});
         },
         load: function () {
             this.loaded = true;
-            this.listener.trigger('checkout.api');
-            this.listener.off('checkout.api');
+            this.trigger('checkout.api');
+            this.off('checkout.api');
         },
         scope: function (callback) {
             callback = this.proxy(callback);
             if (this.create().loaded === true) {
                 callback();
             } else {
-                this.listener.on('checkout.api', callback);
+                this.on('checkout.api',callback);
             }
         },
-        defer: function () {
-            return ns.get('Deferred');
-        },
         request: function (model, method, params) {
-            var defer = this.defer();
-            var data = {};
-            data.uid = this.connector.getUID();
-            data.action = model;
-            data.method = method;
-            data.params = params || {};
-            this.connector.send('request', data);
-            this.connector.action(data.uid, this.proxy(function (ev, response) {
+            var defer  = ns.get('Deferred');
+            var data = {
+                uid: this.connector.getUID() ,
+                action: model ,
+                method: method ,
+                params:params || {}
+            };
+            this.connector.send('request',data);
+            this.connector.on(data.uid,this.proxy(function (ev, response) {
                 defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ns.get('Response', response)]);
             }));
             return defer;
@@ -851,7 +857,6 @@ $checkout.scope('Widget', function (ns) {
     return ns.module('Api').extend({
         init: function (params) {
             this._super(params);
-            this.events = ns.get('Event');
             this.params = params;
             this.initWidget();
         },
@@ -890,18 +895,10 @@ $checkout.scope('Widget', function (ns) {
         },
         onSuccess: function (cx, model) {
             model.sendResponse();
-            this.events.trigger('success', model);
+            this.trigger('success', model);
         },
         onError: function (cx, model) {
-            this.events.trigger('error', model);
-        },
-        on: function (type, callback) {
-            this.events.on(type, callback);
-            return this;
-        },
-        off: function (type, callback) {
-            this.events.off(type, callback);
-            return this;
+            this.trigger('error', model);
         }
     });
 });
