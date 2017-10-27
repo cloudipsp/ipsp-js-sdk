@@ -591,27 +591,33 @@ $checkout.scope('AcsFrame', function (ns) {
         },
         closeModal: function(el,ev){
             ev.preventDefault();
+            this.sendResponse(this.data);
             this.removeModal();
+            this.trigger('close',this.data);
         },
         submitForm: function(el,ev){
             ev.preventDefault();
+            this.trigger('submit',this.data);
             this.form.submit();
         },
         removeModal: function () {
             this.utils.removeElement(this.modal);
+            this.connector.off('response');
         },
         initConnector: function () {
             this.connector = ns.get('Connector');
             this.connector.on('response',this.proxy('onResponse'));
         },
-        onResponse:function(ev,data){
-            this.connector.off('response');
+        sendResponse:function(data){
             this.checkout.connector.send('request', {
                 uid: data.uid ,
                 action: 'api.checkout.proxy',
                 method: 'send',
                 params: data
             });
+        },
+        onResponse:function(ev,data){
+            this.sendResponse(data);
             this.removeModal();
         }
     });
@@ -821,7 +827,11 @@ $checkout.scope('Api', function (ns) {
             return this;
         },
         form3ds: function (xhr, data) {
-            this.acsframe = ns.get('AcsFrame',{checkout: this,data:data});
+            this.acsframe = ns.get('AcsFrame',{checkout: this, data: data });
+            this.acsframe.on('close',this.proxy('close3ds'));
+        },
+        close3ds:function(acsframe,data){
+            this.trigger('close3ds',acsframe,data);
         },
         load: function () {
             this.loaded = true;

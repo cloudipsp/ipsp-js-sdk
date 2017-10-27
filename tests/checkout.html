@@ -99,7 +99,9 @@
     </div>
 
     <button type="submit" data-pay="100" data-type="p24" class="btn btn-pay btn-success">Приват 24</button>
+
     <button type="submit" data-pay="100" data-type="qiwi" class="btn btn-pay btn-success">Qiwi</button>
+
     <button type="submit" data-pay="100" data-type="yandex" class="btn btn-pay btn-success">Yandex Money</button>
 
 </div>
@@ -112,6 +114,8 @@
         console.log('success',model);
     }).on('error', function(model){
         console.log('error',model);
+    }).on('close',function(){
+
     });
 
     $checkout('ButtonWidget',{
