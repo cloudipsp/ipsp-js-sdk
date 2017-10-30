@@ -70,6 +70,13 @@
         border-bottom-left-radius:5px;
         min-height:650px;
     }
+    .ipsp-modal-iframe{
+        overflow-x: hidden;
+        border: 0;
+        display: block;
+        width: 100%;
+        height: 750px;
+    }
 </style>
 <div class="ipsp-modal-wrapper">
     <div class="ipsp-modal">
@@ -81,6 +88,8 @@
                 <a href='javascript:void(0)'>link</a>
             </div>
         </div>
-        <div class="ipsp-modal-content"></div>
+        <div class="ipsp-modal-content">
+            <iframe src="about:blank" class="ipsp-modal-iframe" scrolling="no" frameborder="0" allowtransparency="true"></iframe>
+        </div>
     </div>
 </div>

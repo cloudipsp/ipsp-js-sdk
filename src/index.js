@@ -502,12 +502,13 @@ $checkout.scope('Connector', function (ns) {
         ns: 'crossDomain',
         origin: '*' ,
         uniqueId: 1 ,
+        signature: null ,
         init: function (params) {
             this.setTarget(params.target);
             this.create();
         },
         create: function () {
-            this.addEvent(window, 'message', 'router');
+            this.addEvent(window,'message','router');
         },
         setTarget: function (target) {
             this.target = target;
@@ -525,7 +526,7 @@ $checkout.scope('Connector', function (ns) {
                 this.trigger(response.action, response.data);
             }
         },
-        send: function (action, data) {
+        send: function ( action, data ) {
             this.target.postMessage(JSON.stringify({
                 action: action,
                 data: data
@@ -534,60 +535,37 @@ $checkout.scope('Connector', function (ns) {
     });
 });
 
-$checkout.scope('AcsFrame', function (ns) {
+$checkout.scope('Modal', function (ns) {
     return ns.module('Module').extend({
-        name: 'acsframe',
-        className: 'ipsp-modal-iframe',
-        attrs: {
-            'frameborder': '0',
-            'allowtransparency': 'true',
-            'scrolling': 'no'
-        },
-        styles: {
-            'overflowX': 'hidden',
-            'border': '0',
-            'display': 'block',
-            'width': '100%',
-            'height': '750px'
-        },
         init: function (params) {
             this.checkout = params.checkout;
             this.data     = params.data;
             this.template = ns.views['3ds.html'];
             this.initModal();
-            this.initEvents();
-            this.initFrame();
             this.initConnector();
         },
         initModal: function () {
-            this.modal = this.utils.createElement('div');
+            this.name    = [ 'modal-iframe' , this.getRandomNumber() ].join('-');
+            this.modal   = this.utils.createElement('div');
             this.modal.innerHTML = this.template;
+            this.iframe  = this.find('.ipsp-modal-iframe');
+            this.addAttr(this.iframe, { name : this.name , id: this.name } );
+            if( this.data.send_data ){
+                this.form = this.prepareForm(this.data.url, this.data.send_data, this.name);
+                this.modal.appendChild(this.form);
+            }
+            this.addEvent(this.find('.ipsp-modal-close'),'click','closeModal');
+            this.addEvent(this.find('.ipsp-modal-title a'),'click','submitForm');
             this.utils.querySelector('body').appendChild(this.modal);
+            if( this.form ){
+                this.form.submit();
+            }
         },
-        initFrame: function () {
-            this.name = [this.name, Math.round(Math.random() * 1000000000)].join('');
-            this.wrapper = this.find('.ipsp-modal-content');
-            this.iframe = this.utils.createElement('iframe');
-            this.addAttr(this.iframe, {
-                'id': this.id,
-                'name': this.name,
-                'class': this.className
-            });
-            this.addAttr(this.iframe, this.attrs);
-            this.addCss(this.iframe, this.styles);
-            this.form = this.prepareForm(this.data.url, this.data.send_data, this.name);
-            this.wrapper.appendChild(this.iframe);
-            this.wrapper.appendChild(this.form);
-            this.form.submit();
+        getRandomNumber:function(){
+            return Math.round(Math.random() * 1000000000);
         },
         find: function (selector) {
             return this.utils.querySelector(selector, this.modal);
-        },
-        initEvents: function () {
-            var close = this.find('.ipsp-modal-close');
-            var link = this.find('.ipsp-modal-title a');
-            this.addEvent(close,'click','closeModal');
-            this.addEvent(link,'click','submitForm');
         },
         closeModal: function(el,ev){
             ev.preventDefault();
@@ -602,7 +580,8 @@ $checkout.scope('AcsFrame', function (ns) {
         },
         removeModal: function () {
             this.utils.removeElement(this.modal);
-            this.connector.off('response');
+            this.connector.off();
+            this.off();
         },
         initConnector: function () {
             this.connector = ns.get('Connector');
@@ -821,19 +800,19 @@ $checkout.scope('Api', function (ns) {
                 this.created = true;
                 this.iframe = this.loadFrame(this.url('gateway'));
                 this.connector.setTarget(this.iframe.contentWindow);
-                this.connector.on('load',this.proxy('load'));
-                this.connector.on('form3ds',this.proxy('form3ds'));
+                this.connector.on('load',this.proxy('onLoadConnector'));
+                this.connector.on('modal',this.proxy('onOpenModal'));
             }
             return this;
         },
-        form3ds: function (xhr, data) {
-            this.acsframe = ns.get('AcsFrame',{checkout: this, data: data });
-            this.acsframe.on('close',this.proxy('close3ds'));
+        onOpenModal:function(xhr,data){
+            this.modal = ns.get('Modal',{checkout:this, data: data });
+            this.modal.on('close',this.proxy('onCloseModal'));
         },
-        close3ds:function(acsframe,data){
-            this.trigger('close3ds',acsframe,data);
+        onCloseModal:function(modal,data){
+            this.trigger('modal.close',modal,data);
         },
-        load: function () {
+        onLoadConnector: function(){
             this.loaded = true;
             this.trigger('checkout.api');
             this.off('checkout.api');
@@ -866,8 +845,7 @@ $checkout.scope('Api', function (ns) {
 $checkout.scope('Widget', function (ns) {
     return ns.module('Api').extend({
         init: function (params) {
-            this._super(params);
-            this.params = params;
+            this._super(this.params = params);
             this.initWidget();
         },
         initWidget: function () {

@@ -104,6 +104,8 @@
 
     <button type="submit" data-pay="100" data-type="yandex" class="btn btn-pay btn-success">Yandex Money</button>
 
+    <button type="submit" data-pay="100" data-type="trustly" class="btn btn-pay btn-success">Trustly</button>
+
 </div>
 <script>
 
@@ -120,8 +122,9 @@
 
     $checkout('ButtonWidget',{
         element: '.btn-pay',
+        origin:'https://api.dev.fondy.eu',
         options: {
-            merchant_id: '1396424',
+            merchant_id: '900204',
             currency: 'UAH'
         },
         attributes: {

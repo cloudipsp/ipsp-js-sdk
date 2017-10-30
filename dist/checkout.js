@@ -502,12 +502,13 @@ $checkout.scope('Connector', function (ns) {
         ns: 'crossDomain',
         origin: '*' ,
         uniqueId: 1 ,
+        signature: null ,
         init: function (params) {
             this.setTarget(params.target);
             this.create();
         },
         create: function () {
-            this.addEvent(window, 'message', 'router');
+            this.addEvent(window,'message','router');
         },
         setTarget: function (target) {
             this.target = target;
@@ -525,7 +526,7 @@ $checkout.scope('Connector', function (ns) {
                 this.trigger(response.action, response.data);
             }
         },
-        send: function (action, data) {
+        send: function ( action, data ) {
             this.target.postMessage(JSON.stringify({
                 action: action,
                 data: data
@@ -534,60 +535,37 @@ $checkout.scope('Connector', function (ns) {
     });
 });
 
-$checkout.scope('AcsFrame', function (ns) {
+$checkout.scope('Modal', function (ns) {
     return ns.module('Module').extend({
-        name: 'acsframe',
-        className: 'ipsp-modal-iframe',
-        attrs: {
-            'frameborder': '0',
-            'allowtransparency': 'true',
-            'scrolling': 'no'
-        },
-        styles: {
-            'overflowX': 'hidden',
-            'border': '0',
-            'display': 'block',
-            'width': '100%',
-            'height': '750px'
-        },
         init: function (params) {
             this.checkout = params.checkout;
             this.data     = params.data;
             this.template = ns.views['3ds.html'];
             this.initModal();
-            this.initEvents();
-            this.initFrame();
             this.initConnector();
         },
         initModal: function () {
-            this.modal = this.utils.createElement('div');
+            this.name    = [ 'modal-iframe' , this.getRandomNumber() ].join('-');
+            this.modal   = this.utils.createElement('div');
             this.modal.innerHTML = this.template;
+            this.iframe  = this.find('.ipsp-modal-iframe');
+            this.addAttr(this.iframe, { name : this.name , id: this.name } );
+            if( this.data.send_data ){
+                this.form = this.prepareForm(this.data.url, this.data.send_data, this.name);
+                this.modal.appendChild(this.form);
+            }
+            this.addEvent(this.find('.ipsp-modal-close'),'click','closeModal');
+            this.addEvent(this.find('.ipsp-modal-title a'),'click','submitForm');
             this.utils.querySelector('body').appendChild(this.modal);
+            if( this.form ){
+                this.form.submit();
+            }
         },
-        initFrame: function () {
-            this.name = [this.name, Math.round(Math.random() * 1000000000)].join('');
-            this.wrapper = this.find('.ipsp-modal-content');
-            this.iframe = this.utils.createElement('iframe');
-            this.addAttr(this.iframe, {
-                'id': this.id,
-                'name': this.name,
-                'class': this.className
-            });
-            this.addAttr(this.iframe, this.attrs);
-            this.addCss(this.iframe, this.styles);
-            this.form = this.prepareForm(this.data.url, this.data.send_data, this.name);
-            this.wrapper.appendChild(this.iframe);
-            this.wrapper.appendChild(this.form);
-            this.form.submit();
+        getRandomNumber:function(){
+            return Math.round(Math.random() * 1000000000);
         },
         find: function (selector) {
             return this.utils.querySelector(selector, this.modal);
-        },
-        initEvents: function () {
-            var close = this.find('.ipsp-modal-close');
-            var link = this.find('.ipsp-modal-title a');
-            this.addEvent(close,'click','closeModal');
-            this.addEvent(link,'click','submitForm');
         },
         closeModal: function(el,ev){
             ev.preventDefault();
@@ -602,7 +580,8 @@ $checkout.scope('AcsFrame', function (ns) {
         },
         removeModal: function () {
             this.utils.removeElement(this.modal);
-            this.connector.off('response');
+            this.connector.off();
+            this.off();
         },
         initConnector: function () {
             this.connector = ns.get('Connector');
@@ -821,19 +800,19 @@ $checkout.scope('Api', function (ns) {
                 this.created = true;
                 this.iframe = this.loadFrame(this.url('gateway'));
                 this.connector.setTarget(this.iframe.contentWindow);
-                this.connector.on('load',this.proxy('load'));
-                this.connector.on('form3ds',this.proxy('form3ds'));
+                this.connector.on('load',this.proxy('onLoadConnector'));
+                this.connector.on('modal',this.proxy('onOpenModal'));
             }
             return this;
         },
-        form3ds: function (xhr, data) {
-            this.acsframe = ns.get('AcsFrame',{checkout: this, data: data });
-            this.acsframe.on('close',this.proxy('close3ds'));
+        onOpenModal:function(xhr,data){
+            this.modal = ns.get('Modal',{checkout:this, data: data });
+            this.modal.on('close',this.proxy('onCloseModal'));
         },
-        close3ds:function(acsframe,data){
-            this.trigger('close3ds',acsframe,data);
+        onCloseModal:function(modal,data){
+            this.trigger('modal.close',modal,data);
         },
-        load: function () {
+        onLoadConnector: function(){
             this.loaded = true;
             this.trigger('checkout.api');
             this.off('checkout.api');
@@ -866,8 +845,7 @@ $checkout.scope('Api', function (ns) {
 $checkout.scope('Widget', function (ns) {
     return ns.module('Api').extend({
         init: function (params) {
-            this._super(params);
-            this.params = params;
+            this._super(this.params = params);
             this.initWidget();
         },
         initWidget: function () {
@@ -949,5 +927,5 @@ $checkout.scope('ButtonWidget', function (ns) {
 });
 (function($){ 'use strict';
 $checkout.views = Object.create(null);
-$checkout.views['3ds.html'] = '<style>\n    .ipsp-modal-show{\n        overflow:hidden;\n    }\n    .ipsp-modal{\n        margin:100px auto;\n        max-width:680px;\n        background-color:#fff;\n        border-radius:5px;\n        box-shadow:0px 2px 2px rgba(0,0,0,0.2);\n        overflow: hidden;\n    }\n    @media (max-width:850px){\n        .ipsp-modal{\n            margin:50px auto;\n        }\n    }\n    @media (max-width:695px){\n        .ipsp-modal{\n            max-width:100%;\n            margin:5px;\n        }\n    }\n    .ipsp-modal-wrapper{\n        overflow: auto;\n        position:fixed;\n        z-index:99999;\n        left:0;\n        bottom:0;\n        top:0;\n        right:0;\n        background-color: rgba(0,0,0,0.2);\n    }\n    .ipsp-modal-header{\n        background-color:#fafafa;\n        height:50px;\n        box-shadow:0px 0px 2px rgba(0,0,0,0.2);\n        border-top-left-radius:5px;\n        border-top-right-radius:5px;\n    }\n    .ipsp-modal-close{\n        float:right;\n        overflow:hidden;\n        height:50px;\n        text-decoration:none;\n        border-top-right-radius:5px;\n        color:#949494;\n    }\n    .ipsp-modal-close:hover,.ipsp-modal-close:focus,.ipsp-modal-close:active{\n        text-decoration:none;\n        color:#646464;\n    }\n    .ipsp-modal-close:before{\n        content:"×";\n        font-size:50px;\n        line-height:50px;\n        padding:0 10px;\n    }\n    .ipsp-modal-title{\n        border-top-left-radius:5px;\n        line-height:20px;\n        height:50px;\n        padding:5px 15px;\n        font-size:12px;\n        display:table-cell;\n        vertical-align: middle;\n    }\n    .ipsp-modal-content{\n        border-bottom-left-radius:5px;\n        border-bottom-left-radius:5px;\n        min-height:650px;\n    }\n</style>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content"></div>\n    </div>\n</div>';
+$checkout.views['3ds.html'] = '<style>\n    .ipsp-modal-show{\n        overflow:hidden;\n    }\n    .ipsp-modal{\n        margin:100px auto;\n        max-width:680px;\n        background-color:#fff;\n        border-radius:5px;\n        box-shadow:0px 2px 2px rgba(0,0,0,0.2);\n        overflow: hidden;\n    }\n    @media (max-width:850px){\n        .ipsp-modal{\n            margin:50px auto;\n        }\n    }\n    @media (max-width:695px){\n        .ipsp-modal{\n            max-width:100%;\n            margin:5px;\n        }\n    }\n    .ipsp-modal-wrapper{\n        overflow: auto;\n        position:fixed;\n        z-index:99999;\n        left:0;\n        bottom:0;\n        top:0;\n        right:0;\n        background-color: rgba(0,0,0,0.2);\n    }\n    .ipsp-modal-header{\n        background-color:#fafafa;\n        height:50px;\n        box-shadow:0px 0px 2px rgba(0,0,0,0.2);\n        border-top-left-radius:5px;\n        border-top-right-radius:5px;\n    }\n    .ipsp-modal-close{\n        float:right;\n        overflow:hidden;\n        height:50px;\n        text-decoration:none;\n        border-top-right-radius:5px;\n        color:#949494;\n    }\n    .ipsp-modal-close:hover,.ipsp-modal-close:focus,.ipsp-modal-close:active{\n        text-decoration:none;\n        color:#646464;\n    }\n    .ipsp-modal-close:before{\n        content:"×";\n        font-size:50px;\n        line-height:50px;\n        padding:0 10px;\n    }\n    .ipsp-modal-title{\n        border-top-left-radius:5px;\n        line-height:20px;\n        height:50px;\n        padding:5px 15px;\n        font-size:12px;\n        display:table-cell;\n        vertical-align: middle;\n    }\n    .ipsp-modal-content{\n        border-bottom-left-radius:5px;\n        border-bottom-left-radius:5px;\n        min-height:650px;\n    }\n    .ipsp-modal-iframe{\n        overflow-x: hidden;\n        border: 0;\n        display: block;\n        width: 100%;\n        height: 750px;\n    }\n</style>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content">\n            <iframe src="about:blank" class="ipsp-modal-iframe" scrolling="no" frameborder="0" allowtransparency="true"></iframe>\n        </div>\n    </div>\n</div>';
  })(jQuery);
