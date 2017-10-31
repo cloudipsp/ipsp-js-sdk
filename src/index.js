@@ -826,7 +826,14 @@ $checkout.scope('Model', function (ns) {
 
 $checkout.scope('Response', function (ns) {
     return ns.module('Model').extend({
+        stringFormat:function(string){
+            var that = this;
+            return (string || '').replace(/{(.+?)}/g, function(match, prop) {
+                return that.attr(['order.order_data',prop].join('.')) || match;
+            });
+        },
         formDataSubmit: function (url, data, target, method) {
+            var url  = this.stringFormat(url);
             var form = this.prepareForm(url, data, target, method);
             var body = this.utils.querySelector('body');
             body.appendChild(form);
@@ -841,13 +848,26 @@ $checkout.scope('Response', function (ns) {
                 location.assign(this.attr('url'));
                 return true;
             }
+            return false;
+        },
+        submitToMerchant:function(){
+            var ready = this.attr('order.ready_to_submit');
+            var url   = this.attr('order.response_url');
+            var data  = this.attr('order.order_data');
+            if( ready && url && data ){
+                this.formDataSubmit(url, data, '_top' , 'POST' );
+                return true;
+            }
         },
         submitForm: function () {
             var method = this.attr('method');
-            var url = this.attr('url');
-            var data = this.attr('send_data');
-            this.formDataSubmit(url, data, '_top', method);
-            return true;
+            var url    = this.attr('url');
+            var data   = this.attr('send_data');
+            if( url && data ){
+                this.formDataSubmit(url, data, '_top', method);
+                return true;
+            }
+            return false;
         },
         sendResponse: function () {
             var action = this.attr('action');
@@ -1045,6 +1065,7 @@ $checkout.scope('Widget', function (ns) {
         },
         onSuccess: function (cx, model) {
             model.sendResponse();
+            model.submitToMerchant();
             this.trigger('success', model);
         },
         onError: function (cx, model) {
