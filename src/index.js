@@ -89,6 +89,7 @@ $checkout.scope('Class', function () {
                 }
             }
         }
+
         function Class() {
             if (!init && this.init) this.init.apply(this, arguments);
         };
@@ -168,6 +169,10 @@ $checkout.scope('Utils', function (ns) {
         },
         createElement: function (el) {
             return document.createElement(el);
+        },
+        getStyle: function(el,prop,getComputedStyle){
+            getComputedStyle = window.getComputedStyle;
+            return (getComputedStyle ? getComputedStyle(el) : el.currentStyle)[prop.replace(/-(\w)/gi, function (word, letter) { return letter.toUpperCase() })];
         },
         extend: function (obj) {
             this.forEach(Array.prototype.slice.call(arguments, 1), function (o) {
@@ -431,10 +436,13 @@ $checkout.scope('Event', function (ns) {
 
 $checkout.scope('Module', function (ns) {
     return ns.module('Class').extend({
-        utils: ns('Utils') ,
-        getListener:function(){
-            if(!this._listener_) this._listener_ = ns.get('Event');
+        utils: ns('Utils'),
+        getListener: function () {
+            if (!this._listener_) this._listener_ = ns.get('Event');
             return this._listener_;
+        },
+        destroy: function () {
+            this.off();
         },
         on: function (type, callback) {
             this.getListener().on(type, callback);
@@ -444,8 +452,18 @@ $checkout.scope('Module', function (ns) {
             this.getListener().off(type, callback);
             return this;
         },
-        trigger:function(){
-            this.getListener().trigger.apply(this.getListener(),arguments);
+        proxy: function (fn) {
+            if (!this._proxy_cache_) this._proxy_cache_ = {};
+            if (this.utils.isString(fn)) {
+                if (!this._proxy_cache_[fn]) {
+                    this._proxy_cache_[fn] = this._super(fn);
+                }
+                return this._proxy_cache_[fn];
+            }
+            return this._super(fn);
+        },
+        trigger: function () {
+            this.getListener().trigger.apply(this.getListener(), arguments);
             return this;
         },
         each: function (ob, cb) {
@@ -500,15 +518,15 @@ $checkout.scope('Module', function (ns) {
 $checkout.scope('Connector', function (ns) {
     return ns.module('Module').extend({
         ns: 'crossDomain',
-        origin: '*' ,
-        uniqueId: 1 ,
-        signature: null ,
+        origin: '*',
+        uniqueId: 1,
+        signature: null,
         init: function (params) {
             this.setTarget(params.target);
             this.create();
         },
         create: function () {
-            this.addEvent(window,'message','router');
+            this.addEvent(window, 'message', 'router');
         },
         setTarget: function (target) {
             this.target = target;
@@ -517,7 +535,12 @@ $checkout.scope('Connector', function (ns) {
         getUID: function () {
             return ++this.uniqueId;
         },
+        destroy: function () {
+            this.removeEvent(window, 'message', 'router');
+            this._super();
+        },
         router: function (window, ev, response) {
+            if (this.target !== ev.source) return false;
             try {
                 response = JSON.parse(ev.data);
             } catch (e) {
@@ -526,7 +549,7 @@ $checkout.scope('Connector', function (ns) {
                 this.trigger(response.action, response.data);
             }
         },
-        send: function ( action, data ) {
+        send: function (action, data) {
             this.target.postMessage(JSON.stringify({
                 action: action,
                 data: data
@@ -540,67 +563,206 @@ $checkout.scope('Modal', function (ns) {
         init: function (params) {
             this.checkout = params.checkout;
             this.data     = params.data;
-            this.template = ns.views['3ds.html'];
+            this.template = ns.get('Template','3ds.ejs');
+            this.body     = this.utils.querySelector('body');
             this.initModal();
             this.initConnector();
         },
         initModal: function () {
-            this.name    = [ 'modal-iframe' , this.getRandomNumber() ].join('-');
-            this.modal   = this.utils.createElement('div');
-            this.modal.innerHTML = this.template;
-            this.iframe  = this.find('.ipsp-modal-iframe');
-            this.addAttr(this.iframe, { name : this.name , id: this.name } );
-            if( this.data.send_data ){
+            this.name = ['modal-iframe', this.getRandomNumber()].join('-');
+            this.modal = this.utils.createElement('div');
+            this.modal.innerHTML = this.template.render(this.data);
+            this.iframe = this.find('.ipsp-modal-iframe');
+            this.addAttr(this.iframe, {name: this.name, id: this.name});
+            if (this.data.send_data) {
                 this.form = this.prepareForm(this.data.url, this.data.send_data, this.name);
                 this.modal.appendChild(this.form);
+            } else {
+                this.iframe.src = this.data.url;
             }
-            this.addEvent(this.find('.ipsp-modal-close'),'click','closeModal');
-            this.addEvent(this.find('.ipsp-modal-title a'),'click','submitForm');
-            this.utils.querySelector('body').appendChild(this.modal);
-            if( this.form ){
+            this.addEvent(this.find('.ipsp-modal-close'), 'click', 'closeModal');
+            this.addEvent(this.find('.ipsp-modal-title a'), 'click', 'submitForm');
+            this.initScrollbar();
+            this.body.appendChild(this.modal);
+            if (this.form) {
                 this.form.submit();
             }
         },
-        getRandomNumber:function(){
+        measureScrollbar: function () {
+            var width;
+            var scrollDiv = document.createElement('div');
+            scrollDiv.className = 'modal-scrollbar-measure';
+            this.body.appendChild(scrollDiv);
+            width = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+            this.utils.removeElement(scrollDiv);
+            return width;
+        },
+        checkScrollbar: function () {
+            var documentElementRect;
+            var fullWindowWidth = window.innerWidth;
+            if (!fullWindowWidth) {
+                documentElementRect = document.documentElement.getBoundingClientRect();
+                fullWindowWidth = documentElementRect.right - Math.abs(documentElementRect.left);
+            }
+            this.bodyIsOverflowing = document.body.clientWidth < fullWindowWidth;
+            this.scrollbarWidth = this.measureScrollbar()
+        },
+        initScrollbar: function () {
+            this.checkScrollbar();
+            this.bodyPad = parseInt(this.utils.getStyle(this.body,'padding-right')||0,10);
+            this.originalBodyPad  = document.body.style.paddingRight || '';
+            this.originalOverflow = document.body.style.overflow || '';
+            if( this.bodyIsOverflowing ){
+                this.addCss(this.body,{
+                    'paddingRight': [ this.bodyPad + this.scrollbarWidth ,'px'].join(''),
+                    'overflow':'hidden'
+                });
+            }
+        },
+        resetScrollbar:function(){
+            this.addCss(this.body,{
+                'paddingRight': this.originalBodyPad ? [this.originalBodyPad,'px'].join('') : '',
+                'overflow': this.originalOverflow
+            });
+        },
+        getRandomNumber: function () {
             return Math.round(Math.random() * 1000000000);
         },
         find: function (selector) {
             return this.utils.querySelector(selector, this.modal);
         },
-        closeModal: function(el,ev){
+        closeModal: function (el, ev) {
             ev.preventDefault();
             this.sendResponse(this.data);
+            this.trigger('close', this.data);
             this.removeModal();
-            this.trigger('close',this.data);
         },
-        submitForm: function(el,ev){
+        submitForm: function (el, ev) {
             ev.preventDefault();
-            this.trigger('submit',this.data);
+            this.trigger('submit', this.data);
             this.form.submit();
         },
         removeModal: function () {
+            this.destroy();
+        },
+        destroy: function () {
             this.utils.removeElement(this.modal);
-            this.connector.off();
-            this.off();
+            this.resetScrollbar();
+            this.connector.destroy();
+            this._super();
         },
         initConnector: function () {
-            this.connector = ns.get('Connector');
-            this.connector.on('response',this.proxy('onResponse'));
+            this.connector = ns.get('Connector', {target: this.iframe.contentWindow});
+            this.connector.on('response', this.proxy('onResponse'));
         },
-        sendResponse:function(data){
+        onResponse: function (ev, data) {
+            this.sendResponse(data);
+            this.removeModal();
+        },
+        sendResponse: function (data) {
             this.checkout.connector.send('request', {
-                uid: data.uid ,
+                uid: data.uid,
                 action: 'api.checkout.proxy',
                 method: 'send',
                 params: data
             });
-        },
-        onResponse:function(ev,data){
-            this.sendResponse(data);
-            this.removeModal();
         }
     });
 });
+
+$checkout.scope('Template', function (ns) {
+    var settings = {
+        evaluate: /<%([\s\S]+?)%>/g,
+        interpolate: /<%=([\s\S]+?)%>/g,
+        escape: /<%-([\s\S]+?)%>/g
+    };
+    var noMatch = /(.)^/;
+    var escapes = {
+        "'": "'",
+        '\\': '\\',
+        '\r': 'r',
+        '\n': 'n',
+        '\t': 't',
+        '\u2028': 'u2028',
+        '\u2029': 'u2029'
+    };
+    var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+    var htmlEntities = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;'
+    };
+    var entityRe = new RegExp('[&<>"\']', 'g');
+    var escapeExpr = function (string) {
+        if (string == null) return '';
+        return ('' + string).replace(entityRe, function (match) {
+            return htmlEntities[match];
+        });
+    };
+    var counter  = 0;
+    var template = function(text){
+        var render;
+        var matcher = new RegExp([
+            (settings.escape || noMatch).source,
+            (settings.interpolate || noMatch).source,
+            (settings.evaluate || noMatch).source
+        ].join('|') + '|$', 'g');
+        var index = 0;
+        var source = "__p+='";
+        text.replace(matcher, function (match, escape, interpolate,evaluate,offset){
+            source += text.slice(index, offset).replace(escaper, function(match){ return '\\' + escapes[match]; });
+            if (escape) {
+                source += "'+\n((__t=(" + escape + "))==null?'':escapeExpr(__t))+\n'";
+            }
+            if (interpolate) {
+                source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+            }
+            if (evaluate) {
+                source += "';\n" + evaluate + "\n__p+='";
+            }
+            index = offset + match.length;
+            return match;
+        });
+        source += "';\n";
+        if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+        source = "var __t,__p='',__j=Array.prototype.join," +
+            "print=function(){__p+=__j.call(arguments,'');};\n" +
+            source + "return __p;\n//# sourceURL=/tmpl/source[" + counter++ + "]";
+        try {
+            render = new Function( settings.variable || 'obj' , 'escapeExpr' , source );
+        } catch (e) {
+            e.source = source;
+            throw e;
+        }
+        var template = function (data) {
+            return render.call(this,data,escapeExpr);
+        };
+        template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
+        return template;
+    };
+    return ns.module('Utils').extend({
+        init:function( name ){
+            this.name     = name;
+            this.view     = {};
+            this.output();
+        },
+        output: function () {
+            this.view.source = ns.views[this.name];
+            this.view.output = template(this.view.source);
+        },
+        render: function( data ){
+            this.data = data;
+            return this.view.output.call(this,this);
+        },
+        include:function( name , data ){
+            return this.instance(name).render(this.extend(this.data,data));
+        }
+    });
+});
+
+
 
 $checkout.scope('Model', function (ns) {
     return ns.module('Module').extend({
@@ -656,7 +818,7 @@ $checkout.scope('Model', function (ns) {
         stringify: function () {
             return JSON.stringify(this.serialize());
         },
-        serialize:function(){
+        serialize: function () {
             return this.data;
         }
     });
@@ -671,7 +833,7 @@ $checkout.scope('Response', function (ns) {
             form.submit();
             form.parentNode.removeChild(form);
         },
-        needVerifyCode:function(){
+        needVerifyCode: function () {
             return this.attr('order.need_verify_code');
         },
         redirectUrl: function () {
@@ -777,9 +939,8 @@ $checkout.scope('Api', function (ns) {
             gateway: '/checkout/v2/'
         },
         init: function () {
-            this.loaded  = false;
+            this.loaded = false;
             this.created = false;
-            this.connector = ns.get('Connector');
         },
         setOrigin: function (origin) {
             this.origin = origin;
@@ -799,21 +960,22 @@ $checkout.scope('Api', function (ns) {
             if (this.created === false) {
                 this.created = true;
                 this.iframe = this.loadFrame(this.url('gateway'));
-                this.connector.setTarget(this.iframe.contentWindow);
-                this.connector.on('load',this.proxy('onLoadConnector'));
-                this.connector.on('modal',this.proxy('onOpenModal'));
+                this.connector = ns.get('Connector', {target: this.iframe.contentWindow});
+                this.connector.on('load', this.proxy('onLoadConnector'));
+                this.connector.on('modal', this.proxy('onOpenModal'));
             }
             return this;
         },
-        onOpenModal:function(xhr,data){
-            this.modal = ns.get('Modal',{checkout:this, data: data });
-            this.modal.on('close',this.proxy('onCloseModal'));
+        onOpenModal: function (xhr, data) {
+            this.modal = ns.get('Modal', {checkout: this, data: data});
+            this.modal.on('close', this.proxy('onCloseModal'));
         },
-        onCloseModal:function(modal,data){
-            this.trigger('modal.close',modal,data);
+        onCloseModal: function (modal, data) {
+            this.trigger('modal.close', modal, data);
         },
-        onLoadConnector: function(){
+        onLoadConnector: function () {
             this.loaded = true;
+            this.connector.off('load');
             this.trigger('checkout.api');
             this.off('checkout.api');
         },
@@ -822,19 +984,19 @@ $checkout.scope('Api', function (ns) {
             if (this.create().loaded === true) {
                 callback();
             } else {
-                this.on('checkout.api',callback);
+                this.on('checkout.api', callback);
             }
         },
         request: function (model, method, params) {
-            var defer  = ns.get('Deferred');
+            var defer = ns.get('Deferred');
             var data = {
-                uid: this.connector.getUID() ,
-                action: model ,
-                method: method ,
-                params:params || {}
+                uid: this.connector.getUID(),
+                action: model,
+                method: method,
+                params: params || {}
             };
-            this.connector.send('request',data);
-            this.connector.on(data.uid,this.proxy(function (ev, response) {
+            this.connector.send('request', data);
+            this.connector.on(data.uid, this.proxy(function (ev, response) {
                 defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ns.get('Response', response)]);
             }));
             return defer;

@@ -34,7 +34,7 @@ gulp.task('clean', function() {
 });
 
 gulp.task('watcher', function(){
-    gulp.watch(['src/*.js','src/html/*.html'],['sdk']);
+    gulp.watch(['src/*.js','src/html/*.ejs'],['sdk']);
 });
 
 gulp.task('default', ['watcher','clean','sdk']);
