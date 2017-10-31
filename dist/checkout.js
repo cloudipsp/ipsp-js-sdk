@@ -855,7 +855,7 @@ $checkout.scope('Response', function (ns) {
             var url   = this.attr('order.response_url');
             var data  = this.attr('order.order_data');
             if( ready && url && data ){
-                this.formDataSubmit(url, data, '_top' , 'POST' );
+                this.formDataSubmit(url, data, '_self' , 'POST' );
                 return true;
             }
         },
@@ -864,7 +864,7 @@ $checkout.scope('Response', function (ns) {
             var url    = this.attr('url');
             var data   = this.attr('send_data');
             if( url && data ){
-                this.formDataSubmit(url, data, '_top', method);
+                this.formDataSubmit(url, data, '_self', method);
                 return true;
             }
             return false;
