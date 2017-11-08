@@ -1,4 +1,5 @@
 var modules = {};
+
 var instance = {};
 
 var getModule = function (name) {

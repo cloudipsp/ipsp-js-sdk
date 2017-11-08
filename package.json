@@ -1,6 +1,6 @@
 {
   "name": "ipsp-js-sdk",
-  "version": "1.0.6-alpha.1",
+  "version": "1.0.7",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
@@ -12,8 +12,6 @@
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^3.0.0",
     "gulp-watch": "^4.3.11",
-    "gulp-wrap": "^0.13.0",
-    "gulp-wrap-amd": "^0.5.0",
-    "gulp-wrap-umd": "^0.2.1"
+    "gulp-wrap": "^0.13.0"
   }
 }
