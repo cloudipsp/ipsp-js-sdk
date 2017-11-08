@@ -40,7 +40,7 @@
         addModule(name, module(this));
         return this;
     };
-})(window || {});
+})(this || {});
 
 
 $checkout.scope('Class', function () {
@@ -1108,6 +1108,14 @@ $checkout.scope('ButtonWidget', function (ns) {
         }
     });
 });
+
+(function (global, name , factory) {
+    (typeof exports === 'object' && typeof module !== 'undefined') ? module.exports = factory() :
+    (typeof define === 'function' && define.amd) ? define(factory) :
+    (global[name] = factory());
+}(this,'$checkout',function(){
+    return $checkout;
+}));
 (function($){ 'use strict';
 $checkout.views = Object.create(null);
 $checkout.views['3ds.ejs'] = '<%=include(\'styles.ejs\')%>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content">\n            <iframe src="about:blank" class="ipsp-modal-iframe" scrolling="no" frameborder="0" allowtransparency="true"></iframe>\n        </div>\n    </div>\n</div>';
