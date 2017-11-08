@@ -6,28 +6,26 @@ var rename   = require('gulp-rename');
 var wrap     = require('gulp-wrap');
 var htmlToJs = require('gulp-html-to-js');
 
-
-var combineFiles = function(name,deps,out){
-    return gulp.src(deps).pipe(concat(name))
-        .pipe(gulp.dest(out))
-        .pipe(uglify())
-        .pipe(rename({extname:'.min.js'}))
-        .pipe(gulp.dest(out));
-};
-
 gulp.task('views', function() {
     return gulp.src('src/html/**/*')
-        .pipe(htmlToJs({concat: 'views.js',global:'$checkout.views'}))
-        .pipe(wrap('(function(){ <%= contents %> })();'))
+        .pipe(htmlToJs({
+            concat:'views.js',
+            global:'ns.views'
+        }))
+        .pipe(wrap("$checkout.scope('Views',function(ns){<%=contents%>});"))
         .pipe(gulp.dest('src'));
 });
 
 gulp.task('sdk',['views'],function(){
-    return combineFiles('checkout.js',[
+    return gulp.src([
         'src/index.js',
-        'src/views.js',
-        'src/define.js'
-    ],'dist');
+        'src/views.js'
+    ]).pipe(concat('checkout.js'))
+    .pipe(wrap({src:'src/wrapper.ejs'},{moduleName:'$checkout'}))
+    .pipe(gulp.dest('dist'))
+    .pipe(uglify())
+    .pipe(rename({extname:'.min.js'}))
+    .pipe(gulp.dest('dist'));
 });
 
 gulp.task('clean', function() {

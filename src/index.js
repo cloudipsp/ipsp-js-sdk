@@ -1,47 +1,54 @@
-(function (ns) {
-    var modules = {};
-    var instance = {};
-    var getModule = function (name) {
-        if (!modules[name]) {
-            throw Error(['module is undefined', name].join(' '));
-        }
-        return modules[name];
-    };
-    var newModule = function (name, params) {
-        if (!modules[name]) {
-            throw Error(['module is undefined', name].join(' '));
-        }
-        return new modules[name](params || {});
-    };
-    var addModule = function (name, module) {
-        if (modules[name]) {
-            throw Error(['module already added', name].join(' '));
-        }
-        modules[name] = module;
-    };
-    ns.$checkout = function (name, params) {
-        if (instance[name]) return instance[name];
-        return ( instance[name] = newModule(name, params) );
-    };
-    ns.$checkout.get = function (name, params) {
-        return newModule(name, params);
-    };
-    ns.$checkout.module = function (name) {
-        return getModule(name);
-    };
-    ns.$checkout.proxy = function (name) {
-        return getModule(name).apply(this, Array.prototype.slice.call(arguments, 1));
-    };
-    ns.$checkout.add = function (name, module) {
-        addModule(name, module);
-        return this;
-    };
-    ns.$checkout.scope = function (name, module) {
-        addModule(name, module(this));
-        return this;
-    };
-})(this || {});
+var modules = {};
+var instance = {};
 
+var getModule = function (name) {
+    if (!modules[name]) {
+        throw Error(['module is undefined', name].join(' '));
+    }
+    return modules[name];
+};
+
+var newModule = function (name, params) {
+    if (!modules[name]) {
+        throw Error(['module is undefined', name].join(' '));
+    }
+    return new modules[name](params || {});
+};
+
+var addModule = function (name, module) {
+    if (modules[name]) {
+        throw Error(['module already added', name].join(' '));
+    }
+    modules[name] = module;
+};
+
+
+var $checkout = function (name, params) {
+    if (instance[name]) return instance[name];
+    return ( instance[name] = newModule(name, params) );
+};
+
+$checkout.get = function (name, params) {
+    return newModule(name, params);
+};
+
+$checkout.module = function (name) {
+    return getModule(name);
+};
+
+$checkout.proxy = function (name) {
+    return getModule(name).apply(this, Array.prototype.slice.call(arguments, 1));
+};
+
+$checkout.add = function (name, module) {
+    addModule(name, module);
+    return this;
+};
+
+$checkout.scope = function (name, module) {
+    addModule(name, module(this));
+    return this;
+};
 
 $checkout.scope('Class', function () {
     var init = false;
@@ -170,9 +177,11 @@ $checkout.scope('Utils', function (ns) {
         createElement: function (el) {
             return document.createElement(el);
         },
-        getStyle: function(el,prop,getComputedStyle){
+        getStyle: function (el, prop, getComputedStyle) {
             getComputedStyle = window.getComputedStyle;
-            return (getComputedStyle ? getComputedStyle(el) : el.currentStyle)[prop.replace(/-(\w)/gi, function (word, letter) { return letter.toUpperCase() })];
+            return (getComputedStyle ? getComputedStyle(el) : el.currentStyle)[prop.replace(/-(\w)/gi, function (word, letter) {
+                return letter.toUpperCase()
+            })];
         },
         extend: function (obj) {
             this.forEach(Array.prototype.slice.call(arguments, 1), function (o) {
@@ -186,7 +195,6 @@ $checkout.scope('Utils', function (ns) {
         }
     });
 });
-
 
 $checkout.scope('Deferred', function (ns) {
     var utils = ns('Utils');
@@ -562,9 +570,9 @@ $checkout.scope('Modal', function (ns) {
     return ns.module('Module').extend({
         init: function (params) {
             this.checkout = params.checkout;
-            this.data     = params.data;
-            this.template = ns.get('Template','3ds.ejs');
-            this.body     = this.utils.querySelector('body');
+            this.data = params.data;
+            this.template = ns.get('Template', '3ds.ejs');
+            this.body = this.utils.querySelector('body');
             this.initModal();
             this.initConnector();
         },
@@ -609,19 +617,19 @@ $checkout.scope('Modal', function (ns) {
         },
         initScrollbar: function () {
             this.checkScrollbar();
-            this.bodyPad = parseInt(this.utils.getStyle(this.body,'padding-right')||0,10);
-            this.originalBodyPad  = document.body.style.paddingRight || '';
+            this.bodyPad = parseInt(this.utils.getStyle(this.body, 'padding-right') || 0, 10);
+            this.originalBodyPad = document.body.style.paddingRight || '';
             this.originalOverflow = document.body.style.overflow || '';
-            if( this.bodyIsOverflowing ){
-                this.addCss(this.body,{
-                    'paddingRight': [ this.bodyPad + this.scrollbarWidth ,'px'].join(''),
-                    'overflow':'hidden'
+            if (this.bodyIsOverflowing) {
+                this.addCss(this.body, {
+                    'paddingRight': [this.bodyPad + this.scrollbarWidth, 'px'].join(''),
+                    'overflow': 'hidden'
                 });
             }
         },
-        resetScrollbar:function(){
-            this.addCss(this.body,{
-                'paddingRight': this.originalBodyPad ? [this.originalBodyPad,'px'].join('') : '',
+        resetScrollbar: function () {
+            this.addCss(this.body, {
+                'paddingRight': this.originalBodyPad ? [this.originalBodyPad, 'px'].join('') : '',
                 'overflow': this.originalOverflow
             });
         },
@@ -701,8 +709,8 @@ $checkout.scope('Template', function (ns) {
             return htmlEntities[match];
         });
     };
-    var counter  = 0;
-    var template = function(text){
+    var counter = 0;
+    var template = function (text) {
         var render;
         var matcher = new RegExp([
             (settings.escape || noMatch).source,
@@ -711,8 +719,10 @@ $checkout.scope('Template', function (ns) {
         ].join('|') + '|$', 'g');
         var index = 0;
         var source = "__p+='";
-        text.replace(matcher, function (match, escape, interpolate,evaluate,offset){
-            source += text.slice(index, offset).replace(escaper, function(match){ return '\\' + escapes[match]; });
+        text.replace(matcher, function (match, escape, interpolate, evaluate, offset) {
+            source += text.slice(index, offset).replace(escaper, function (match) {
+                return '\\' + escapes[match];
+            });
             if (escape) {
                 source += "'+\n((__t=(" + escape + "))==null?'':escapeExpr(__t))+\n'";
             }
@@ -731,37 +741,36 @@ $checkout.scope('Template', function (ns) {
             "print=function(){__p+=__j.call(arguments,'');};\n" +
             source + "return __p;\n//# sourceURL=/tmpl/source[" + counter++ + "]";
         try {
-            render = new Function( settings.variable || 'obj' , 'escapeExpr' , source );
+            render = new Function(settings.variable || 'obj', 'escapeExpr', source);
         } catch (e) {
             e.source = source;
             throw e;
         }
         var template = function (data) {
-            return render.call(this,data,escapeExpr);
+            return render.call(this, data, escapeExpr);
         };
         template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
         return template;
     };
     return ns.module('Utils').extend({
-        init:function( name ){
-            this.name     = name;
-            this.view     = {};
+        init: function (name) {
+            this.name = name;
+            this.view = {};
             this.output();
         },
         output: function () {
             this.view.source = ns.views[this.name];
             this.view.output = template(this.view.source);
         },
-        render: function( data ){
+        render: function (data) {
             this.data = data;
-            return this.view.output.call(this,this);
+            return this.view.output.call(this, this);
         },
-        include:function( name , data ){
-            return this.instance(name).render(this.extend(this.data,data));
+        include: function (name, data) {
+            return this.instance(name).render(this.extend(this.data, data));
         }
     });
 });
-
 
 
 $checkout.scope('Model', function (ns) {
@@ -826,14 +835,14 @@ $checkout.scope('Model', function (ns) {
 
 $checkout.scope('Response', function (ns) {
     return ns.module('Model').extend({
-        stringFormat:function(string){
+        stringFormat: function (string) {
             var that = this;
-            return (string || '').replace(/{(.+?)}/g, function(match, prop) {
-                return that.attr(['order.order_data',prop].join('.')) || match;
+            return (string || '').replace(/{(.+?)}/g, function (match, prop) {
+                return that.attr(['order.order_data', prop].join('.')) || match;
             });
         },
         formDataSubmit: function (url, data, target, method) {
-            var url  = this.stringFormat(url);
+            var url = this.stringFormat(url);
             var form = this.prepareForm(url, data, target, method);
             var body = this.utils.querySelector('body');
             body.appendChild(form);
@@ -850,20 +859,20 @@ $checkout.scope('Response', function (ns) {
             }
             return false;
         },
-        submitToMerchant:function(){
+        submitToMerchant: function () {
             var ready = this.attr('order.ready_to_submit');
-            var url   = this.attr('order.response_url');
-            var data  = this.attr('order.order_data');
-            if( ready && url && data ){
-                this.formDataSubmit(url, data, '_self' , 'POST' );
+            var url = this.attr('order.response_url');
+            var data = this.attr('order.order_data');
+            if (ready && url && data) {
+                this.formDataSubmit(url, data, '_self', 'POST');
                 return true;
             }
         },
         submitForm: function () {
             var method = this.attr('method');
-            var url    = this.attr('url');
-            var data   = this.attr('send_data');
-            if( url && data ){
+            var url = this.attr('url');
+            var data = this.attr('send_data');
+            if (url && data) {
                 this.formDataSubmit(url, data, '_self', method);
                 return true;
             }
@@ -1108,4 +1117,3 @@ $checkout.scope('ButtonWidget', function (ns) {
         }
     });
 });
-

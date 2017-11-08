@@ -1,47 +1,59 @@
-(function (ns) {
-    var modules = {};
-    var instance = {};
-    var getModule = function (name) {
-        if (!modules[name]) {
-            throw Error(['module is undefined', name].join(' '));
-        }
-        return modules[name];
-    };
-    var newModule = function (name, params) {
-        if (!modules[name]) {
-            throw Error(['module is undefined', name].join(' '));
-        }
-        return new modules[name](params || {});
-    };
-    var addModule = function (name, module) {
-        if (modules[name]) {
-            throw Error(['module already added', name].join(' '));
-        }
-        modules[name] = module;
-    };
-    ns.$checkout = function (name, params) {
-        if (instance[name]) return instance[name];
-        return ( instance[name] = newModule(name, params) );
-    };
-    ns.$checkout.get = function (name, params) {
-        return newModule(name, params);
-    };
-    ns.$checkout.module = function (name) {
-        return getModule(name);
-    };
-    ns.$checkout.proxy = function (name) {
-        return getModule(name).apply(this, Array.prototype.slice.call(arguments, 1));
-    };
-    ns.$checkout.add = function (name, module) {
-        addModule(name, module);
-        return this;
-    };
-    ns.$checkout.scope = function (name, module) {
-        addModule(name, module(this));
-        return this;
-    };
-})(this || {});
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (global.$checkout = factory());
+}(this,function(){
+var modules = {};
+var instance = {};
 
+var getModule = function (name) {
+    if (!modules[name]) {
+        throw Error(['module is undefined', name].join(' '));
+    }
+    return modules[name];
+};
+
+var newModule = function (name, params) {
+    if (!modules[name]) {
+        throw Error(['module is undefined', name].join(' '));
+    }
+    return new modules[name](params || {});
+};
+
+var addModule = function (name, module) {
+    if (modules[name]) {
+        throw Error(['module already added', name].join(' '));
+    }
+    modules[name] = module;
+};
+
+
+var $checkout = function (name, params) {
+    if (instance[name]) return instance[name];
+    return ( instance[name] = newModule(name, params) );
+};
+
+$checkout.get = function (name, params) {
+    return newModule(name, params);
+};
+
+$checkout.module = function (name) {
+    return getModule(name);
+};
+
+$checkout.proxy = function (name) {
+    return getModule(name).apply(this, Array.prototype.slice.call(arguments, 1));
+};
+
+$checkout.add = function (name, module) {
+    addModule(name, module);
+    return this;
+};
+
+$checkout.scope = function (name, module) {
+    addModule(name, module(this));
+    return this;
+};
 
 $checkout.scope('Class', function () {
     var init = false;
@@ -170,9 +182,11 @@ $checkout.scope('Utils', function (ns) {
         createElement: function (el) {
             return document.createElement(el);
         },
-        getStyle: function(el,prop,getComputedStyle){
+        getStyle: function (el, prop, getComputedStyle) {
             getComputedStyle = window.getComputedStyle;
-            return (getComputedStyle ? getComputedStyle(el) : el.currentStyle)[prop.replace(/-(\w)/gi, function (word, letter) { return letter.toUpperCase() })];
+            return (getComputedStyle ? getComputedStyle(el) : el.currentStyle)[prop.replace(/-(\w)/gi, function (word, letter) {
+                return letter.toUpperCase()
+            })];
         },
         extend: function (obj) {
             this.forEach(Array.prototype.slice.call(arguments, 1), function (o) {
@@ -186,7 +200,6 @@ $checkout.scope('Utils', function (ns) {
         }
     });
 });
-
 
 $checkout.scope('Deferred', function (ns) {
     var utils = ns('Utils');
@@ -562,9 +575,9 @@ $checkout.scope('Modal', function (ns) {
     return ns.module('Module').extend({
         init: function (params) {
             this.checkout = params.checkout;
-            this.data     = params.data;
-            this.template = ns.get('Template','3ds.ejs');
-            this.body     = this.utils.querySelector('body');
+            this.data = params.data;
+            this.template = ns.get('Template', '3ds.ejs');
+            this.body = this.utils.querySelector('body');
             this.initModal();
             this.initConnector();
         },
@@ -609,19 +622,19 @@ $checkout.scope('Modal', function (ns) {
         },
         initScrollbar: function () {
             this.checkScrollbar();
-            this.bodyPad = parseInt(this.utils.getStyle(this.body,'padding-right')||0,10);
-            this.originalBodyPad  = document.body.style.paddingRight || '';
+            this.bodyPad = parseInt(this.utils.getStyle(this.body, 'padding-right') || 0, 10);
+            this.originalBodyPad = document.body.style.paddingRight || '';
             this.originalOverflow = document.body.style.overflow || '';
-            if( this.bodyIsOverflowing ){
-                this.addCss(this.body,{
-                    'paddingRight': [ this.bodyPad + this.scrollbarWidth ,'px'].join(''),
-                    'overflow':'hidden'
+            if (this.bodyIsOverflowing) {
+                this.addCss(this.body, {
+                    'paddingRight': [this.bodyPad + this.scrollbarWidth, 'px'].join(''),
+                    'overflow': 'hidden'
                 });
             }
         },
-        resetScrollbar:function(){
-            this.addCss(this.body,{
-                'paddingRight': this.originalBodyPad ? [this.originalBodyPad,'px'].join('') : '',
+        resetScrollbar: function () {
+            this.addCss(this.body, {
+                'paddingRight': this.originalBodyPad ? [this.originalBodyPad, 'px'].join('') : '',
                 'overflow': this.originalOverflow
             });
         },
@@ -701,8 +714,8 @@ $checkout.scope('Template', function (ns) {
             return htmlEntities[match];
         });
     };
-    var counter  = 0;
-    var template = function(text){
+    var counter = 0;
+    var template = function (text) {
         var render;
         var matcher = new RegExp([
             (settings.escape || noMatch).source,
@@ -711,8 +724,10 @@ $checkout.scope('Template', function (ns) {
         ].join('|') + '|$', 'g');
         var index = 0;
         var source = "__p+='";
-        text.replace(matcher, function (match, escape, interpolate,evaluate,offset){
-            source += text.slice(index, offset).replace(escaper, function(match){ return '\\' + escapes[match]; });
+        text.replace(matcher, function (match, escape, interpolate, evaluate, offset) {
+            source += text.slice(index, offset).replace(escaper, function (match) {
+                return '\\' + escapes[match];
+            });
             if (escape) {
                 source += "'+\n((__t=(" + escape + "))==null?'':escapeExpr(__t))+\n'";
             }
@@ -731,37 +746,36 @@ $checkout.scope('Template', function (ns) {
             "print=function(){__p+=__j.call(arguments,'');};\n" +
             source + "return __p;\n//# sourceURL=/tmpl/source[" + counter++ + "]";
         try {
-            render = new Function( settings.variable || 'obj' , 'escapeExpr' , source );
+            render = new Function(settings.variable || 'obj', 'escapeExpr', source);
         } catch (e) {
             e.source = source;
             throw e;
         }
         var template = function (data) {
-            return render.call(this,data,escapeExpr);
+            return render.call(this, data, escapeExpr);
         };
         template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
         return template;
     };
     return ns.module('Utils').extend({
-        init:function( name ){
-            this.name     = name;
-            this.view     = {};
+        init: function (name) {
+            this.name = name;
+            this.view = {};
             this.output();
         },
         output: function () {
             this.view.source = ns.views[this.name];
             this.view.output = template(this.view.source);
         },
-        render: function( data ){
+        render: function (data) {
             this.data = data;
-            return this.view.output.call(this,this);
+            return this.view.output.call(this, this);
         },
-        include:function( name , data ){
-            return this.instance(name).render(this.extend(this.data,data));
+        include: function (name, data) {
+            return this.instance(name).render(this.extend(this.data, data));
         }
     });
 });
-
 
 
 $checkout.scope('Model', function (ns) {
@@ -826,14 +840,14 @@ $checkout.scope('Model', function (ns) {
 
 $checkout.scope('Response', function (ns) {
     return ns.module('Model').extend({
-        stringFormat:function(string){
+        stringFormat: function (string) {
             var that = this;
-            return (string || '').replace(/{(.+?)}/g, function(match, prop) {
-                return that.attr(['order.order_data',prop].join('.')) || match;
+            return (string || '').replace(/{(.+?)}/g, function (match, prop) {
+                return that.attr(['order.order_data', prop].join('.')) || match;
             });
         },
         formDataSubmit: function (url, data, target, method) {
-            var url  = this.stringFormat(url);
+            var url = this.stringFormat(url);
             var form = this.prepareForm(url, data, target, method);
             var body = this.utils.querySelector('body');
             body.appendChild(form);
@@ -850,20 +864,20 @@ $checkout.scope('Response', function (ns) {
             }
             return false;
         },
-        submitToMerchant:function(){
+        submitToMerchant: function () {
             var ready = this.attr('order.ready_to_submit');
-            var url   = this.attr('order.response_url');
-            var data  = this.attr('order.order_data');
-            if( ready && url && data ){
-                this.formDataSubmit(url, data, '_self' , 'POST' );
+            var url = this.attr('order.response_url');
+            var data = this.attr('order.order_data');
+            if (ready && url && data) {
+                this.formDataSubmit(url, data, '_self', 'POST');
                 return true;
             }
         },
         submitForm: function () {
             var method = this.attr('method');
-            var url    = this.attr('url');
-            var data   = this.attr('send_data');
-            if( url && data ){
+            var url = this.attr('url');
+            var data = this.attr('send_data');
+            if (url && data) {
                 this.formDataSubmit(url, data, '_self', method);
                 return true;
             }
@@ -1108,17 +1122,11 @@ $checkout.scope('ButtonWidget', function (ns) {
         }
     });
 });
-
-
-(function(){ 'use strict';
-$checkout.views = Object.create(null);
-$checkout.views['3ds.ejs'] = '<%=include(\'styles.ejs\')%>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content">\n            <iframe src="about:blank" class="ipsp-modal-iframe" scrolling="no" frameborder="0" allowtransparency="true"></iframe>\n        </div>\n    </div>\n</div>';
-$checkout.views['styles.ejs'] = '<style>\n    .ipsp-modal{\n        margin:100px auto;\n        max-width:680px;\n        background-color:#fff;\n        border-radius:5px;\n        box-shadow:0px 2px 2px rgba(0,0,0,0.2);\n        overflow: hidden;\n    }\n    @media (max-width:850px){\n        .ipsp-modal{\n            margin:50px auto;\n        }\n    }\n    @media (max-width:695px){\n        .ipsp-modal{\n            max-width:100%;\n            margin:5px;\n        }\n    }\n    .ipsp-modal-wrapper{\n        overflow: auto;\n        position:fixed;\n        z-index:99999;\n        left:0;\n        bottom:0;\n        top:0;\n        right:0;\n        background-color: rgba(0,0,0,0.2);\n    }\n    .ipsp-modal-header{\n        background-color:#fafafa;\n        height:50px;\n        box-shadow:0px 0px 2px rgba(0,0,0,0.2);\n        border-top-left-radius:5px;\n        border-top-right-radius:5px;\n    }\n    .ipsp-modal-close{\n        float:right;\n        overflow:hidden;\n        height:50px;\n        text-decoration:none;\n        border-top-right-radius:5px;\n        color:#949494;\n    }\n    .ipsp-modal-close:hover,.ipsp-modal-close:focus,.ipsp-modal-close:active{\n        text-decoration:none;\n        color:#646464;\n    }\n    .ipsp-modal-close:before{\n        content:"×";\n        font-size:50px;\n        line-height:50px;\n        padding:0 10px;\n    }\n    .ipsp-modal-title{\n        border-top-left-radius:5px;\n        line-height:20px;\n        height:50px;\n        padding:5px 15px;\n        font-size:12px;\n        display:table-cell;\n        vertical-align: middle;\n    }\n    .ipsp-modal-content{\n        border-bottom-left-radius:5px;\n        border-bottom-left-radius:5px;\n        min-height:650px;\n    }\n    .ipsp-modal-iframe{\n        overflow-x: hidden;\n        border: 0;\n        display: block;\n        width: 100%;\n        height: 750px;\n    }\n</style>';
-$checkout.views['trustly.ejs'] = '<%=include(\'styles.ejs\')%>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content">\n            <iframe src="about:blank" class="ipsp-modal-iframe" scrolling="no" frameborder="0" allowtransparency="true"></iframe>\n        </div>\n    </div>\n</div>';
- })();
-(function (global, name , factory) {
-    (typeof exports === 'object' && typeof module !== 'undefined') ? module.exports = factory() :
-        (typeof define === 'function' && define.amd) ? define(factory) : false;
-}(this,'$checkout',function(){
-    return $checkout;
+$checkout.scope('Views',function(ns){'use strict';
+ns.views = Object.create(null);
+ns.views['3ds.ejs'] = '<%=include(\'styles.ejs\')%>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content">\n            <iframe src="about:blank" class="ipsp-modal-iframe" scrolling="no" frameborder="0" allowtransparency="true"></iframe>\n        </div>\n    </div>\n</div>';
+ns.views['styles.ejs'] = '<style>\n    .ipsp-modal{\n        margin:100px auto;\n        max-width:680px;\n        background-color:#fff;\n        border-radius:5px;\n        box-shadow:0px 2px 2px rgba(0,0,0,0.2);\n        overflow: hidden;\n    }\n    @media (max-width:850px){\n        .ipsp-modal{\n            margin:50px auto;\n        }\n    }\n    @media (max-width:695px){\n        .ipsp-modal{\n            max-width:100%;\n            margin:5px;\n        }\n    }\n    .ipsp-modal-wrapper{\n        overflow: auto;\n        position:fixed;\n        z-index:99999;\n        left:0;\n        bottom:0;\n        top:0;\n        right:0;\n        background-color: rgba(0,0,0,0.2);\n    }\n    .ipsp-modal-header{\n        background-color:#fafafa;\n        height:50px;\n        box-shadow:0px 0px 2px rgba(0,0,0,0.2);\n        border-top-left-radius:5px;\n        border-top-right-radius:5px;\n    }\n    .ipsp-modal-close{\n        float:right;\n        overflow:hidden;\n        height:50px;\n        text-decoration:none;\n        border-top-right-radius:5px;\n        color:#949494;\n    }\n    .ipsp-modal-close:hover,.ipsp-modal-close:focus,.ipsp-modal-close:active{\n        text-decoration:none;\n        color:#646464;\n    }\n    .ipsp-modal-close:before{\n        content:"×";\n        font-size:50px;\n        line-height:50px;\n        padding:0 10px;\n    }\n    .ipsp-modal-title{\n        border-top-left-radius:5px;\n        line-height:20px;\n        height:50px;\n        padding:5px 15px;\n        font-size:12px;\n        display:table-cell;\n        vertical-align: middle;\n    }\n    .ipsp-modal-content{\n        border-bottom-left-radius:5px;\n        border-bottom-left-radius:5px;\n        min-height:650px;\n    }\n    .ipsp-modal-iframe{\n        overflow-x: hidden;\n        border: 0;\n        display: block;\n        width: 100%;\n        height: 750px;\n    }\n</style>';
+ns.views['trustly.ejs'] = '<%=include(\'styles.ejs\')%>\n<div class="ipsp-modal-wrapper">\n    <div class="ipsp-modal">\n        <div class="ipsp-modal-header">\n            <a href="#" class="ipsp-modal-close"></a>\n            <div class="ipsp-modal-title">\n                Now you will be redirected to your bank 3DSecure.\n                If you are not redirected please refer\n                <a href=\'javascript:void(0)\'>link</a>\n            </div>\n        </div>\n        <div class="ipsp-modal-content">\n            <iframe src="about:blank" class="ipsp-modal-iframe" scrolling="no" frameborder="0" allowtransparency="true"></iframe>\n        </div>\n    </div>\n</div>';
+});
+return $checkout;
 }));
