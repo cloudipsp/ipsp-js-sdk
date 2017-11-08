@@ -18,14 +18,15 @@ var combineFiles = function(name,deps,out){
 gulp.task('views', function() {
     return gulp.src('src/html/**/*')
         .pipe(htmlToJs({concat: 'views.js',global:'$checkout.views'}))
-        .pipe(wrap('(function($){ <%= contents %> })(jQuery);'))
+        .pipe(wrap('(function(){ <%= contents %> })();'))
         .pipe(gulp.dest('src'));
 });
 
 gulp.task('sdk',['views'],function(){
     return combineFiles('checkout.js',[
         'src/index.js',
-        'src/views.js'
+        'src/views.js',
+        'src/define.js'
     ],'dist');
 });
 

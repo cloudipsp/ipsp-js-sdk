@@ -1109,10 +1109,3 @@ $checkout.scope('ButtonWidget', function (ns) {
     });
 });
 
-(function (global, name , factory) {
-    (typeof exports === 'object' && typeof module !== 'undefined') ? module.exports = factory() :
-    (typeof define === 'function' && define.amd) ? define(factory) :
-    (global[name] = factory());
-}(this,'$checkout',function(){
-    return $checkout;
-}));
