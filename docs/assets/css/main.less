@@ -87,6 +87,49 @@ a {
   }
 }
 
+
+.btn.success {
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(21, 153, 87, 1);
+  border-color: rgba(12, 108, 62, 1);
+  &:hover {
+    color: rgba(255, 255, 255, 1);
+    text-decoration: none;
+    background-color: rgba(21, 153, 87, 0.9);
+    border-color: rgba(12, 108, 62, 0.9);
+  }
+}
+
+
+.btn-outline(@color:@brand-primary){
+  color: @color;
+  background-color:#fff;
+  border-color: @color;
+  border-width:2px;
+  &:hover {
+    color:#fff;
+    text-decoration: none;
+    background-color: @color;
+    border-color: darken(@color,10%);
+  }
+}
+
+.btn.social.facebook {
+  .btn-outline(@brand-facebook);
+}
+.btn.social.google {
+  .btn-outline(@brand-google-plus);
+}
+.btn.social.linkedin {
+  .btn-outline(@brand-linkedin);
+}
+.btn.warning {
+  .btn-outline(@brand-warning);
+}
+.btn.green {
+  .btn-outline(@brand-success);
+}
+
 .field {
   color: rgba(0, 0, 0, 0.7);
   border:1px solid rgba(0, 0, 0, 0.2);
@@ -631,3 +674,11 @@ table.details {
     vertical-align: top;
   }
 }
+
+.button-wrapper{
+  margin-top:-1rem;
+  @media screen and (max-width: 42em) {
+    margin-top:0;
+  }
+}
+

@@ -655,6 +655,77 @@ a:hover {
   background-color: rgba(0, 0, 0, 0.2);
   border-color: rgba(0, 0, 0, 0.3);
 }
+.btn.success {
+  color: #ffffff;
+  background-color: #159957;
+  border-color: #0c6c3e;
+}
+.btn.success:hover {
+  color: #ffffff;
+  text-decoration: none;
+  background-color: rgba(21, 153, 87, 0.9);
+  border-color: rgba(12, 108, 62, 0.9);
+}
+.btn.social.facebook {
+  color: #3b5998;
+  background-color: #fff;
+  border-color: #3b5998;
+  border-width: 2px;
+}
+.btn.social.facebook:hover {
+  color: #fff;
+  text-decoration: none;
+  background-color: #3b5998;
+  border-color: #2d4373;
+}
+.btn.social.google {
+  color: #d65041;
+  background-color: #fff;
+  border-color: #d65041;
+  border-width: 2px;
+}
+.btn.social.google:hover {
+  color: #fff;
+  text-decoration: none;
+  background-color: #d65041;
+  border-color: #bc3728;
+}
+.btn.social.linkedin {
+  color: #1683bb;
+  background-color: #fff;
+  border-color: #1683bb;
+  border-width: 2px;
+}
+.btn.social.linkedin:hover {
+  color: #fff;
+  text-decoration: none;
+  background-color: #1683bb;
+  border-color: #11638d;
+}
+.btn.warning {
+  color: #e77a04;
+  background-color: #fff;
+  border-color: #e77a04;
+  border-width: 2px;
+}
+.btn.warning:hover {
+  color: #fff;
+  text-decoration: none;
+  background-color: #e77a04;
+  border-color: #b56003;
+}
+.btn.green {
+  color: #159957;
+  background-color: #fff;
+  border-color: #159957;
+  border-width: 2px;
+}
+.btn.green:hover {
+  color: #fff;
+  text-decoration: none;
+  background-color: #159957;
+  border-color: #0f6c3e;
+}
 .field {
   color: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -1228,4 +1299,12 @@ table.details .param {
   background-color: #1bc671;
   color: rgba(255, 255, 255, 0.9);
   vertical-align: top;
+}
+.button-wrapper {
+  margin-top: -1rem;
+}
+@media screen and (max-width: 42em) {
+  .button-wrapper {
+    margin-top: 0;
+  }
 }
