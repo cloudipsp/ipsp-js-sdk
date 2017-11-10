@@ -13,3 +13,8 @@ headline: Examples
 ### JSFiddle preview
 
 <script async src="//jsfiddle.net/kosatyi/z2df3jrg/embed/"></script>
+
+
+## Checkout Widget
+
+<script async src="//jsfiddle.net/kosatyi/j8Lj95k2/12/embed/html,resources,result/"></script>
