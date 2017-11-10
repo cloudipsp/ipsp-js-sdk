@@ -3,6 +3,6 @@ title: Examples
 headline: Examples
 ---
 
-## Credit/Debit card form
+## Basic Credit Card form
 
-<script async src="//jsfiddle.net/kosatyi/z2df3jrg/embed/"></script>
+{% gist aaef96be10217f58fb010c316c924e5a %}
