@@ -21,7 +21,7 @@ gulp.task('sdk',['views'],function(){
         'src/index.js',
         'src/views.js'
     ]).pipe(concat('checkout.js'))
-    .pipe(wrap({src:'src/wrapper.ejs'},{moduleName:'$checkout'}))
+    .pipe(wrap({src:'src/base.ejs'},{moduleName:'$checkout'}))
     .pipe(gulp.dest('dist'))
     .pipe(uglify())
     .pipe(rename({extname:'.min.js'}))
@@ -36,4 +36,4 @@ gulp.task('watcher', function(){
     gulp.watch(['src/*.js','src/html/*.ejs'],['sdk']);
 });
 
-gulp.task('default', ['watcher','clean','sdk']);
+gulp.task('default',['clean','sdk']);

@@ -1,8 +1,15 @@
 {
   "name": "ipsp-js-sdk",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "license": "MIT",
   "dependencies": {},
+  "scripts": {
+    "build": "npm install && bower install && bower update && gulp",
+    "prepublishOnly":"npm install && bower install && bower update && gulp",
+    "start": "gulp watcher"
+  },
+  "files": ["dist","src"],
+  "unpkg": "dist/checkout.min.js",
   "devDependencies": {
     "bower": "^1.8.0",
     "del": "^3.0.0",
