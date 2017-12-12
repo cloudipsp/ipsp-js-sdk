@@ -17,4 +17,4 @@ headline: Examples
 
 ## Checkout Widget
 
-<script async src="//jsfiddle.net/kosatyi/j8Lj95k2/12/embed/html,resources,result/"></script>
+<script async src="//jsfiddle.net/kosatyi/j8Lj95k2/embed/html,resources,result/"></script>
