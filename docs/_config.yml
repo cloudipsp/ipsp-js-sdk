@@ -8,6 +8,7 @@ port: 4001
 
 styles:
   - //fonts.googleapis.com/css?family=Open+Sans:300,400,700
+  - //fonts.googleapis.com/css?family=Pacifico
   - /assets/css/main.css
 
 javascript:
@@ -33,7 +34,11 @@ author:
 
 toolbar:
 -
-  name: Documentation
+  name: IPSP PHP
+  class: btn-signup
+  link: https://ipsp-php.com/
+-
+  name: Docs
   link: /docs/
 -
   name: Examples

@@ -1308,3 +1308,31 @@ table.details .param {
     margin-top: 0;
   }
 }
+.page-menu ul {
+  border-left: none;
+}
+.page-menu li.btn-signup a {
+  font-size: 1rem;
+  line-height: 1.8;
+  font-weight: normal;
+  text-transform: uppercase;
+  padding: 0.36rem 1rem;
+  margin: 0.5rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  background-color: #1bc671;
+  text-shadow: 0px 1px rgba(0, 0, 0, 0.2);
+  text-transform: none;
+  box-shadow: inset 0px 0px 1px 1px rgba(255, 255, 255, 0.4), 0px 0px 2px rgba(0, 0, 0, 0.2);
+}
+.page-menu li.btn-signup a:hover {
+  background-color: #fff;
+  color: #159957;
+  text-shadow: none;
+}
+.page-menu li.btn-signup a:active {
+  text-shadow: none;
+  box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.4);
+  position: relative;
+  top: 1px;
+}
