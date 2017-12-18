@@ -642,7 +642,6 @@ $checkout.scope('Modal', function (ns) {
         },
         closeModal: function (el, ev) {
             ev.preventDefault();
-            this.sendResponse(this.data);
             this.trigger('close', this.data);
             this.removeModal();
         },
