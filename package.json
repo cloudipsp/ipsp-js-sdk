@@ -1,17 +1,29 @@
 {
-  "name": "ipsp-js-sdk",
-  "version": "1.0.9",
+  "name":"ipsp-js-sdk",
+  "title":"Fondy Checkout SDK",
+  "description":"Fondy payment service provider javascript sdk",
+  "version":"1.0.9",
   "license": "MIT",
-  "dependencies": {},
-  "scripts": {
-    "build": "npm install && bower install && bower update && gulp",
-    "prepublishOnly":"npm install && bower install && bower update && gulp",
-    "start": "gulp watcher"
-  },
-  "files": ["dist","src"],
+  "homepage": "https://fondy.eu",
+  "main": "dist/checkout.min.js",
   "unpkg": "dist/checkout.min.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cloudipsp/ipsp-js-sdk.git"
+  },
+  "scripts": {
+    "build": "npm install && ./node_modules/gulp/bin/gulp.js",
+    "prepublishOnly": "npm install && ./node_modules/gulp/bin/gulp.js",
+    "start": "./node_modules/gulp/bin/gulp.js watcher"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "dependencies": {
+
+  },
   "devDependencies": {
-    "bower": "^1.8.0",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",

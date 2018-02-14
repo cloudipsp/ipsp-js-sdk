@@ -6,7 +6,7 @@ var rename   = require('gulp-rename');
 var wrap     = require('gulp-wrap');
 var htmlToJs = require('gulp-html-to-js');
 
-gulp.task('views', function() {
+gulp.task('views',function(){
     return gulp.src('src/html/**/*')
         .pipe(htmlToJs({
             concat:'views.js',
