@@ -1066,7 +1066,9 @@ $checkout.scope('Widget', function (ns) {
             return {};
         },
         sendRequest: function (el, ev) {
+            if (ev.defaultPrevented) return;
             ev.preventDefault();
+            this.trigger('request', this.getRequestParams(el) );
             this.scope(function () {
                 this.request('api.checkout.form', 'request', this.getRequestParams(el))
                     .done(this.proxy('onSuccess')).fail(this.proxy('onError'));
