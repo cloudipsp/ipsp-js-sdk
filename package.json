@@ -7,6 +7,10 @@
   "homepage": "https://fondy.eu",
   "main": "dist/checkout.min.js",
   "unpkg": "dist/checkout.min.js",
+  "author": {
+    "name": "CloudIPSP JS Team",
+    "url": "https://github.com/orgs/cloudipsp/teams/js-team"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/cloudipsp/ipsp-js-sdk.git"
