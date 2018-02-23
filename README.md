@@ -157,7 +157,7 @@ optional merchant parameters:
   "phone":"customer phone number"
 }
 ```
-## JS SDK ussage example
+## JS SDK usage example
 
 https://jsfiddle.net/fondyeu/jdc9o5cx/
 
