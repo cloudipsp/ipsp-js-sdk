@@ -849,6 +849,15 @@ $checkout.scope('Response', function (ns) {
             form.submit();
             form.parentNode.removeChild(form);
         },
+        inProgress: function () {
+            return this.attr('order.in_progress');
+        },
+        readyToSubmit: function () {
+            return this.attr('order.ready_to_submit');
+        },
+        waitForResponse: function () {
+            return this.attr('order.pending');
+        },
         needVerifyCode: function () {
             return this.attr('order.need_verify_code');
         },
