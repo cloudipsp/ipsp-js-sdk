@@ -976,8 +976,16 @@ $checkout.scope('Api', function (ns) {
         endpoint: {
             gateway: '/checkout/v2/'
         },
+        styles:{
+            'width':'1px !important',
+            'height':'1px !important',
+            'left':'1px !important',
+            'bottom':'1px !important',
+            'position':'fixed !important',
+            'border':'0px !important'
+        },
         init: function () {
-            this.loaded = false;
+            this.loaded  = false;
             this.created = false;
         },
         setOrigin: function (origin) {
@@ -987,11 +995,23 @@ $checkout.scope('Api', function (ns) {
         url: function (type, url) {
             return [this.origin, this.endpoint[type] || '/', url || ''].join('');
         },
+        getFrameStyles:function(){
+            var props = [];
+            this.utils.forEach(this.styles,function(value,key){
+                props.push([key,value].join(':'));
+            });
+            return props.join(';');
+        },
         loadFrame: function (url) {
             this.iframe = this.utils.createElement('iframe');
             this.addAttr(this.iframe, {'src': url});
-            this.addCss(this.iframe, {'width': '1px','height':'1px','position':'absolute','border':'0px'});
-            this.utils.querySelector('body').appendChild(this.iframe);
+            this.addAttr(this.iframe, {'style':this.getFrameStyles()});
+            this.body = this.utils.querySelector('body');
+            if(this.body.firstChild){
+                this.body.insertBefore(this.iframe,this.body.firstChild);
+            } else {
+                this.body.appendChild(this.iframe);
+            }
             return this.iframe;
         },
         create: function () {
@@ -1041,6 +1061,7 @@ $checkout.scope('Api', function (ns) {
         }
     });
 });
+
 
 $checkout.scope('Widget', function (ns) {
     return ns.module('Api').extend({
