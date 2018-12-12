@@ -968,11 +968,11 @@ $checkout.scope('Response', function (ns) {
             return data;
         },
         waitOn3dsDecline: function () {
-            var data     = this.attr('submit3ds.checkout_data');
-            return {
-                wait: data.js_wait_on_3ds_decline,
-                duration: data.js_wait_on_3ds_decline_duration
-            };
+            var data     = this.alt('submit3ds.checkout_data',{
+                js_wait_on_3ds_decline: false,
+                js_wait_on_3ds_decline_duration: 0
+            });
+            return data.js_wait_on_3ds_decline ? data.js_wait_on_3ds_decline_duration : 0;
         },
         submit3dsForm: function () {
             if (this.attr('submit3ds.checkout_data')) {
@@ -1188,18 +1188,14 @@ $checkout.scope('Widget', function (ns) {
             });
         },
         onProgress: function (cx, model) {
-            model.submit3dsForm();
-            console.log('onProgress', model);
             this.trigger('progress', model);
         },
         onSuccess: function (cx, model) {
             model.sendResponse();
             model.submitToMerchant();
-            console.log('onSuccess', model);
             this.trigger('success', model);
         },
         onError: function (cx, model) {
-            console.log('onError', model);
             this.trigger('error', model);
         }
     });
