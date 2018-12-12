@@ -26,7 +26,7 @@ var addModule = function (name, module) {
 
 var $checkout = function (name, params) {
     if (instance[name]) return instance[name];
-    return ( instance[name] = newModule(name, params) );
+    return (instance[name] = newModule(name, params));
 };
 
 $checkout.get = function (name, params) {
@@ -64,7 +64,7 @@ $checkout.scope('Class', function () {
             return new this.constructor(params);
         },
         proxy: function (fn) {
-            fn = typeof(fn) == 'string' ? this[fn] : fn;
+            fn = typeof (fn) == 'string' ? this[fn] : fn;
             return (function (cx, cb) {
                 return function () {
                     return cb.apply(cx, [this].concat(Array.prototype.slice.call(arguments)))
@@ -79,8 +79,8 @@ $checkout.scope('Class', function () {
         init = false;
         for (prop in instance) {
             if (instance.hasOwnProperty(prop)) {
-                if (typeof(parent[prop]) == 'function' &&
-                    typeof(instance[prop]) == 'function' &&
+                if (typeof (parent[prop]) == 'function' &&
+                    typeof (instance[prop]) == 'function' &&
                     fnTest.test(instance[prop])
                 ) {
                     proto[prop] = (function (name, fn) {
@@ -172,6 +172,59 @@ $checkout.scope('Utils', function (ns) {
                         r[p] = t;
             return r;
         },
+        cleanObject: function (object) {
+            var prop;
+            for (prop in object) {
+                if (object.hasOwnProperty(prop)) {
+                    if (object[prop].length === 0) {
+                        if (this.isArray(object)) object.splice(prop, 1);
+                        if (this.isPlainObject(object)) delete object[prop];
+                    } else if (this.isPlainObject(object[prop])) {
+                        this.cleanObject(object[prop]);
+                    }
+                }
+            }
+            return object;
+        },
+        param:function(data){
+            var s = [];
+            var add = function (k, v) {
+                v = typeof v === 'function' ? v() : v;
+                v = v === null ? '' : v === undefined ? '' : v;
+                s[s.length] = encodeURIComponent(k) + '=' + encodeURIComponent(v);
+            };
+            var build = function (prefix, obj) {
+                var i, len, key;
+                if (prefix) {
+                    if (Array.isArray(obj)) {
+                        for (i = 0, len = obj.length; i < len; i++) {
+                            build(
+                                prefix + '[' + (typeof obj[i] === 'object' && obj[i] ? i : '') + ']',
+                                obj[i]
+                            );
+                        }
+                    } else if (String(obj) === '[object Object]') {
+                        for (key in obj) {
+                            build(prefix + '[' + key + ']', obj[key]);
+                        }
+                    } else {
+                        add(prefix, obj);
+                    }
+                } else if (Array.isArray(obj)) {
+                    for (i = 0, len = obj.length; i < len; i++) {
+                        add(obj[i].name, obj[i].value);
+                    }
+                } else {
+                    for (key in obj) {
+                        if(obj.hasOwnProperty(key)){
+                            build(key, obj[key]);
+                        }
+                    }
+                }
+                return s;
+            };
+            return build('', data).join('&');
+        },
         removeElement: function (el) {
             el.parentNode.removeChild(el);
         },
@@ -213,8 +266,7 @@ $checkout.scope('Deferred', function (ns) {
             for (var i = 0; i < arr.length; i++) {
                 handler(arr[i]);
             }
-        }
-        else
+        } else
             handler(arr);
     };
 
@@ -238,8 +290,7 @@ $checkout.scope('Deferred', function (ns) {
                                 }
                                 doneFuncs.push(arr[j]);
                             }
-                        }
-                        else {
+                        } else {
                             if (status === 'resolved') {
                                 arguments[i].apply(this, resultArgs);
                             }
@@ -261,8 +312,7 @@ $checkout.scope('Deferred', function (ns) {
                                 }
                                 failFuncs.push(arr[j]);
                             }
-                        }
-                        else {
+                        } else {
                             if (status === 'rejected') {
                                 arguments[i].apply(this, resultArgs);
                             }
@@ -286,8 +336,7 @@ $checkout.scope('Deferred', function (ns) {
                                     progressFuncs.push(arr[j]);
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             if (status === 'pending') {
                                 progressFuncs.push(arguments[i]);
                             }
@@ -337,13 +386,11 @@ $checkout.scope('Deferred', function (ns) {
                                     var returnval = func.apply(this, arguments);
                                     if (returnval && typeof returnval === 'function') {
                                         returnval.promise().then(def.resolve, def.reject, def.notify);
-                                    }
-                                    else {
+                                    } else {
                                         def.resolve(returnval);
                                     }
                                 });
-                            }
-                            else {
+                            } else {
                                 deferred.done(def.resolve);
                             }
                         });
@@ -357,8 +404,7 @@ $checkout.scope('Deferred', function (ns) {
                                         def.reject(returnval);
                                     }
                                 });
-                            }
-                            else {
+                            } else {
                                 deferred.fail(def.reject);
                             }
                         });
@@ -776,11 +822,11 @@ $checkout.scope('Template', function (ns) {
 $checkout.scope('Model', function (ns) {
     return ns.module('Module').extend({
         init: function (data) {
-            if (data) {
-                this.data = data;
-            } else {
-                this.data = {};
-            }
+            this.data = data || {};
+            this.create();
+        },
+        create: function () {
+
         },
         each: function () {
             var args = arguments;
@@ -795,7 +841,7 @@ $checkout.scope('Model', function (ns) {
         },
         alt: function (prop, defaults) {
             prop = this.attr(prop);
-            return typeof(prop) === 'undefined' ? defaults : prop;
+            return typeof (prop) === 'undefined' ? defaults : prop;
         },
         attr: function (key, value) {
             var i = 0,
@@ -806,12 +852,10 @@ $checkout.scope('Model', function (ns) {
             for (; i < name.length; i++) {
                 if (data && data.hasOwnProperty(name[i])) {
                     data = data[name[i]];
-                }
-                else {
+                } else {
                     if (len === 2) {
                         data = (data[name[i]] = {});
-                    }
-                    else {
+                    } else {
                         break;
                     }
                 }
@@ -841,9 +885,20 @@ $checkout.scope('Response', function (ns) {
                 return that.attr(['order.order_data', prop].join('.')) || match;
             });
         },
+        setConnector: function (connector) {
+            this.connector = connector;
+            return this;
+        },
+        setUID: function (uid) {
+            this.uid = uid;
+            return this;
+        },
+        getUID:function(){
+            return this.uid;
+        },
         formDataSubmit: function (url, data, target, method) {
-            var url = this.stringFormat(url);
-            var form = this.prepareForm(url, data, target, method);
+            var action = this.stringFormat(url);
+            var form = this.prepareForm(action, data, target, method);
             var body = this.utils.querySelector('body');
             body.appendChild(form);
             form.submit();
@@ -871,9 +926,10 @@ $checkout.scope('Response', function (ns) {
         submitToMerchant: function () {
             var ready = this.attr('order.ready_to_submit');
             var url = this.attr('order.response_url');
+            var method = this.attr('order.method');
             var data = this.attr('order.order_data');
             if (ready && url && data) {
-                this.formDataSubmit(url, data, '_self', 'POST');
+                this.formDataSubmit(url, data, '_self', method);
                 return true;
             }
         },
@@ -894,9 +950,38 @@ $checkout.scope('Response', function (ns) {
             if (action === 'redirect')
                 return this.redirectUrl();
             return false;
+        },
+        prepare3dsData: function () {
+            var params = {};
+            var data   = this.attr('submit3ds');
+            if ( data['3ds'] ) {
+                params.token = this.attr('token');
+                params.uid   = this.getUID();
+                params.frame = true;
+                if (data.send_data.TermUrl) {
+                    data.send_data.TermUrl = [
+                        data.send_data.TermUrl,
+                        this.utils.param(params)
+                    ].join('#!!');
+                }
+            }
+            return data;
+        },
+        waitOn3dsDecline: function () {
+            var data     = this.attr('submit3ds.checkout_data');
+            return {
+                wait: data.js_wait_on_3ds_decline,
+                duration: data.js_wait_on_3ds_decline_duration
+            };
+        },
+        submit3dsForm: function () {
+            if (this.attr('submit3ds.checkout_data')) {
+                this.connector.trigger('modal',this.prepare3dsData());
+            }
         }
     });
 });
+
 
 $checkout.scope('FormData', function (ns) {
     return ns.module('Module').extend({
@@ -910,21 +995,7 @@ $checkout.scope('FormData', function (ns) {
         },
         getData: function (filter) {
             var params = this.deparam(this.serializeArray());
-            return filter == true ? this.clean(params) : params;
-        },
-        clean: function (obj) {
-            var prop;
-            for (prop in obj) {
-                if (obj.hasOwnProperty(prop)) {
-                    if (obj[prop].length === 0) {
-                        if (this.utils.isArray(obj)) obj.splice(prop, 1);
-                        if (this.utils.isPlainObject(obj)) delete obj[prop];
-                    } else if (this.utils.isPlainObject(obj[prop])) {
-                        this.clean(obj[prop]);
-                    }
-                }
-            }
-            return obj;
+            return filter === true ? this.utils.cleanObject(params) : params;
         },
         serializeArray: function () {
             var list = this.utils.toArray(this.form.elements);
@@ -976,16 +1047,16 @@ $checkout.scope('Api', function (ns) {
         endpoint: {
             gateway: '/checkout/v2/'
         },
-        styles:{
-            'width':'1px !important',
-            'height':'1px !important',
-            'left':'1px !important',
-            'bottom':'1px !important',
-            'position':'fixed !important',
-            'border':'0px !important'
+        styles: {
+            'width': '1px !important',
+            'height': '1px !important',
+            'left': '1px !important',
+            'bottom': '1px !important',
+            'position': 'fixed !important',
+            'border': '0px !important'
         },
         init: function () {
-            this.loaded  = false;
+            this.loaded = false;
             this.created = false;
         },
         setOrigin: function (origin) {
@@ -995,20 +1066,20 @@ $checkout.scope('Api', function (ns) {
         url: function (type, url) {
             return [this.origin, this.endpoint[type] || '/', url || ''].join('');
         },
-        getFrameStyles:function(){
+        getFrameStyles: function () {
             var props = [];
-            this.utils.forEach(this.styles,function(value,key){
-                props.push([key,value].join(':'));
+            this.utils.forEach(this.styles, function (value, key) {
+                props.push([key, value].join(':'));
             });
             return props.join(';');
         },
         loadFrame: function (url) {
             this.iframe = this.utils.createElement('iframe');
             this.addAttr(this.iframe, {'src': url});
-            this.addAttr(this.iframe, {'style':this.getFrameStyles()});
+            this.addAttr(this.iframe, {'style': this.getFrameStyles()});
             this.body = this.utils.querySelector('body');
-            if(this.body.firstChild){
-                this.body.insertBefore(this.iframe,this.body.firstChild);
+            if (this.body.firstChild) {
+                this.body.insertBefore(this.iframe, this.body.firstChild);
             } else {
                 this.body.appendChild(this.iframe);
             }
@@ -1054,8 +1125,18 @@ $checkout.scope('Api', function (ns) {
                 params: params || {}
             };
             this.connector.send('request', data);
-            this.connector.on(data.uid, this.proxy(function (ev, response) {
-                defer[response.error ? 'rejectWith' : 'resolveWith'](this, [ns.get('Response', response)]);
+            this.connector.on(data.uid, this.proxy(function (ev, response, model, action) {
+                model = ns.get('Response',response)
+                model.setUID(data.uid);
+                model.setConnector(this.connector);
+                action = 'resolveWith';
+                if (response['submit3ds']) {
+                    action = 'notifyWith';
+                }
+                if (response['error']) {
+                    action = 'rejectWith';
+                }
+                defer[action](this, [model]);
             }));
             return defer;
         }
@@ -1098,18 +1179,27 @@ $checkout.scope('Widget', function (ns) {
         sendRequest: function (el, ev) {
             if (ev.defaultPrevented) return;
             ev.preventDefault();
-            this.trigger('request', this.getRequestParams(el) );
+            this.trigger('request', this.getRequestParams(el));
             this.scope(function () {
                 this.request('api.checkout.form', 'request', this.getRequestParams(el))
-                    .done(this.proxy('onSuccess')).fail(this.proxy('onError'));
+                    .done(this.proxy('onSuccess'))
+                    .fail(this.proxy('onError'))
+                    .progress(this.proxy('onProgress'));
             });
+        },
+        onProgress: function (cx, model) {
+            model.submit3dsForm();
+            console.log('onProgress', model);
+            this.trigger('progress', model);
         },
         onSuccess: function (cx, model) {
             model.sendResponse();
             model.submitToMerchant();
+            console.log('onSuccess', model);
             this.trigger('success', model);
         },
         onError: function (cx, model) {
+            console.log('onError', model);
             this.trigger('error', model);
         }
     });
