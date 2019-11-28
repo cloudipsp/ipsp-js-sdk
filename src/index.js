@@ -1201,6 +1201,7 @@ $checkout.scope('Widget', function (ns) {
     });
 });
 
+
 $checkout.scope('FormWidget', function (ns) {
     return ns.module('Widget').extend({
         initElement: function (el) {

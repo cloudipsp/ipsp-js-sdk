@@ -8,15 +8,12 @@ var htmlToJs = require('gulp-html-to-js');
 
 gulp.task('views',function(){
     return gulp.src('src/html/**/*')
-        .pipe(htmlToJs({
-            concat:'views.js',
-            global:'ns.views'
-        }))
+        .pipe(htmlToJs({concat:'views.js',global:'ns.views'}))
         .pipe(wrap("$checkout.scope('Views',function(ns){<%=contents%>});"))
         .pipe(gulp.dest('src'));
 });
 
-gulp.task('sdk',['views'],function(){
+gulp.task('sdk',function(){
     return gulp.src([
         'src/index.js',
         'src/views.js'
@@ -28,12 +25,13 @@ gulp.task('sdk',['views'],function(){
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('clean', function() {
-    return del.sync('dist');
+gulp.task('clean', function(done) {
+    del.sync('dist');
+    done();
 });
 
 gulp.task('watcher', function(){
-    gulp.watch(['src/*.js','src/html/*.ejs'],['sdk']);
+    gulp.watch(['src/*.js','src/html/*.ejs'],gulp.series(['views','sdk']));
 });
 
-gulp.task('default',['clean','sdk']);
+gulp.task('default',gulp.series(['clean','views','sdk']));

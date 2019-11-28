@@ -15,7 +15,7 @@
 
     <form class="form form-horizontal checkout-form">
         <div class="form-group">
-            <input type="hidden" name="merchant_id" value="900204">
+            <input type="hidden" name="merchant_id" value="900001">
             <input type="hidden" name="amount" value="100.20">
             <input type="hidden" name="currency" value="UAH">
             <input type="hidden" name="email" value="client@example.com"/>
@@ -104,6 +104,7 @@
     <button type="submit" data-pay="100" data-type="qiwi" class="btn btn-pay btn-success">Qiwi</button>
     <button type="submit" data-pay="100" data-type="yandex" class="btn btn-pay btn-success">Yandex Money</button>
     <button type="submit" data-pay="100" data-type="trustly" class="btn btn-pay btn-success">Trustly</button>
+    <button type="submit" data-pay="100" data-type="trustly" class="btn btn-pay btn-success">Apple\Google Pay</button>
 
 </div>
 <script>
@@ -121,7 +122,7 @@
         element: '.btn-pay',
         origin:'https://api.dev.fondy.eu',
         options: {
-            merchant_id: '900204',
+            merchant_id: '900001',
             currency: 'UAH'
         },
         attributes: {
