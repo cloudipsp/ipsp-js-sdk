@@ -31,7 +31,10 @@ gulp.task('clean', function(done) {
 });
 
 gulp.task('watcher', function(){
-    gulp.watch(['src/*.js','src/html/*.ejs'],gulp.series(['views','sdk']));
+    gulp.watch([
+        'src/index.js',
+        'src/html/*.ejs'
+    ],gulp.series(['views','sdk']));
 });
 
 gulp.task('default',gulp.series(['clean','views','sdk']));
