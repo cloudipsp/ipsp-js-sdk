@@ -5,13 +5,12 @@
     <title></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
-    <script src="../dist/checkout.min.js"></script>
+    <script src="../dist/checkout.js"></script>
     <style>
         .payment-button {
             display: block;
             overflow: hidden;
         }
-
         .payment-button iframe {
             display: block;
         }
@@ -102,11 +101,11 @@
         });
 
         var button = $checkout.get('PaymentButton', {
-            element: '.payment-button-container',
             origin: 'https://api.dev.fondy.eu',
+            element: '.payment-button-container',
             style: {
                 type: 'long',
-                color: 'white',
+                color: 'black',
                 height: 38
             },
             data: {
@@ -115,13 +114,11 @@
                 currency: 'UAH',
                 lang:'ru'
             }
-        }).on('token', function( model ){
-            console.log('send data to payment gateway', model );
+        }).on('success',function( model ){
+            console.log('success', model );
         }).on('error', function ( model ) {
             console.log('error', model );
         });
-
-
     </script>
 </div>
 </body>

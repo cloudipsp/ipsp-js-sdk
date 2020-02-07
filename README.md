@@ -71,7 +71,7 @@ git clone git@github.com:cloudipsp/ipsp-js-sdk.git
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   </head>
   <body>
-    <script src="https://unpkg.com/ipsp-js-sdk@latest/dist/checkout.min.js"></script>
+    <script src="https://unpkg.com/ipsp-js-sdk"></script>
     <script>
     $checkout('Api').scope(function(){
         this.request('api.checkout.form','request', { Parameters } ).done(function(model){
@@ -80,6 +80,37 @@ git clone git@github.com:cloudipsp/ipsp-js-sdk.git
         }).fail(function(model){
             console.log(model.attr('error'));
         });
+    });
+    </script>
+  </body>
+</html>
+```
+
+## PaymentButton template (ApplePay/GooglePay)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  </head>
+  <body>
+    <script src="https://unpkg.com/ipsp-js-sdk"></script>
+    <div class="payment-button-container"></div>
+    <script>
+    $checkout.get('PaymentButton', {
+      element: '.payment-button-container',
+      style: {
+        type: 'long', // short|long
+        color: 'black', // black|white
+        height: 38 // button height
+      },
+      data: { Parameters }
+    }).on('success', function(model) {
+      console.log('success', model);
+    }).on('error', function(model) {
+      console.log('error', model);
     });
     </script>
   </body>

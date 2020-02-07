@@ -3,6 +3,9 @@
     typeof define === 'function' && define.amd ? define(factory) :
     (global.<%=moduleName%> = factory());
 }(this,function(){
+
 <%=contents%>
+
 return <%=moduleName%>;
+
 }));
