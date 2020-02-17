@@ -1,5 +1,5 @@
 ---
-title: IPSP-JS-SDK
+title: IPSP JS SDK
 description: Start e-commerce on your website.
 ---
 
