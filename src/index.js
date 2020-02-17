@@ -1341,7 +1341,7 @@ $checkout.scope('PaymentRequest', function (ns) {
         'pay': function () {
             this.request = this.getRequest();
             this.request.show().then(this.proxy(function (cx, response) {
-                response.complete('success').then(this.proxy(function () {
+                response.complete('success').then(this.proxy(function(){
                     this.trigger('complete', {
                         payment_system: this.config.payment_system,
                         data: response.details
@@ -1362,10 +1362,12 @@ $checkout.scope('PaymentRequest', function (ns) {
             return defer;
         },
         'merchantValidation': function (cx, event) {
+            this.trigger('log',event['validationURL']);
             this.appleSession({
                 url: event['validationURL'],
                 host: location['host']
             }).then(this.proxy(function (cx, session) {
+                this.trigger('log',session);
                 try {
                     event.complete(session);
                 } catch (e) {
