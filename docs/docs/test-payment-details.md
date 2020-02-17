@@ -1,6 +1,7 @@
 ---
 title: Test Payment Details
 headline: Test Payment Details
+sort: 3
 ---
 
 ## Merchant parameters

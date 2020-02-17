@@ -1,6 +1,7 @@
 ---
 title: Installation
 headline: Installation
+sort: 1
 ---
 
 ## Node

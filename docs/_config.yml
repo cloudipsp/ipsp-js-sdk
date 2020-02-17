@@ -6,9 +6,11 @@ gems:
 
 port: 4001
 
-styles:
+fonts:
   - //fonts.googleapis.com/css?family=Open+Sans:300,400,700
   - //fonts.googleapis.com/css?family=Pacifico
+
+styles:
   - /assets/css/main.css
 
 javascript:
@@ -16,9 +18,9 @@ javascript:
 
 markdown: kramdown
 
-title:        Checkout Rocks
-tagline:      Fondy Checkout SDK
-url:  https://checkout.rocks
+title:        IPSP JS SDK
+tagline:      Fondy Payment System
+url:  https://cloudipsp.github.io/ipsp-js-sdk/
 baseurl: /ipsp-js-sdk
 banner:
   url: https://fondy.eu/

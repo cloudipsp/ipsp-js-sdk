@@ -2,10 +2,12 @@
 {% seo %}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#157878">
-<link rel="shortcut icon" type="image/x-icon" href="{{site.baseurl}}/assets/favicon/favicon.ico">
-<link rel="icon" type="image/png" href="{{site.baseurl}}/assets/favicon/favicon-32x32.png" sizes="32x32" />
-<link rel="icon" type="image/png" href="{{site.baseurl}}/assets/favicon/favicon-16x16.png" sizes="16x16" />
-{% for style in site.styles %}<link rel="stylesheet" href="{{style}}" type="text/css">
+<link rel="shortcut icon" type="image/x-icon" href="{{ '/assets/favicon/favicon.ico' | absolute_url }}">
+<link rel="icon" type="image/png" href="{{ '/assets/favicon/favicon-32x32.png' | absolute_url }}" sizes="32x32" />
+<link rel="icon" type="image/png" href="{{ '/assets/favicon/favicon-16x16.png' | absolute_url }}" sizes="16x16" />
+{% for font in site.fonts %}<link rel="stylesheet" href="{{font}}" type="text/css">
+{% endfor %}
+{% for style in site.styles %}<link rel="stylesheet" href="{{style | absolute_url}}" type="text/css">
 {% endfor %}
 {% if site.analytics %}
 <script>

@@ -1,28 +1,28 @@
 {% capture menu %}
 {% if lvl_base_url == nil %}
-    {% assign lvl_base_url = '/' %}
-    {% if include.base_url %}
-        {% assign lvl_base_url = include.base_url %}
-    {% endif %}
+{% assign lvl_base_url = '/' %}
+{% if include.base_url %}
+{% assign lvl_base_url = include.base_url %}
+{% endif %}
 {% endif %}
 {% assign current_lvl_url_length = lvl_base_url | split: '/' | size %}
 {% if lvl_base_url == '/' %}
 {% assign current_lvl_url_length = 1 %}
 {% endif %}
 {% capture links %}
-{% assign sorted_pages = site.html_pages | sort:"url" %}
+{% assign sorted_pages = site.html_pages | sort: "sort" | default: "url" %}
 {% for node in sorted_pages %}
 {% assign node_url_length = node.url | split: '/' | size | minus: 1 %}
 {% assign filename = node.url | split: '/' | last %}
 {% if node_url_length == current_lvl_url_length and node.url contains lvl_base_url %}
 <li>
-    <a href='{{site.baseurl}}{{ node.url }}'>{{ node.title }}</a>
+    <a href='{{ node.url | absolute_url }}'>{{ node.title }}</a>
     {% if include.max_depth > current_lvl_url_length | plus: 1 %}
-        {% assign lvl_base_url = node.url | replace: '.html' %}
-        {% include navigation.html %}
-        {% assign current_lvl_url_length = current_lvl_url_length | minus: 1 %}
-        {% assign directory_to_remove = lvl_base_url | split: '/' | last  %}
-        {% assign lvl_base_url = lvl_base_url | replace: directory_to_remove | replace: '//', '/'  %}
+    {% assign lvl_base_url = node.url | replace: '.html' %}
+    {% include navigation.html %}
+    {% assign current_lvl_url_length = current_lvl_url_length | minus: 1 %}
+    {% assign directory_to_remove = lvl_base_url | split: '/' | last  %}
+    {% assign lvl_base_url = lvl_base_url | replace: directory_to_remove | replace: '//', '/'  %}
     {% endif %}
 </li>
 {% endif %}

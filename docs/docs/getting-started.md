@@ -1,6 +1,7 @@
 ---
 title: Getting Started
 headline: Getting Started
+sort: 2
 ---
 
 ## Quick start
