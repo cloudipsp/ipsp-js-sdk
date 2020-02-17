@@ -20,7 +20,7 @@ markdown: kramdown
 
 title:        IPSP JS SDK
 tagline:      Fondy Payment System
-url:  https://cloudipsp.github.io/ipsp-js-sdk/
+url:  https://cloudipsp.github.io
 baseurl: /ipsp-js-sdk
 banner:
   url: https://fondy.eu/
