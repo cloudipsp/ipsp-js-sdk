@@ -1108,19 +1108,19 @@ $checkout.scope('Api', function (ns) {
                 method: method,
                 params: params || {}
             };
-            this.connector.send('request', data);
-            this.connector.on(data.uid, this.proxy(function (ev, response, model, action) {
-                model = ns.get('Response', response);
+            this.connector.send('request', data );
+            this.connector.on( data.uid , this.proxy(function(ev,response,model,action){
+                model = ns.get('Response',response);
                 model.setUID(data.uid);
                 model.setConnector(this.connector);
                 action = 'resolveWith';
-                if (response['submit3ds']) {
+                if (model.attr('submit3ds')) {
                     action = 'notifyWith';
                 }
-                if (response['error']) {
+                if (model.attr('error')) {
                     action = 'rejectWith';
                 }
-                defer[action](this, [model]);
+                defer[action](this,[model]);
             }));
             return defer;
         },
@@ -1314,11 +1314,9 @@ $checkout.scope('PaymentRequest', function (ns) {
         'getConfig': function (params) {
             var module = this;
             var defer = ns.get('Deferred');
-            this.api.scope(function () {
-                this.request('api.checkout.pay', 'get', params).done(function (model) {
-                    module.setConfig(model.data);
-                    defer.resolveWith(module, model.data);
-                });
+            $.getModel('api.checkout.pay').call('get',params).then(function(model){
+                module.setConfig(model.serialize());
+                defer.resolveWith(module,model.serialize());
             });
             return defer;
         },
@@ -1348,10 +1346,8 @@ $checkout.scope('PaymentRequest', function (ns) {
         'appleSession': function (params) {
             var module = this;
             var defer = ns.get('Deferred');
-            this.api.scope(function () {
-                this.request('api.checkout.pay', 'session', params).done(function (model) {
-                    defer.resolveWith(module, model.data);
-                });
+            $.getModel('api.checkout.pay').call('session',params).then(function(model){
+                defer.resolveWith(module, model.serialize());
             });
             return defer;
         },
@@ -1464,7 +1460,7 @@ $checkout.scope('PaymentButton', function (ns) {
         'callback':function( model ){
             var params = this.utils.extend({},this.params.data,model.serialize());
             this.scope(function(){
-                this.request('api.checkout.form', 'request', params )
+                this.request('api.checkout.form','request',params)
                     .done(this.proxy('onSuccess'))
                     .fail(this.proxy('onError'));
             });
@@ -1482,6 +1478,9 @@ $checkout.scope('PaymentButton', function (ns) {
         'onSuccess':function( cx , data ){
             this.trigger('success', data );
         },
+        'onError': function (cx, data) {
+            this.trigger('error', data);
+        },
         'onReady': function () {
             this.addCss(this.container, {
                 'height': String(this.params.style.height).concat('px').concat(' !important')
@@ -1489,9 +1488,6 @@ $checkout.scope('PaymentButton', function (ns) {
             this.addCss(this.frame, {
                 'opacity': '1 !important'
             });
-        },
-        'onError': function (cx, data) {
-            this.trigger('error', data);
         },
         'onEvent': function (cx, event) {
             this.trigger('event', event);
@@ -1528,9 +1524,8 @@ $checkout.scope('PaymentContainer', function (ns) {
         },
         'initElement': function () {
             var element   = this.utils.querySelector(this.params.element);
-            var connector = ns.get('Connector', {target: window.parent});
+            var connector = ns.get('Connector', {target:window.parent});
             var payment   = ns.get('PaymentRequest');
-            payment.connect(this);
             payment.on('complete', this.proxy(function (cx, data) {
                 connector.send('complete', data);
             }));
@@ -1565,7 +1560,7 @@ $checkout.scope('PaymentContainer', function (ns) {
                     payment.getConfig(this.params.data).then(this.proxy(function () {
                         element.classList.add('ready');
                         element.classList.remove('pending');
-                        connector.send('ready', {});
+                        connector.send('ready',{});
                     }));
                 }
             }));
