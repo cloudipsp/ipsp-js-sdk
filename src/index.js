@@ -1287,11 +1287,6 @@ $checkout.scope('PaymentRequest', function (ns) {
         'init': function () {
             this.getSupportedMethod();
         },
-        'connect': function (api) {
-            if (isInstanceOf('Api', api)) {
-                this.api = api;
-            }
-        },
         'setConfig': function (config) {
             this.config = config;
             return this;
@@ -1311,12 +1306,25 @@ $checkout.scope('PaymentRequest', function (ns) {
             });
             return defer;
         },
-        'getConfig': function (params) {
-            var module = this;
+        '_modelRequest':function(method,params,callback,failure){
+            try{
+                $.getModel('api.checkout.pay').call(method,params)
+                    .then(this.proxy(callback),this.proxy(failure));
+            } catch(e){
+
+            }
+        },
+        'getConfig': function(params) {
             var defer = ns.get('Deferred');
-            $.getModel('api.checkout.pay').call('get',params).then(function(model){
-                module.setConfig(model.serialize());
-                defer.resolveWith(module,model.serialize());
+            this._modelRequest('get',params,function(cx,model){
+                if( model.attr('error') ){
+                    defer.rejectWith(this,model);
+                } else {
+                    this.setConfig(model.serialize());
+                    defer.resolveWith(this,model.serialize());
+                }
+            },function(cx,model){
+                defer.rejectWith(this,model);
             });
             return defer;
         },
@@ -1343,11 +1351,13 @@ $checkout.scope('PaymentRequest', function (ns) {
                 this.trigger('error', {message: e.message});
             }));
         },
+
         'appleSession': function (params) {
-            var module = this;
             var defer = ns.get('Deferred');
-            $.getModel('api.checkout.pay').call('session',params).then(function(model){
-                defer.resolveWith(module, model.serialize());
+            this._modelRequest('session',params,function(cx,model){
+                defer.resolveWith(this, model.serialize());
+            },function(cx,model){
+                defer.rejectWith(this,model);
             });
             return defer;
         },
@@ -1376,7 +1386,6 @@ $checkout.scope('PaymentButton', function (ns) {
         'background': 'transparent !important',
         'overflow': 'hidden !important',
         'position': 'relative !important',
-        'transition': 'height 0.1s 0.3s linear',
         'opacity': '1 !important',
         'height': '0 !important'
     };
@@ -1390,7 +1399,6 @@ $checkout.scope('PaymentButton', function (ns) {
         'min-width': '100% !important',
         'background': 'transparent !important',
         'position': 'relative !important',
-        'transition': 'opacity 0.3s 0.5s ease-out',
         'opacity': '0 !important',
         'overflow': 'hidden !important',
         'height': '100% !important'
@@ -1425,12 +1433,11 @@ $checkout.scope('PaymentButton', function (ns) {
         },
         'initPaymentRequest': function () {
             this.payment = ns.get('PaymentRequest');
-            this.payment.connect(this);
-            this.payment.on('complete', this.proxy('onComplete'));
-            this.payment.on('error', this.proxy('onError'));
-            this.payment.on('supported', this.proxy('initFrame'));
+            this.payment.on('complete',this.proxy('onComplete'));
+            this.payment.on('error',this.proxy('onError'));
+            this.payment.on('supported',this.proxy('initFrame'));
         },
-        'initFrame': function (cx, method) {
+        'initFrame': function (cx, method){
             this.method = method;
             this.frame = this.utils.createElement('iframe');
             this.addCss(this.frame, CSS_FRAME);
@@ -1444,7 +1451,8 @@ $checkout.scope('PaymentButton', function (ns) {
         'initConnector': function () {
             this.connector = ns.get('Connector', {target: this.frame.contentWindow});
             this.connector.on('event', this.proxy('onEvent'));
-            this.connector.on('ready', this.proxy('onReady'));
+            this.connector.on('show', this.proxy('onShow'));
+            this.connector.on('hide', this.proxy('onHide'));
             this.connector.on('pay', this.proxy('onPay'));
             this.connector.on('complete', this.proxy('onToken'));
             this.connector.on('error', this.proxy('onError'));
@@ -1481,13 +1489,30 @@ $checkout.scope('PaymentButton', function (ns) {
         'onError': function (cx, data) {
             this.trigger('error', data);
         },
-        'onReady': function () {
-            this.addCss(this.container, {
-                'height': String(this.params.style.height).concat('px').concat(' !important')
-            });
+        '_cssUnit':function(value,unit){
+            return String(value || 0 ).concat(unit || '').concat(' !important')
+        },
+        'onShow': function () {
             this.addCss(this.frame, {
-                'opacity': '1 !important'
+                'transition': 'opacity 0.6s 0.4s ease-out',
+                'opacity': this._cssUnit(1)
             });
+            this.addCss(this.container, {
+                'transition': 'height 0.2s ease-out',
+                'height': this._cssUnit(this.params.style.height,'px')
+            });
+            this.trigger('show',{});
+        },
+        'onHide':function(){
+            this.addCss(this.frame, {
+                'transition': 'opacity 0.4s ease-out',
+                'opacity': this._cssUnit(0)
+            });
+            this.addCss(this.container, {
+                'transition': 'height 0.2s 0.4s ease-out',
+                'height': this._cssUnit(0,'px')
+            });
+            this.trigger('hide',{});
         },
         'onEvent': function (cx, event) {
             this.trigger('event', event);
@@ -1512,7 +1537,6 @@ $checkout.scope('PaymentButton', function (ns) {
 $checkout.scope('PaymentContainer', function (ns) {
     return ns.module('Api').extend({
         'defaults': {
-            origin: location.origin,
             element: null,
             method: 'card',
             data: {},
@@ -1542,7 +1566,11 @@ $checkout.scope('PaymentContainer', function (ns) {
                 }
             }));
             connector.on('config', this.proxy(function (cx, data) {
-                this.utils.extend(this.params, {method: data.method, style: data.style, data: data.data});
+                this.utils.extend(this.params, {
+                    method: data.method,
+                    style: data.style,
+                    data: data.data
+                });
                 element.setAttribute('class', '');
                 element.classList.add('button');
                 if (this.params.method) {
@@ -1557,11 +1585,13 @@ $checkout.scope('PaymentContainer', function (ns) {
                 }
                 if (this.params.data) {
                     element.classList.add('pending');
-                    payment.getConfig(this.params.data).then(this.proxy(function () {
+                    payment.getConfig(this.params.data).done(function(){
                         element.classList.add('ready');
                         element.classList.remove('pending');
-                        connector.send('ready',{});
-                    }));
+                        connector.send('show',{});
+                    }).fail(function(){
+                        connector.send('hide',{});
+                    });
                 }
             }));
             this.addEvent(element, 'mouseenter', function (cx, event) {
