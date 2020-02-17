@@ -1317,11 +1317,11 @@ $checkout.scope('PaymentRequest', function (ns) {
         'getConfig': function(params) {
             var defer = ns.get('Deferred');
             this._modelRequest('get',params,function(cx,model){
-                if( model.attr('error') ){
-                    defer.rejectWith(this,model);
-                } else {
+                if(model.attr('payment_system')){
                     this.setConfig(model.serialize());
                     defer.resolveWith(this,model.serialize());
+                } else {
+                    defer.rejectWith(this,model);
                 }
             },function(cx,model){
                 defer.rejectWith(this,model);
@@ -1341,11 +1341,13 @@ $checkout.scope('PaymentRequest', function (ns) {
         'pay': function () {
             this.request = this.getRequest();
             this.request.show().then(this.proxy(function (cx, response) {
-                response.complete('success').then(this.proxy(function(){
-                    this.trigger('complete', {
+                response.complete('success').then(this.proxy(function(cx,result){
+                    result = {
                         payment_system: this.config.payment_system,
                         data: response.details
-                    });
+                    };
+                    this.trigger('log',result);
+                    this.trigger('complete', result);
                 }));
             })).catch(this.proxy(function (cx, e) {
                 this.trigger('error', {message: e.message});
@@ -1362,7 +1364,7 @@ $checkout.scope('PaymentRequest', function (ns) {
             return defer;
         },
         'merchantValidation': function (cx, event) {
-            this.trigger('log',event['validationURL']);
+            this.trigger('log',{url:event['validationURL']});
             this.appleSession({
                 url: event['validationURL'],
                 host: location['host']
