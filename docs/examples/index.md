@@ -18,3 +18,28 @@ headline: Examples
 ## Checkout Widget
 
 <script async src="//jsfiddle.net/kosatyi/j8Lj95k2/embed/html,resources,result/"></script>
+
+
+## PaymentRequest Button
+
+<script src="https://unpkg.com/ipsp-js-sdk"></script>
+<div class="payment-button-container"></div>
+<script>
+    $checkout.get('PaymentButton', {
+      element: '.payment-button-container',
+      style: {
+        type: 'long',
+        color: 'black',
+        height: 38
+      },
+      data: {
+        merchant_id:1396424,
+        currency: 'USD',
+        amount:1500
+      }
+    }).on('success', function(model) {
+      console.log('success', model);
+    }).on('error', function(model) {
+      console.log('error', model);
+    });
+</script>
