@@ -2,7 +2,7 @@
   "name": "ipsp-js-sdk",
   "title": "Fondy Checkout SDK",
   "description": "Fondy payment service provider javascript sdk",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "license": "MIT",
   "homepage": "https://fondy.eu",
   "main": "dist/checkout.min.js",
