@@ -1458,7 +1458,7 @@ $checkout.scope('PaymentButton', function (ns) {
             this.payment = ns.get('PaymentRequest');
             this.payment.getSupportedMethod();
             this.payment.setApi(this.api);
-            this.payment.setMerchant(this.params.merchant_id);
+            this.payment.setMerchant(this.params.data.merchant_id);
             this.payment.on('complete', this.proxy('onComplete'));
             this.payment.on('error', this.proxy('onError'));
             this.payment.on('log', this.proxy('onLog'));
