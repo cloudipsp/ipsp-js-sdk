@@ -1370,6 +1370,8 @@ $checkout.scope('PaymentRequest', function (ns) {
                 } catch (e) {
                     this.trigger('error', {message: e.message});
                 }
+            }).fail(function(error){
+                this.trigger('error', {message: 'apple session failed' });
             });
         }
     });
