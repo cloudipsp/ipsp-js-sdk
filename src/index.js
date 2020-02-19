@@ -1352,32 +1352,25 @@ $checkout.scope('PaymentRequest', function (ns) {
         'appleSession': function (params) {
             var defer = ns.get('Deferred');
             this.modelRequest('session', params, function (c, model) {
-                this.trigger('log',model.serialize());
                 defer.resolveWith(this,[model.serialize()]);
             }, function(c,model) {
-                this.trigger('log', model );
                 defer.rejectWith(this,[model]);
             });
             return defer;
         },
         'merchantValidation': function (cx, event) {
-            this.trigger('log',event['validationURL']);
             this.appleSession({
-                url:event['validationURL'],
-                domain: location['host'],
-                merchant_id:this.merchant
+                url: event['validationURL'] ,
+                domain: location['host'] ,
+                merchant_id: this.merchant
             }).done(function(session){
-                this.trigger('log', {
-                    type: 'receive session data',
-                    session: session
-                });
                 try {
-                    event.complete(session);
+                    event.complete(session.data);
                 } catch (e) {
                     this.trigger('error', {message: e.message});
                 }
             }).fail(function(error){
-                this.trigger('error', {message: 'apple session failed' });
+                this.trigger('error',error);
             });
         }
     });
