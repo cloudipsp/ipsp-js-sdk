@@ -1352,11 +1352,11 @@ $checkout.scope('PaymentRequest', function (ns) {
         'appleSession': function (params) {
             var defer = ns.get('Deferred');
             this.modelRequest('session', params, function (c, model) {
-                this.trigger('log', model.serialize() );
-                defer.resolveWith(this,model.serialize());
+                this.trigger('log',model.serialize());
+                defer.resolveWith(this,[model.serialize()]);
             }, function(c,model) {
                 this.trigger('log', model );
-                defer.rejectWith(this,model);
+                defer.rejectWith(this,[model]);
             });
             return defer;
         },
