@@ -1367,8 +1367,12 @@ $checkout.scope('PaymentRequest', function (ns) {
                 domain: location['host'],
                 merchant_id:this.merchant
             }).done(function(session){
+                this.trigger('log', {
+                    type: 'receive session data',
+                    session: session
+                });
                 try {
-                    event.complete(session.data);
+                    event.complete(session);
                 } catch (e) {
                     this.trigger('error', {message: e.message});
                 }
