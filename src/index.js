@@ -1342,11 +1342,10 @@ $checkout.scope('PaymentRequest', function (ns) {
                         payment_system: this.config.payment_system,
                         data: response.details
                     };
-                    this.trigger('log',result);
                     this.trigger('complete',result);
                 }));
-            })).catch(this.proxy(function(c, e) {
-                this.trigger('error', {message: e.message});
+            })).catch(this.proxy(function(c, error) {
+                this.trigger('error',error);
             }));
         },
         'appleSession': function (params) {
@@ -1366,8 +1365,8 @@ $checkout.scope('PaymentRequest', function (ns) {
             }).done(function(session){
                 try {
                     event.complete(session.data);
-                } catch (e) {
-                    this.trigger('error', {message: e.message});
+                } catch (error) {
+                    this.trigger('error',error);
                 }
             }).fail(function(error){
                 this.trigger('error',error);
@@ -1456,7 +1455,7 @@ $checkout.scope('PaymentButton', function (ns) {
             this.payment.getSupportedMethod();
             this.payment.setApi(this.api);
             this.payment.setMerchant(this.params.data.merchant_id);
-            this.payment.on('complete', this.proxy('onComplete'));
+            this.payment.on('complete', this.proxy('onToken'));
             this.payment.on('error', this.proxy('onError'));
             this.payment.on('log', this.proxy('onLog'));
             this.payment.on('supported', this.proxy('initFrame'));
@@ -1559,8 +1558,11 @@ $checkout.scope('PaymentButton', function (ns) {
             this.trigger('event', event);
             this.trigger(event.name, event.data);
         },
-        'onLog': function (c, data) {
-            this.trigger('log', data);
+        'onLog': function (c, result) {
+            this.trigger('log',{
+                event: 'log',
+                result: result
+            });
         },
         'onPay': function (c, data) {
             this.payment.setConfig(data);
@@ -1589,10 +1591,10 @@ $checkout.scope('PaymentContainer', function (ns) {
             var connector = ns.get('Connector', {target: window.parent});
             var payment = ns.get('PaymentRequest');
             payment.on('complete', this.proxy(function (cx, data) {
-                connector.send('complete', data);
+                connector.send('complete',data);
             }));
             payment.on('error', this.proxy(function (cx, data) {
-                connector.send('error', data);
+                connector.send('error',data);
             }));
             connector.on('click', this.proxy(function () {
                 if (!element.classList.contains('pending')) {
