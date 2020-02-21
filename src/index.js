@@ -1430,11 +1430,12 @@ $checkout.scope('PaymentButton', function (ns) {
             this.initPaymentRequest();
         },
         'initParams': function (params) {
-            this.params = this.utils.extend({}, this.defaults, params);
+            this.params = this.utils.extend({},this.defaults, params);
         },
         'initApi': function () {
             if(isInstanceOf('Api',this.params.api)){
                 this.api = this.params.api;
+                delete this.params['api'];
             } else {
                 this.api = ns.get('Api',{
                     origin:this.params.origin,
