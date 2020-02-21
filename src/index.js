@@ -1071,8 +1071,7 @@ $checkout.scope('Api', function (ns) {
         'defaults': {
             'origin': 'https://api.fondy.eu',
             'endpoint': {
-                'gateway': '/checkout/v2/',
-                'button': '/checkout/v2/button/'
+                'gateway': '/checkout/v2/index.html'
             }
         },
         'init': function (params) {
@@ -1414,8 +1413,8 @@ $checkout.scope('PaymentButton', function (ns) {
         'defaults': {
             origin: 'https://api.fondy.eu',
             endpoint: {
-                'gateway': '/checkout/v2/',
-                'button': '/checkout/v2/button/'
+                'gateway': '/checkout/v2/index.html',
+                'button': '/checkout/v2/button/index.html'
             },
             style: {
                 height: 38,
@@ -1434,11 +1433,13 @@ $checkout.scope('PaymentButton', function (ns) {
             this.params = this.utils.extend({}, this.defaults, params);
         },
         'initApi': function () {
-            this.api = ns.get('Api',{origin:this.params.origin});
-        },
-        'setApi': function (api) {
-            if (isInstanceOf('api', api)) {
-                this.api = api;
+            if(isInstanceOf('Api',this.params.api)){
+                this.api = this.params.api;
+            } else {
+                this.api = ns.get('Api',{
+                    origin:this.params.origin,
+                    endpoint: this.params.endpoint
+                });
             }
         },
         'endpointUrl': function (type, url) {
