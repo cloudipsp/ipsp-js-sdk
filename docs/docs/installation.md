@@ -39,3 +39,9 @@ Or clone from GitHub the latest developer version
 ```cmd
 git clone git@github.com:cloudipsp/ipsp-js-sdk.git
 ```
+
+## CDN
+
+```html
+<script src="https://unpkg.com/ipsp-js-sdk"></script>
+```

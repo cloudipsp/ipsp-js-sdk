@@ -7,12 +7,6 @@ sort: 2
 ## Quick start
 
 ```html
-<script src="https://unpkg.com/ipsp-js-sdk"></script>
-```
-
-## Basic template
-
-```html
 <!DOCTYPE html>
 <html lang="en">
   <head>
