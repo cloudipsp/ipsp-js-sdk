@@ -1,6 +1,7 @@
 ---
 title: Documentation
 headline: Documentation
+sort: 1
 ---
 
 # Docs index

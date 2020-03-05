@@ -1,6 +1,7 @@
 ---
 title: Examples
 headline: Examples
+sort: 2
 ---
 
 <nav class="cards">
