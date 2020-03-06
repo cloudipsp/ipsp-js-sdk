@@ -3,6 +3,15 @@ title: IPSP JS SDK
 description: Start e-commerce on your website.
 ---
 
+<p align="center">
+<a href="https://www.npmjs.com/package/ipsp-js-sdk"><img src="https://img.shields.io/npm/v/ipsp-js-sdk.svg" /></a>
+<a href="https://www.npmjs.com/package/ipsp-js-sdk"><img src="https://img.shields.io/npm/dt/ipsp-js-sdk.svg" /></a>
+<a href="https://github.com/cloudipsp/ipsp-js-sdk"><img src="https://img.shields.io/bower/v/ipsp-js-sdk.svg" /></a>
+<a href="https://github.com/cloudipsp/ipsp-js-sdk"><img src="https://img.shields.io/github/license/cloudipsp/ipsp-js-sdk.svg" /></a>
+<a href="https://fondy.eu/"><img src="https://img.shields.io/badge/official-website-green.svg" /></a>
+</p>
+
+
 ## Project section
 
 <nav class="cards">
