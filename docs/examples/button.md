@@ -4,4 +4,4 @@ headline: Apple/Google Pay Button
 sort: 2
 ---
 
-{% include button.html %}
+{% include_relative src/button.html %}

@@ -4,4 +4,4 @@ headline: Checkout Form
 sort: 1
 ---
 
-{% include checkout.html %}
+{% include_relative src/checkout.html %}

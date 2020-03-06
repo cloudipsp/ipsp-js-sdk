@@ -1,0 +1,140 @@
+<style>
+    html,
+    input,
+    button {
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+    }
+    .checkout-form {
+        max-width: 325px;
+        margin: 0 auto;
+    }
+    .checkout-form .container {
+        border: 1px solid #ccc;
+        padding: 0.85rem;
+    }
+    .checkout-form .error-wrapper {
+        padding: 0.15rem 0.15rem 1rem 0.15rem;
+        display: none;
+        color: #000000;
+        color: darkred;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+    .checkout-form .error-wrapper.show {
+        display: block;
+    }
+    .checkout-form button.button {
+        cursor: pointer;
+    }
+    .checkout-form input.input,
+    .checkout-form button.button {
+        padding: .7rem;
+        border: 1px solid #ccc;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        outline: none;
+        text-align: center;
+    }
+
+    .checkout-form input.input:focus,
+    .checkout-form button.button:focus {
+        box-shadow: inset 0px 0px 1px 1px lightgray;
+        border-color: gray;
+        position: relative;
+        z-index: 2;
+    }
+    .checkout-form .input-wrapper {
+        margin: 0 0 0.85rem;
+    }
+    .checkout-form .input-wrapper:last-child {
+        margin-bottom: 0;
+    }
+    .checkout-form .input-label {
+        font-size: 0.85rem;
+        color: gray;
+    }
+    .checkout-form .input-label,
+    .checkout-form .input-field {
+        box-sizing: border-box;
+        padding: 0.15rem;
+        float: left;
+    }
+    .checkout-form .input-wrapper:after {
+        clear: both;
+        content: '';
+        display: block;
+    }
+
+    .w-1 {
+        width: 100%;
+    }
+    .w-2 {
+        width: 50%;
+    }
+    .w-3 {
+        width: 33.33333%;
+    }
+    .w-3-2 {
+        width: 66.66666%;
+    }
+    .w-4 {
+        width: 25%;
+    }
+</style>
+
+<script src="https://unpkg.com/ipsp-js-sdk"></script>
+
+<form class="checkout-form">
+    <input type="hidden" name="payment_system" value="card">
+    <input type="hidden" name="merchant_id" value="1396424">
+    <input type="hidden" name="amount" value="100">
+    <input type="hidden" name="currency" value="USD">
+    <input type="hidden" name="email" value="client@example.com" />
+    <div class="container">
+        <div class="error-wrapper"></div>
+        <div class="input-wrapper">
+            <div class="input-label w-1">
+                Card Number:
+            </div>
+            <div class="input-field w-1">
+                <input type="tel" name="card_number" class="input" maxlength="16" placeholder="XXXXXXXXXXXXXXXX" />
+            </div>
+        </div>
+        <div class="input-wrapper">
+            <div class="input-label w-3-2">
+                Expiry Date:
+            </div>
+            <div class="input-label w-3">
+                CVV2:
+            </div>
+            <div class="input-field w-3">
+                <input type="tel" name="expiry_month" class="input" maxlength="2" placeholder="MM" />
+            </div>
+            <div class="input-field w-3">
+                <input type="tel" name="expiry_year" class="input" maxlength="2" placeholder="YY" />
+            </div>
+            <div class="input-field w-3">
+                <input type="tel" name="cvv2" class="input" maxlength="3" placeholder="XXX" />
+            </div>
+        </div>
+        <div class="input-wrapper stack-1">
+            <div class="input-field w-1">
+                <button type="submit" class="button">Pay</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    $checkout('FormWidget', {
+        element: '.checkout-form'
+    }).on('success', function(model){
+        console.log('success', model);
+    }).on('error', function(model) {
+        var errorWrapper = document.querySelector('.error-wrapper');
+        errorWrapper.innerHTML = model.attr('error.message');
+        errorWrapper.classList.add('show');
+    });
+</script>
