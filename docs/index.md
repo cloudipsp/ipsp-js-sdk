@@ -8,7 +8,6 @@ description: Start e-commerce on your website.
 <a href="https://www.npmjs.com/package/ipsp-js-sdk"><img src="https://img.shields.io/npm/dt/ipsp-js-sdk.svg" /></a>
 <a href="https://github.com/cloudipsp/ipsp-js-sdk"><img src="https://img.shields.io/bower/v/ipsp-js-sdk.svg" /></a>
 <a href="https://github.com/cloudipsp/ipsp-js-sdk"><img src="https://img.shields.io/github/license/cloudipsp/ipsp-js-sdk.svg" /></a>
-<a href="https://fondy.eu/"><img src="https://img.shields.io/badge/official-website-green.svg" /></a>
 </p>
 
 
