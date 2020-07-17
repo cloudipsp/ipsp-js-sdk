@@ -1,23 +1,14 @@
-gems:
-  - jekyll-seo-tag
-  - jekyll-sitemap
-  - jekyll-feed
-
 remote_theme: kosatyi/sjt
-
-port: 4003
-
-baseurl: /ipsp-js-sdk
 
 navigation: true
 projects: true
+
+baseurl: /ipsp-js-sdk
 
 brand: IPSP JS SDK
 title: IPSP JS SDK
 description: Fondy Payment System
 logo: fondy.svg
-styles:
-  - https://fonts.googleapis.com/css?family=Ubuntu:400,400i,500,500i
 
 author:
   name: Fondy Developer Team
@@ -31,71 +22,7 @@ toolbar:
     name: Examples
     link: /examples/
 
-#
-#
-#gems:
-#  - jekyll-seo-tag
-#  - jekyll-sitemap
-#  - jekyll-feed
-#  - jekyll-paginate
-#
-#port: 4001
-#
-#fonts:
-#  - //fonts.googleapis.com/css?family=Open+Sans:300,400,700
-#  - //fonts.googleapis.com/css?family=Pacifico
-#
-#styles:
-#  - /assets/css/main.css
-#
-#javascript:
-#  - /assets/js/main.js
-#
-#markdown: kramdown
-#
-#title:        IPSP JS SDK
-#tagline:      Fondy Payment System
-#url:  https://cloudipsp.github.io
-#baseurl: /ipsp-js-sdk
-#banner:
-#  url: https://fondy.eu/
-#  image: /assets/img/banner.svg
-#
-#
-#facebook:
-#  publisher: https://www.facebook.com/ipsp.sdk/
-#
-#author:
-#  name: Fondy Developer Team
-#  url: https://fondy.eu/
-#
-#toolbar:
-#-
-#  name: IPSP PHP
-#  class: btn-signup
-#  link: https://ipsp-php.com/
-#-
-#  name: Docs
-#  link: /docs/
-#-
-#  name: Examples
-#  link: /examples/
-#-
-#  name: Signup
-#  link: https://portal.fondy.eu/mportal/#/
-#
-#
-#buttons:
-#  -
-#    name: View on GitHub
-#    link: https://github.com/cloudipsp/ipsp-js-sdk
-#  -
-#    name: Download .zip
-#    link: http://github.com/cloudipsp/ipsp-js-sdk/archive/master.zip
-#  -
-#    name: Download .tar.gz
-#    link: http://github.com/cloudipsp/ipsp-js-sdk/archive/master.tar.gz
-#
+
 #defaults:
 #  -
 #    scope:
@@ -103,7 +30,6 @@ toolbar:
 #      type: "pages"
 #    values:
 #      layout: default
-#      sharethis: property=59ccda6b55a6eb001239a098&product=sticky-share-buttons
 #      image:
 #        path:  /assets/img/cover.png
 #        height: 1200
