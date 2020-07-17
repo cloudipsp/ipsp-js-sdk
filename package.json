@@ -32,6 +32,6 @@
     "gulp-html-to-js": "^0.0.7",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^3.0.0",
-    "gulp-wrap": "^0.13.0"
+    "gulp-wrap": "^0.15.0"
   }
 }
