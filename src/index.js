@@ -1337,28 +1337,38 @@ $checkout.scope('PaymentRequest', function (ns) {
             }
         },
         'getRequest': function () {
-            var request = null;
+            var request = null, module  = this, defer = ns.get('Deferred') , params = this.params;
             try {
                 request = new PaymentRequest(this.config.methods,this.config.details,this.config.options);
                 this.addEvent(request, 'merchantvalidation', 'merchantValidation');
+                request.canMakePayment().then(function(status){
+                    request.show().then(function(response){
+                        response.complete('success').then(function(result){
+                            defer.resolveWith(module,[response,result])
+                        });
+                    }).catch(function(e){
+                        defer.rejectWith(module,[{code:e.code,message:e.message}]);
+                    })
+                }).catch(function(e){
+                    defer.rejectWith(module,[{code:e.code,message:e.message}]);
+                });
             } catch (e) {
-                this.trigger('error',{message:e.message});
+                defer.rejectWith(module,[{code:e.code,message:e.message}]);
             }
-            return request;
+            return defer;
         },
         'pay': function () {
-            this.request = this.getRequest();
-            this.request.show().then(this.proxy(function (c, response) {
-                response.complete('success').then(this.proxy(function(c,result){
-                    result = {
-                        payment_system: this.config.payment_system,
-                        data: response.details
-                    };
-                    this.trigger('complete',result);
-                }));
-            })).catch(this.proxy(function(c, error) {
+            this.getRequest().done(function(response){
+                this.trigger('complete',{
+                    payment_system: this.config.payment_system,
+                    data: response.details
+                });
+            }).fail(function(error){
+                if(this.params.embedded === true){
+                    location.reload();
+                }
                 this.trigger('error',error);
-            }));
+            });
         },
         'appleSession': function (params) {
             var defer = ns.get('Deferred');
@@ -1608,7 +1618,9 @@ $checkout.scope('PaymentContainer', function (ns) {
         'initElement': function () {
             var element = this.utils.querySelector(this.params.element);
             var connector = ns.get('Connector', {target: window.parent});
-            var payment = ns.get('PaymentRequest');
+            var payment = ns.get('PaymentRequest',{
+                embedded: true
+            });
             payment.on('complete', this.proxy(function (cx, data) {
                 connector.send('complete',data);
             }));
