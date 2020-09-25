@@ -1260,23 +1260,27 @@ $checkout.scope('ButtonWidget', function (ns) {
 });
 
 $checkout.scope('PaymentRequest', function (ns) {
-    var GPAY = 'https://google.com/pay';
-    var APAY = 'https://apple.com/apple-pay';
-    var CARD = 'basic-card';
-    var getDummyMethod = function (endpoint, context) {
-        var request;
-        var defer = ns.get('Deferred');
-        var details = {total: {label: 'Total', amount: {currency: 'USD', value: '0.00'}}};
-        try {
-            request = new PaymentRequest([{supportedMethods: endpoint}], details);
-            request.canMakePayment().then(function (status) {
-                defer[status ? 'resolveWith' : 'rejectWith'](context || null);
-            });
-        } catch (e) {
-            defer.rejectWith(context || null);
-        }
-        return defer;
-    };
+
+    var METHODS = [
+        ['google',{
+            supportedMethods: ['https://google.com/pay'],
+            data: {
+                'apiVersion': 2,
+                'apiVersionMinor': 0,
+                'allowedPaymentMethods': [
+                    {
+                        'type': 'CARD',
+                        'parameters': {
+                            "allowedAuthMethods": ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                            "allowedCardNetworks": ['MASTERCARD', 'VISA','AMEX', 'DISCOVER', 'INTERAC', 'JCB']
+                        }
+                    }
+                ]
+            }
+        }],
+        ['apple',{'supportedMethods': ['https://apple.com/apple-pay']}],
+        ['card',{'supportedMethods': ['basic-card']}]
+    ];
 
     return ns.module('Module').extend({
         'config': {
@@ -1301,19 +1305,28 @@ $checkout.scope('PaymentRequest', function (ns) {
             }
         },
         'getSupportedMethod': function () {
-            var defer = ns.get('Deferred');
-            getDummyMethod(GPAY, this).done(function () {
-                this.trigger('supported', 'google');
-            }).fail(function () {
-                getDummyMethod(APAY, this).done(function () {
-                    this.trigger('supported', 'apple');
-                }).fail(function () {
-                    getDummyMethod(CARD, this).done(function () {
-                        this.trigger('supported', 'card');
+            var details = {total: {label: 'Total', amount: {currency: 'USD', value: '0.00'}}};
+            (function(module,list, index){
+                var request,method,config;
+                var callback = arguments.callee;
+                var item     = list[index] || false;
+                if( item === false ) return item;
+                index  = (index || 0 ) + 1;
+                method = item[0];
+                config = item[1];
+                try {
+                    request = new PaymentRequest([config], details);
+                    request.canMakePayment().then(function (status) {
+                        if( status ){
+                            module.trigger('supported',method);
+                        } else {
+                            callback(module,list,index);
+                        }
                     });
-                });
-            });
-            return defer;
+                } catch (e) {
+                    callback(module,list,index);
+                }
+            })(this,METHODS,0);
         },
         'modelRequest': function (method, params, callback, failure) {
             if (isInstanceOf('Api', this.api)) {
@@ -1578,8 +1591,12 @@ $checkout.scope('PaymentContainer', function (ns) {
         'defaults': {
             element: null,
             method: 'card',
-            data: {},
-            style: {}
+            data: {
+                lang: 'en'
+            },
+            style: {
+
+            }
         },
         'init': function (params) {
             this.initParams(params);
@@ -1608,7 +1625,7 @@ $checkout.scope('PaymentContainer', function (ns) {
                 }
             }));
             connector.on('options', this.proxy(function (cx, data) {
-                this.utils.extend(this.params, {
+                this.utils.extend(this.params,{
                     method: data.method,
                     style: data.style,
                     data: data.data
