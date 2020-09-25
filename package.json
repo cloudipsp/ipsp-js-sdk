@@ -18,7 +18,10 @@
   "scripts": {
     "build": "npm install && ./node_modules/gulp/bin/gulp.js",
     "prepublishOnly": "npm install && ./node_modules/gulp/bin/gulp.js",
-    "start": "./node_modules/gulp/bin/gulp.js watcher"
+    "start": "./node_modules/gulp/bin/gulp.js watcher",
+    "preversion": "npm test",
+    "version": "npm run build && git add -A dist",
+    "postversion": "git push && git push --tags"
   },
   "files": [
     "dist",
