@@ -1336,9 +1336,17 @@ $checkout.scope('PaymentRequest', function (ns) {
                 }));
             }
         },
+        'getOrderId': function(){
+            var list = ['order'];
+            list.push(String(Math.round(Math.random() * 1e5)));
+            list.push(String(Math.round(Math.random() * 1e5)));
+            list.push(String(Math.round(Math.random() * 1e5)));
+            return list.join('-');
+        },
         'getRequest': function () {
             var request = null, module  = this, defer = ns.get('Deferred') , params = this.params;
             try {
+                this.config.details.id = this.getOrderId();
                 request = new PaymentRequest(this.config.methods,this.config.details,this.config.options);
                 this.addEvent(request, 'merchantvalidation', 'merchantValidation');
                 request.canMakePayment().then(function(status){
@@ -1347,13 +1355,13 @@ $checkout.scope('PaymentRequest', function (ns) {
                             defer.resolveWith(module,[response,result])
                         });
                     }).catch(function(e){
-                        defer.rejectWith(module,[{code:e.code,message:e.message}]);
+                        defer.rejectWith(module,[{code:e.code,message:e.message},request]);
                     })
                 }).catch(function(e){
-                    defer.rejectWith(module,[{code:e.code,message:e.message}]);
+                    defer.rejectWith(module,[{code:e.code,message:e.message},request]);
                 });
             } catch (e) {
-                defer.rejectWith(module,[{code:e.code,message:e.message}]);
+                defer.rejectWith(module,[{code:e.code,message:e.message},request]);
             }
             return defer;
         },
@@ -1364,10 +1372,11 @@ $checkout.scope('PaymentRequest', function (ns) {
                     data: response.details
                 });
             }).fail(function(error){
-                if(this.params.embedded === true){
-                    location.reload();
-                }
                 this.trigger('error',error);
+                if( this.params.embedded === true ){
+                    location.reload();
+                    this.trigger('reload',this.params);
+                }
             });
         },
         'appleSession': function (params) {
@@ -1484,6 +1493,7 @@ $checkout.scope('PaymentButton', function (ns) {
             this.payment.on('error', this.proxy('onError'));
             this.payment.on('log', this.proxy('onLog'));
             this.payment.on('supported', this.proxy('initFrame'));
+            this.payment.on('reload', this.proxy('onReload'));
         },
         'initFrame': function (cx, method) {
             this.method = method;
@@ -1505,6 +1515,7 @@ $checkout.scope('PaymentButton', function (ns) {
             this.connector.on('pay', this.proxy('onPay'));
             this.connector.on('complete', this.proxy('onToken'));
             this.connector.on('error', this.proxy('onError'));
+            this.connector.on('reload', this.proxy('onReload'));
             this.addEvent(this.frame, 'load', function () {
                 this.update({});
             });
@@ -1556,6 +1567,9 @@ $checkout.scope('PaymentButton', function (ns) {
         },
         'onError': function (c, data) {
             this.trigger('error', data);
+        },
+        'onReload': function(c,data){
+            this.trigger('reload', data);
         },
         'onShow': function () {
             this.addCss(this.frame, {
@@ -1623,6 +1637,9 @@ $checkout.scope('PaymentContainer', function (ns) {
             });
             payment.on('complete', this.proxy(function (cx, data) {
                 connector.send('complete',data);
+            }));
+            payment.on('reload', this.proxy(function (cx, data) {
+                connector.send('reload',data);
             }));
             payment.on('error', this.proxy(function (cx, data) {
                 connector.send('error',data);
