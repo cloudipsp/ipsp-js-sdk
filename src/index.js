@@ -944,9 +944,9 @@ $checkout.scope('Response', function (ns) {
         },
         'submitToMerchant': function () {
             var ready = this.attr('order.ready_to_submit');
-            var url = this.attr('order.response_url');
+            var url = this.attr('model.url') || this.attr('order.response_url');
             var method = this.attr('order.method');
-            var data = this.attr('order.order_data');
+            var data = this.attr('model.send_data') || this.attr('order.order_data');
             if (ready && url && data) {
                 this.formDataSubmit(url, data, '_self', method);
                 return true;
