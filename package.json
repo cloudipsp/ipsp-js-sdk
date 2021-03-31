@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "npm install && ./node_modules/gulp/bin/gulp.js",
+    "test": "",
     "prepublishOnly": "npm install && ./node_modules/gulp/bin/gulp.js",
     "start": "./node_modules/gulp/bin/gulp.js watcher",
     "preversion": "npm test",
