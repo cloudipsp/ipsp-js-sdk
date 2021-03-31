@@ -1417,7 +1417,8 @@ $checkout.scope('PaymentButton', function (ns) {
         'overflow': 'hidden !important',
         'position': 'relative !important',
         'opacity': '1 !important',
-        'height': '0 !important'
+        'height': '0 !important',
+        'outline': 'none !important'
     };
 
     var CSS_FRAME = {
@@ -1431,7 +1432,8 @@ $checkout.scope('PaymentButton', function (ns) {
         'position': 'relative !important',
         'opacity': '0 !important',
         'overflow': 'hidden !important',
-        'height': '100% !important'
+        'height': '100% !important',
+        'outline': 'none !important',
     };
 
     var ATTR_FRAME = {
@@ -1509,6 +1511,7 @@ $checkout.scope('PaymentButton', function (ns) {
         'initConnector': function () {
             this.connector = ns.get('Connector', {target: this.frame.contentWindow});
             this.connector.on('event', this.proxy('onEvent'));
+            this.connector.on('click', this.proxy('onClick'));
             this.connector.on('show', this.proxy('onShow'));
             this.connector.on('hide', this.proxy('onHide'));
             this.connector.on('log', this.proxy('onLog'));
@@ -1553,11 +1556,32 @@ $checkout.scope('PaymentButton', function (ns) {
             this.callback = callback;
             return this;
         },
-        'click': function () {
-            this.connector.send('click', {});
+        'validate': function(callback){
+            this.validateCallback = (function(context){
+                return function(resolve){
+                    if( context.validationProgress === true ) return false;
+                    context.validationProgress = true;
+                    callback(function(){
+                        context.validationProgress = false;
+                        resolve.call(context);
+                    });
+                }
+            })(this);
+        },
+        'click': function(){
+            if( this.validateCallback ){
+                this.validateCallback(function(){
+                    this.connector.send('click', {});
+                });
+            } else {
+                this.connector.send('click', {});
+            }
         },
         'cssUnit': function (value, unit) {
             return String(value || 0).concat(unit || '').concat(' !important')
+        },
+        'onClick': function () {
+            this.click();
         },
         'onToken': function (c, data) {
             this.callback(ns.get('PaymentRequestModel', data));
@@ -1657,13 +1681,19 @@ $checkout.scope('PaymentContainer', function (ns) {
                 this.utils.extend(this.params,{
                     method: data.method,
                     style: data.style,
-                    data: data.data
+                    data: data.data,
+                    css: data.css
                 });
                 element.setAttribute('class', '');
                 element.classList.add('button');
                 element.classList.add('pending');
                 if (this.params.method) {
                     element.classList.add(this.params.method);
+                }
+                if (this.params.css) {
+                    this.utils.forEach(this.params.css,function(value,name){
+                        element.style.setProperty(['--',name].join(''),value);
+                    });
                 }
                 if (this.params.style) {
                     element.classList.add(
@@ -1686,14 +1716,16 @@ $checkout.scope('PaymentContainer', function (ns) {
             this.addEvent(element, 'mouseenter', function (cx, event) {
                 event.preventDefault();
                 element.classList.add('hover');
+                connector.send('event', {name: 'button.mouseenter'});
             });
             this.addEvent(element, 'mouseleave', function (cx, event) {
                 event.preventDefault();
                 element.classList.remove('hover');
+                connector.send('event', {name: 'button.mouseleave'});
             });
             this.addEvent(element, 'click', function (cx, event) {
                 event.preventDefault();
-                connector.trigger('click');
+                connector.send('click', {});
             });
             this.addEvent(element, 'resize', function (cx, event) {
                 event.preventDefault();
