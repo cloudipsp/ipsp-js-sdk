@@ -1,7 +1,6 @@
 var Class = require('./class');
 var Event = require('./event');
 var Utils = require('./utils');
-
 var Module = Class.extend({
     'utils': new Utils(),
     'getListener': function () {
@@ -95,4 +94,3 @@ var Module = Class.extend({
 });
 
 module.exports = Module;
-

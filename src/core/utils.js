@@ -140,7 +140,7 @@ var Utils = Class.extend({
         }, this);
         return obj;
     }
-}, 'Utils');
+});
 
 
 module.exports = Utils;

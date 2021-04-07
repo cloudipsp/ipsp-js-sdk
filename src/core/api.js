@@ -1,5 +1,4 @@
 var Deferred  = require('./deferred');
-
 var Module    = require('./module');
 var Connector = require('./connector');
 var Modal     = require('./modal');

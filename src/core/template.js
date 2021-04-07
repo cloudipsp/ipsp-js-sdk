@@ -74,10 +74,7 @@ var template = function (text) {
     template.source = 'function(' + (settings['variable'] || 'obj') + '){\n' + source + '}';
     return template;
 };
-/**
- * @class
- * @type function
- */
+
 var Template = Utils.extend({
     'init': function (name) {
         this.name = name;

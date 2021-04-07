@@ -2,6 +2,7 @@ var Module = require('./module');
 var Connector = require('./connector');
 var Template  = require('./template');
 
+
 var Modal = Module.extend({
     'init': function (params) {
         this.checkout = params.checkout;

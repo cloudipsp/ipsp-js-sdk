@@ -13,7 +13,6 @@ var buffer = require('vinyl-buffer');
 gulp.task('views',function(){
     return gulp.src('src/html/**/*')
         .pipe(htmlToJs({concat:'index.js'}))
-        //.pipe(wrap("$checkout.scope('Views',function(ns){\n<%=contents%>\n});"))
         .pipe(gulp.dest('src/views'));
 });
 
@@ -22,7 +21,7 @@ gulp.task('build', function(){
     return browserify(['src/build.js'],{
         standalone: '$checkout'
     }).bundle()
-      .pipe(source('ipsp.js'))
+      .pipe(source('checkout.js'))
       .pipe(buffer())
       .pipe(gulp.dest('dist'))
       .pipe(sourcemaps.init())
@@ -30,19 +29,6 @@ gulp.task('build', function(){
       .pipe(rename({extname:'.min.js'}))
       .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('dist'));
-});
-
-
-gulp.task('sdk',function(){
-    return gulp.src([
-        'src/index.js',
-        'src/views/*.js'
-    ]).pipe(concat('checkout.js'))
-    .pipe(wrap({src:'src/wrap/base.ejs'},{moduleName:'$checkout'}))
-    .pipe(gulp.dest('dist'))
-    .pipe(uglify())
-    .pipe(rename({extname:'.min.js'}))
-    .pipe(gulp.dest('dist'));
 });
 
 gulp.task('clean', function(done) {
@@ -53,11 +39,10 @@ gulp.task('clean', function(done) {
 
 gulp.task('watcher', function(){
     gulp.watch([
-        'src/index.js',
         'src/build.js',
         'src/core/**/*.js',
         'src/html/*.ejs'
-    ],gulp.series(['views','sdk','build']));
+    ],gulp.series(['views','build']));
 });
 
-gulp.task('default',gulp.series(['clean','views','sdk']));
+gulp.task('default',gulp.series(['clean','views','build']));

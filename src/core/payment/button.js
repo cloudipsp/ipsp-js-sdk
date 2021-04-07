@@ -229,5 +229,4 @@ var Button = Module.extend({
     }
 });
 
-
 module.exports = Button;

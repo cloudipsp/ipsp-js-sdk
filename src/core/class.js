@@ -8,6 +8,10 @@ var Class = function () {
 
 };
 
+Class.prototype._super = function(){
+
+};
+
 Class.prototype.instance = function(params){
     return new this.constructor(params);
 }
@@ -20,13 +24,7 @@ Class.prototype.proxy = function(fn){
         };
     })(this, fn);
 }
-/**
- *
- * @param parent
- * @param name
- * @param method
- * @return {function(): *}
- */
+
 function superMethod(parent,name,method){
     return function () {
         var temp = this._super, result;
@@ -36,12 +34,7 @@ function superMethod(parent,name,method){
         return result;
     };
 }
-/**
- *
- * @param {Component|Function} target
- * @param {object} instance
- * @return {object}
- */
+
 function assign(target,instance){
     var prop,proto,parent = target.prototype;
     init = true;
@@ -61,37 +54,31 @@ function assign(target,instance){
     }
     return proto;
 }
-
 /**
- *
- * @param instance
- * @return {Component}
- */
-Class.extend = function (instance) {
-    function Component(){
-        if (!init && this.init) this.init.apply(this, arguments);
-    }
-    Component.prototype = assign(this,instance);
-    Component.prototype.constructor = Component;
-    Component.extend = Class.extend;
-    return Component;
-};
-/**
- *
- * @param {Component} parent
+ * @name extendMethod
+ * @method
  * @param {object} instance
- * @return {Component}
+ * @return {ClassConstructor}
  */
-Class.createClass = function(parent,instance){
-    function Component(){
+function extend(instance){
+    /**
+     * @name ClassConstructor
+     */
+    function Class(){
         if (!init && this.init) this.init.apply(this, arguments);
     }
-    Component.prototype = assign(parent,instance);
-    Component.prototype.constructor = Component;
-    Component.extend = arguments.callee;
-    return Component;
+    Class.prototype = assign(this,instance);
+    Class.prototype.constructor = Class;
+    /**
+     * @method
+     * @inner
+     */
+    Class.extend = extend;
+    return Class;
 }
 
 
 module.exports = Class;
+
+module.exports['extend'] = extend;
 

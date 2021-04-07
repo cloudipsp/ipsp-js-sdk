@@ -41,13 +41,8 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.0",
     "gulp-wrap": "^0.15.0",
+    "sourceify": "^1.0.0",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
-  },
-  "browserify-shim": {},
-  "browserify": {
-    "transform": [
-      "browserify-shim"
-    ]
   }
 }

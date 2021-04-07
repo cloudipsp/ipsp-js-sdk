@@ -1,7 +1,6 @@
 var Module     = require('../module');
 var Connector  = require('../connector');
 var Request    = require('./request');
-
 var Container = Module.extend({
     'defaults': {
         element: null,
