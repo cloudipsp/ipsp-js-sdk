@@ -28,16 +28,26 @@
     "dist",
     "src"
   ],
-  "dependencies": {
-    "vinyl": "^2.2.1"
-  },
   "devDependencies": {
+    "browserify": "^16.2.2",
+    "browserify-shim": "^3.8.14",
     "del": "^3.0.0",
     "gulp": "^4.0.2",
+    "gulp-browserify": "^0.5.1",
     "gulp-concat": "^2.6.1",
     "gulp-html-to-js": "^0.0.7",
+    "gulp-jsmin": "^0.1.5",
     "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.0",
-    "gulp-wrap": "^0.15.0"
+    "gulp-wrap": "^0.15.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "browserify-shim": {},
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
   }
 }
