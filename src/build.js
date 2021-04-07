@@ -5,14 +5,6 @@ var PaymentContainer = require('./core/payment/container');
 var FormWidget = require('./core/widget/form');
 var ButtonWidget = require('./core/widget/button');
 
-
-var Deferred = require('./core/deferred');
-
-var def = Deferred();
-
-
-
-
 Component.add('Api', Api);
 Component.add('PaymentContainer', PaymentContainer);
 Component.add('PaymentButton', PaymentButton);

@@ -2,208 +2,171 @@ var Utils = require('./utils');
 
 var utils = new Utils();
 
-function isArray(o) {
-    return utils.isArray(o);
+function isArray(value) {
+    return utils.isArray(value);
 }
 
-function isFunction(o) {
-    return utils.isFunction(o);
+function isFunction(value) {
+    return utils.isFunction(value);
 }
 
-function foreach(arr, handler) {
-    if (isArray(arr)) {
-        for (var i = 0; i < arr.length; i++) {
-            handler(arr[i]);
+function forEach(list, callback,context) {
+    var i=0;
+    if( list ){
+        if (isArray(list)) {
+            for (;i<list.length;i++){
+                callback.call(context,list[i]);
+            }
+        } else{
+            callback.call(context,list);
         }
-    } else
-        handler(arr);
+    }
 }
-
+/**
+ * @name Deferred
+ * @param fn
+ * @return {Deferred}
+ */
 function Deferred(fn) {
-    var status = 'pending',
-        doneFuncs = [],
-        failFuncs = [],
-        progressFuncs = [],
-        resultArgs = null,
-        promise = {
-            'done': function () {
-                for (var i = 0; i < arguments.length; i++) {
-                    if (!arguments[i]) {
-                        continue;
-                    }
-                    if (isArray(arguments[i])) {
-                        var arr = arguments[i];
-                        for (var j = 0; j < arr.length; j++) {
-                            if (status === 'resolved') {
-                                arr[j].apply(this, resultArgs);
-                            }
-                            doneFuncs.push(arr[j]);
-                        }
-                    } else {
-                        if (status === 'resolved') {
-                            arguments[i].apply(this, resultArgs);
-                        }
-                        doneFuncs.push(arguments[i]);
-                    }
+    var PENDING  = 0;
+    var RESOLVED = 1;
+    var REJECTED = 2;
+    var status = 'pending';
+    var doneFuncs = [];
+    var failFuncs = [];
+    var progressFuncs = [];
+    var resultArgs = null;
+    /**
+     * @lends Deferred.prototype
+     */
+    var promise = {
+        done: function () {
+            for (var i = 0; i < arguments.length; i++) {
+                if (!arguments[i]) {
+                    continue;
                 }
-                return this;
-            },
-            'fail': function () {
-                for (var i = 0; i < arguments.length; i++) {
-                    if (!arguments[i]) {
-                        continue;
+                forEach(arguments[i],function(callback){
+                    if (status === 'resolved') {
+                        callback.apply(this, resultArgs);
                     }
-                    if (isArray(arguments[i])) {
-                        var arr = arguments[i];
-                        for (var j = 0; j < arr.length; j++) {
-                            if (status === 'rejected') {
-                                arr[j].apply(this, resultArgs);
-                            }
-                            failFuncs.push(arr[j]);
-                        }
-                    } else {
-                        if (status === 'rejected') {
-                            arguments[i].apply(this, resultArgs);
-                        }
-                        failFuncs.push(arguments[i]);
-                    }
-                }
-                return this;
-            },
-            'always': function () {
-                return this.done.apply(this, arguments).fail.apply(this, arguments);
-            },
-            'progress': function () {
-                for (var i = 0; i < arguments.length; i++) {
-                    if (!arguments[i]) {
-                        continue;
-                    }
-                    if (utils.isArray(arguments[i])) {
-                        var arr = arguments[i];
-                        for (var j = 0; j < arr.length; j++) {
-                            if (status === 'pending') {
-                                progressFuncs.push(arr[j]);
-                            }
-                        }
-                    } else {
-                        if (status === 'pending') {
-                            progressFuncs.push(arguments[i]);
-                        }
-                    }
-                }
-                return this;
-            },
-            'then': function () {
-                if (arguments.length > 1 && arguments[1]) {
-                    this.fail(arguments[1]);
-                }
-                if (arguments.length > 0 && arguments[0]) {
-                    this.done(arguments[0]);
-                }
-                if (arguments.length > 2 && arguments[2]) {
-                    this.progress(arguments[2]);
-                }
-                return this;
-            },
-            'promise': function (obj) {
-                if (obj === null) {
-                    return promise;
-                } else {
-                    for (var i in promise) {
-                        obj[i] = promise[i];
-                    }
-                    return obj;
-                }
-            },
-            'state': function () {
-                return status;
-            },
-            'debug': function () {
-                console.log('[debug]', doneFuncs, failFuncs, status);
-            },
-            'isRejected': function () {
-                return status === 'rejected';
-            },
-            'isResolved': function () {
-                return status === 'resolved';
-            },
-            'pipe': function (done, fail) {
-                return Deferred(function (def) {
-                    foreach(done, function (func) {
-                        if (typeof func === 'function') {
-                            deferred.done(function () {
-                                var returnval = func.apply(this, arguments);
-                                if (returnval && typeof returnval === 'function') {
-                                    returnval.promise().then(def.resolve, def.reject, def.notify);
-                                } else {
-                                    def.resolve(returnval);
-                                }
-                            });
-                        } else {
-                            deferred.done(def.resolve);
-                        }
-                    });
-                    foreach(fail, function (func) {
-                        if (typeof func === 'function') {
-                            deferred.fail(function () {
-                                var returnval = func.apply(this, arguments);
-                                if (returnval && typeof returnval === 'function') {
-                                    returnval.promise().then(def.resolve, def.reject, def.notify);
-                                } else {
-                                    def.reject(returnval);
-                                }
-                            });
-                        } else {
-                            deferred.fail(def.reject);
-                        }
-                    });
-                }).promise();
+                    doneFuncs.push(callback);
+                },this);
             }
+            return this;
         },
-        deferred = {
-            resolveWith: function (context) {
-                if (status === 'pending') {
-                    status = 'resolved';
-                    var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
-                    for (var i = 0; i < doneFuncs.length; i++) {
-                        doneFuncs[i].apply(context, args);
-                    }
+        fail: function () {
+            for (var i = 0; i < arguments.length; i++) {
+                if (!arguments[i]) {
+                    continue;
                 }
-                return this;
-            },
-            rejectWith: function (context) {
-                if (status === 'pending') {
-                    status = 'rejected';
-                    var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
-                    for (var i = 0; i < failFuncs.length; i++) {
-                        failFuncs[i].apply(context, args);
+                forEach(arguments[i],function(callback){
+                    if (status === 'rejected') {
+                        callback.apply(this,resultArgs);
                     }
-                }
-                return this;
-            },
-            notifyWith: function (context) {
-                if (status === 'pending') {
-                    var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
-                    for (var i = 0; i < progressFuncs.length; i++) {
-                        progressFuncs[i].apply(context, args);
-                    }
-                }
-                return this;
-            },
-            resolve: function () {
-                return this.resolveWith(this, arguments);
-            },
-            reject: function () {
-                return this.rejectWith(this, arguments);
-            },
-            notify: function () {
-                return this.notifyWith(this, arguments);
+                    failFuncs.push(callback);
+                },this);
             }
-        };
-
+            return this;
+        },
+        always: function () {
+            return this.done.apply(this, arguments).fail.apply(this, arguments);
+        },
+        progress: function () {
+            for (var i = 0; i < arguments.length; i++) {
+                if (!arguments[i]) {
+                    continue;
+                }
+                forEach(arguments[i],function(callback){
+                    if (status === 'pending') {
+                        progressFuncs.push(callback);
+                    }
+                },this);
+            }
+            return this;
+        },
+        then: function () {
+            if (arguments.length > 1 && arguments[1]) {
+                this.fail(arguments[1]);
+            }
+            if (arguments.length > 0 && arguments[0]) {
+                this.done(arguments[0]);
+            }
+            if (arguments.length > 2 && arguments[2]) {
+                this.progress(arguments[2]);
+            }
+            return this;
+        },
+        promise: function (object) {
+            var prop;
+            if (object === null) {
+                return promise;
+            }
+            for (prop in promise) {
+                if(promise.hasOwnProperty(prop)){
+                    object[prop] = promise[prop];
+                }
+            }
+            return object;
+        },
+        state: function () {
+            return status;
+        },
+        isPending: function(){
+            return status === 'pending';
+        },
+        isRejected: function () {
+            return status === 'rejected';
+        },
+        isResolved: function () {
+            return status === 'resolved';
+        }
+    };
+    /**
+     * @lends Deferred.prototype
+     */
+    var deferred = {
+        resolveWith: function (context) {
+            if (status === 'pending') {
+                status = 'resolved';
+                var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
+                for (var i = 0; i < doneFuncs.length; i++) {
+                    doneFuncs[i].apply(context, args);
+                }
+            }
+            return this;
+        },
+        rejectWith: function (context) {
+            if (status === 'pending') {
+                status = 'rejected';
+                var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
+                for (var i = 0; i < failFuncs.length; i++) {
+                    failFuncs[i].apply(context, args);
+                }
+            }
+            return this;
+        },
+        notifyWith: function (context) {
+            if (status === 'pending') {
+                var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
+                for (var i = 0; i < progressFuncs.length; i++) {
+                    progressFuncs[i].apply(context, args);
+                }
+            }
+            return this;
+        },
+        resolve: function () {
+            return this.resolveWith(this, arguments);
+        },
+        reject: function () {
+            return this.rejectWith(this, arguments);
+        },
+        notify: function () {
+            return this.notifyWith(this, arguments);
+        }
+    };
     var obj = promise.promise(deferred);
     if (isFunction(fn)) {
-        fn.apply(obj, [obj]);
+        fn.call(obj, obj);
     }
     return obj;
 }
