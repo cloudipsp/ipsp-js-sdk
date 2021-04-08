@@ -1,6 +1,5 @@
 node_modules
 dist
 .idea
-src/views
 tests/pay.html
 npm-debug.log

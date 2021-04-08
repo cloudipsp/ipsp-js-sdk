@@ -25,13 +25,7 @@ gulp.task('build', function(){
         standalone: '$checkout',
         transform: stringify({
             extensions: ['.ejs'],
-            minify: true,
-            minifier: {
-                extensions: ['.ejs'],
-                options: {
-                    collapseWhitespace: true
-                }
-            }
+            minify: true
         })
     }).bundle()
       .pipe(source('checkout.js'))
