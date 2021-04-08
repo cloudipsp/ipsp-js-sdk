@@ -22,11 +22,7 @@ gulp.task('views',function(){
 
 gulp.task('build', function(){
     return browserify(['src/checkout.js'],{
-        standalone: '$checkout',
-        transform: stringify({
-            extensions: ['.ejs'],
-            minify: true
-        })
+        standalone: '$checkout'
     }).bundle()
       .pipe(source('checkout.js'))
       .pipe(buffer())
