@@ -1,8 +1,9 @@
 var Class = require('./class');
 var Event = require('./event');
 var Utils = require('./utils');
-var Module = Class.extend({
-    'utils': new Utils(),
+
+var Module =  Class.extend({
+    'utils': Utils,
     'getListener': function () {
         if (!this._listener_) this._listener_ = new Event();
         return this._listener_;

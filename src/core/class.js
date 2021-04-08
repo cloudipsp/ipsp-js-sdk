@@ -1,16 +1,14 @@
 var init = false;
-
 var fnTest = /xyz/.test(function () {
     return 'xyz';
 }.toString()) ? /\b_super\b/ : /.*/;
 
-var Class = function () {
+function Class() {
 
-};
-
+}
 Class.prototype._super = function(){
 
-};
+}
 
 Class.prototype.instance = function(params){
     return new this.constructor(params);
@@ -54,31 +52,15 @@ function assign(target,instance){
     }
     return proto;
 }
-/**
- * @name extendMethod
- * @method
- * @param {object} instance
- * @return {ClassConstructor}
- */
-function extend(instance){
-    /**
-     * @name ClassConstructor
-     */
+
+Class.extend = function extend(instance){
     function Class(){
         if (!init && this.init) this.init.apply(this, arguments);
     }
     Class.prototype = assign(this,instance);
     Class.prototype.constructor = Class;
-    /**
-     * @method
-     * @inner
-     */
     Class.extend = extend;
-    return Class;
+    return (Class);
 }
 
-
 module.exports = Class;
-
-module.exports['extend'] = extend;
-

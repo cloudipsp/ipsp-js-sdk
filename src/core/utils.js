@@ -1,6 +1,4 @@
-var Class = require('./class');
-
-var Utils = Class.extend({
+var Utils = {
     'getType': function (o) {
         return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
     },
@@ -140,7 +138,6 @@ var Utils = Class.extend({
         }, this);
         return obj;
     }
-});
-
+};
 
 module.exports = Utils;

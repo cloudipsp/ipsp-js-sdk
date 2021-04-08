@@ -1,15 +1,10 @@
 var Utils = require('./utils');
-
-var utils = new Utils();
-
 function isArray(value) {
-    return utils.isArray(value);
+    return Utils.isArray(value);
 }
-
 function isFunction(value) {
-    return utils.isFunction(value);
+    return Utils.isFunction(value);
 }
-
 function forEach(list, callback,context) {
     var i=0;
     if( list ){
