@@ -1,5 +1,7 @@
 var Module = require('./module');
-
+/**
+ * @type {ClassObject}
+ */
 var Connector = Module.extend({
     'ns': 'crossDomain',
     'origin': '*',

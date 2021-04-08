@@ -1,8 +1,8 @@
 var Module    = require('../module');
 var Api       = require('../api');
 var Connector = require('../connector');
-
 var Request   = require('./request');
+var Model     = require('./model');
 
 var CSS_CONTAINER = {
     'border': '0 !important',
@@ -67,7 +67,7 @@ var Button = Module.extend({
             this.api = this.params.api;
             delete this.params['api'];
         } else {
-            this.api = ns.get('Api',{
+            this.api = new Api({
                 origin:this.params.origin,
                 endpoint: this.params.endpoint
             });
@@ -180,7 +180,7 @@ var Button = Module.extend({
         this.click();
     },
     'onToken': function (c, data) {
-        this.callback(ns.get('PaymentRequestModel', data));
+        this.callback(new Model(data));
     },
     'onSuccess': function (c, data) {
         this.trigger('success', data);

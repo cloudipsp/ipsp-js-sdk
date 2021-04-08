@@ -1,3 +1,4 @@
+var Deferred  = require('../deferred');
 var Module  = require('../module');
 var Api     = require('../api');
 
@@ -69,7 +70,7 @@ var Request = Module.extend({
         })(this,METHODS,0);
     },
     'modelRequest': function (method, params, callback, failure) {
-        if (isInstanceOf('Api', this.api)) {
+        if (this.api instanceof Api) {
             this.api.scope(this.proxy(function(){
                 this.api.request('api.checkout.pay', method, params)
                     .done(this.proxy(callback)).fail(this.proxy(failure));
@@ -84,7 +85,7 @@ var Request = Module.extend({
         return list.join('-');
     },
     'getRequest': function () {
-        var request = null, module  = this, defer = ns.get('Deferred') , params = this.params;
+        var request = null, module  = this, defer = Deferred() , params = this.params;
         try {
             this.config.details.id = this.getOrderId();
             request = new PaymentRequest(this.config.methods,this.config.details,this.config.options);
@@ -120,7 +121,7 @@ var Request = Module.extend({
         });
     },
     'appleSession': function (params) {
-        var defer = ns.get('Deferred');
+        var defer = Deferred();
         this.modelRequest('session', params, function (c, model) {
             defer.resolveWith(this,[model.serialize()]);
         }, function(c,model) {

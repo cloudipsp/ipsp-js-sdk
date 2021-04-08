@@ -1,4 +1,5 @@
 var Views = require('../views');
+var Class = require('./class');
 var Utils = require('./utils');
 
 var settings = {
@@ -74,8 +75,11 @@ var template = function (text) {
     template.source = 'function(' + (settings['variable'] || 'obj') + '){\n' + source + '}';
     return template;
 };
-
-var Template = Utils.extend({
+/**
+ * @type {ClassObject}
+ */
+var Template = Class.extend({
+    'utils': Utils,
     'init': function (name) {
         this.name = name;
         this.view = {};
@@ -90,7 +94,7 @@ var Template = Utils.extend({
         return this.view.output.call(this, this);
     },
     'include': function (name, data) {
-        return this.instance(name).render(this.extend(this.data, data));
+        return this.instance(name).render(this.utils.extend(this.data, data));
     }
 });
 

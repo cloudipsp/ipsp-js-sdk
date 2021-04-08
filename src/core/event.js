@@ -1,5 +1,7 @@
 var Class = require('./class');
-
+/**
+ * @type ClassObject
+ */
 var Event = Class.extend({
     'init': function () {
         this.events = {};

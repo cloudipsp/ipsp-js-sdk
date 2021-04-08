@@ -1,5 +1,7 @@
 var Model = require('./model');
-
+/**
+ * @type {ClassObject}
+ */
 var Response = Model.extend({
     'stringFormat': function (string) {
         var that = this;

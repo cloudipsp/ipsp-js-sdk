@@ -2,19 +2,22 @@ var init = false;
 var fnTest = /xyz/.test(function () {
     return 'xyz';
 }.toString()) ? /\b_super\b/ : /.*/;
-
-function Class() {
+/**
+ * @type {ClassObject}
+ */
+function ClassObject() {
 
 }
-Class.prototype._super = function(){
+
+ClassObject.prototype._super = function(){
 
 }
 
-Class.prototype.instance = function(params){
+ClassObject.prototype.instance = function(params){
     return new this.constructor(params);
 }
 
-Class.prototype.proxy = function(fn){
+ClassObject.prototype.proxy = function(fn){
     fn = typeof (fn) == 'string' ? this[fn] : fn;
     return (function (cx, cb) {
         return function () {
@@ -53,14 +56,14 @@ function assign(target,instance){
     return proto;
 }
 
-Class.extend = function extend(instance){
+ClassObject.extend = function(instance){
     function Class(){
         if (!init && this.init) this.init.apply(this, arguments);
     }
     Class.prototype = assign(this,instance);
     Class.prototype.constructor = Class;
-    Class.extend = extend;
-    return (Class);
+    Class.extend = arguments.callee;
+    return Class;
 }
 
-module.exports = Class;
+module.exports = ClassObject;

@@ -12,7 +12,9 @@ var CSS_FRAME = {
     'position': 'fixed !important',
     'border': '0px !important'
 };
-
+/**
+ * @type {ClassObject}
+ */
 var Api = Module.extend({
     'defaults': {
         'origin': 'https://api.fondy.eu',

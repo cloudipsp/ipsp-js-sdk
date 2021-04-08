@@ -1,7 +1,9 @@
 var Class = require('./class');
 var Event = require('./event');
 var Utils = require('./utils');
-
+/**
+ * @type {ClassObject}
+ */
 var Module =  Class.extend({
     'utils': Utils,
     'getListener': function () {

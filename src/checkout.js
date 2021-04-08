@@ -1,12 +1,14 @@
 var Component = require('./core/component');
 
 var Api = require('./core/api');
+var Connector = require('./core/connector');
 var PaymentButton = require('./core/payment/button');
 var PaymentContainer = require('./core/payment/container');
 var FormWidget = require('./core/widget/form');
 var ButtonWidget = require('./core/widget/button');
 
 Component.add('Api', Api);
+Component.add('Connector', Connector);
 Component.add('PaymentContainer', PaymentContainer);
 Component.add('PaymentButton', PaymentButton);
 Component.add('FormWidget', FormWidget);

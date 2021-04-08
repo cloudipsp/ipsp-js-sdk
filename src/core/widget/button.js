@@ -1,5 +1,7 @@
 var Widget = require('./index');
-
+/**
+ * @type {ClassObject}
+ */
 var Button = Widget.extend({
     'attributes': {},
     'initElement': function (el) {

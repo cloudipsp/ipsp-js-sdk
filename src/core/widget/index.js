@@ -1,6 +1,7 @@
 var Api = require('../api');
-
-
+/**
+ * @type {ClassObject}
+ */
 var Widget = Api.extend({
     'init': function (params) {
         this.initParams(params);

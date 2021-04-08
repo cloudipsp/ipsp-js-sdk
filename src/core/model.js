@@ -1,5 +1,7 @@
 var Module = require('./module');
-
+/**
+ * @type {ClassObject}
+ */
 var Model = Module.extend({
     'init': function (data) {
         this.data = data || {};
