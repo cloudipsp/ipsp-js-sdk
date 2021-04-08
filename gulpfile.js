@@ -18,7 +18,7 @@ gulp.task('views',function(){
 
 
 gulp.task('build', function(){
-    return browserify(['src/build.js'],{
+    return browserify(['src/checkout.js'],{
         standalone: '$checkout'
     }).bundle()
       .pipe(source('checkout.js'))
@@ -39,7 +39,7 @@ gulp.task('clean', function(done) {
 
 gulp.task('watcher', function(){
     gulp.watch([
-        'src/build.js',
+        'src/checkout.js',
         'src/core/**/*.js',
         'src/html/*.ejs'
     ],gulp.series(['views','build']));
