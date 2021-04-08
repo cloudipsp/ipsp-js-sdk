@@ -17,10 +17,8 @@
   },
   "scripts": {
     "build": "npm install && ./node_modules/gulp/bin/gulp.js",
-    "test": "",
     "prepublishOnly": "npm install && ./node_modules/gulp/bin/gulp.js",
     "start": "./node_modules/gulp/bin/gulp.js watcher",
-    "preversion": "npm test",
     "version": "npm run build",
     "postversion": "git push && git push --tags"
   },
@@ -41,6 +39,9 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.0",
     "gulp-wrap": "^0.15.0",
+    "node-qunit-phantomjs": "^2.1.1",
+    "qunit": "^2.14.1",
+    "qunit-dom": "^1.6.0",
     "sourceify": "^1.0.0",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
