@@ -1,4 +1,4 @@
-var Views = require('../views');
+var Views = require('./views');
 var Utils = require('./utils');
 
 var settings = {

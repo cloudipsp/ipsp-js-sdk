@@ -7,8 +7,11 @@ var wrap     = require('gulp-wrap');
 var htmlToJs = require('gulp-html-to-js');
 var sourcemaps = require('gulp-sourcemaps');
 var browserify = require('browserify');
+var stringify = require('stringify');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
+
+
 
 gulp.task('views',function(){
     return gulp.src('src/html/**/*')
@@ -19,7 +22,17 @@ gulp.task('views',function(){
 
 gulp.task('build', function(){
     return browserify(['src/checkout.js'],{
-        standalone: '$checkout'
+        standalone: '$checkout',
+        transform: stringify({
+            extensions: ['.ejs'],
+            minify: true,
+            minifier: {
+                extensions: ['.ejs'],
+                options: {
+                    collapseWhitespace: true
+                }
+            }
+        })
     }).bundle()
       .pipe(source('checkout.js'))
       .pipe(buffer())
@@ -42,7 +55,7 @@ gulp.task('watcher', function(){
         'src/checkout.js',
         'src/core/**/*.js',
         'src/html/*.ejs'
-    ],gulp.series(['views','build']));
+    ],gulp.series(['build']));
 });
 
-gulp.task('default',gulp.series(['clean','views','build']));
+gulp.task('default',gulp.series(['clean','build']));

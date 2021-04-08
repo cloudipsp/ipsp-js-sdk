@@ -20,7 +20,6 @@
     "prepublishOnly": "npm install && ./node_modules/gulp/bin/gulp.js",
     "start": "./node_modules/gulp/bin/gulp.js watcher",
     "version": "npm run build",
-    "postinstall": "./node_modules/gulp/bin/gulp.js",
     "postversion": "git push && git push --tags"
   },
   "files": [
@@ -45,5 +44,8 @@
     "stringify": "^5.2.0",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
+  },
+  "dependencies": {
+    "ejs": "^3.1.6"
   }
 }
