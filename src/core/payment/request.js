@@ -1,7 +1,6 @@
 var Deferred  = require('../deferred');
 var Module  = require('../module');
 var Api     = require('../api');
-
 var METHODS = [
     ['google',{
         supportedMethods: ['https://google.com/pay'],
@@ -22,7 +21,9 @@ var METHODS = [
     ['apple',{'supportedMethods': ['https://apple.com/apple-pay']}],
     ['card',{'supportedMethods': ['basic-card']}]
 ];
-
+/**
+ * @type {ClassObject}
+ */
 var Request = Module.extend({
     'config': {
         payment_system: '',

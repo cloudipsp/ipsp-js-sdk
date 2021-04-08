@@ -24,7 +24,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "index.d.ts"
   ],
   "devDependencies": {
     "browserify": "^16.2.2",
