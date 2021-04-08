@@ -1,6 +1,4 @@
-type ClassInstance = {}
-
 type ClassObject = {
-    new(params?: Object, ...otherProps): ClassInstance
+    new(params?: Object, ...otherProps): ClassObject
     extend(instance?: Object): ClassObject
 }
