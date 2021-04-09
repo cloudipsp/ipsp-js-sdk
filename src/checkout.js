@@ -22,7 +22,7 @@ var addModule = function (name, module) {
     modules[name] = module;
 };
 
-var Component = function(name, params){
+function Component(name, params){
     if (instance[name]) return instance[name];
     return (instance[name] = newModule(name, params));
 }
@@ -44,3 +44,9 @@ Component.add('FormWidget', FormWidget);
 Component.add('ButtonWidget', ButtonWidget);
 
 module.exports = Component;
+module.exports['Api'] = Api;
+module.exports['Connector'] = Connector;
+module.exports['PaymentContainer'] = PaymentContainer;
+module.exports['PaymentButton'] = PaymentButton;
+module.exports['FormWidget'] = FormWidget;
+module.exports['ButtonWidget'] = ButtonWidget;

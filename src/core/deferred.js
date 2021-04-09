@@ -1,32 +1,37 @@
 var Utils = require('./utils');
+
+var PENDING = 0;
+var RESOLVED = 1;
+var REJECTED = 2;
+
 function isArray(value) {
     return Utils.isArray(value);
 }
+
 function isFunction(value) {
     return Utils.isFunction(value);
 }
-function forEach(list, callback,context) {
-    var i=0;
-    if( list ){
+
+function forEach(list, callback, context) {
+    var i = 0;
+    if (list) {
         if (isArray(list)) {
-            for (;i<list.length;i++){
-                callback.call(context,list[i]);
+            for (; i < list.length; i++) {
+                callback.call(context, list[i]);
             }
-        } else{
-            callback.call(context,list);
+        } else {
+            callback.call(context, list);
         }
     }
 }
+
 /**
  * @name Deferred
  * @param fn
  * @return {Deferred}
  */
 function Deferred(fn) {
-    var PENDING  = 0;
-    var RESOLVED = 1;
-    var REJECTED = 2;
-    var status = 'pending';
+    var status = PENDING;
     var doneFuncs = [];
     var failFuncs = [];
     var progressFuncs = [];
@@ -40,12 +45,12 @@ function Deferred(fn) {
                 if (!arguments[i]) {
                     continue;
                 }
-                forEach(arguments[i],function(callback){
-                    if (status === 'resolved') {
+                forEach(arguments[i], function (callback) {
+                    if (status === RESOLVED) {
                         callback.apply(this, resultArgs);
                     }
                     doneFuncs.push(callback);
-                },this);
+                }, this);
             }
             return this;
         },
@@ -54,12 +59,12 @@ function Deferred(fn) {
                 if (!arguments[i]) {
                     continue;
                 }
-                forEach(arguments[i],function(callback){
-                    if (status === 'rejected') {
-                        callback.apply(this,resultArgs);
+                forEach(arguments[i], function (callback) {
+                    if (status === REJECTED) {
+                        callback.apply(this, resultArgs);
                     }
                     failFuncs.push(callback);
-                },this);
+                }, this);
             }
             return this;
         },
@@ -71,11 +76,11 @@ function Deferred(fn) {
                 if (!arguments[i]) {
                     continue;
                 }
-                forEach(arguments[i],function(callback){
-                    if (status === 'pending') {
+                forEach(arguments[i], function (callback) {
+                    if (status === PENDING) {
                         progressFuncs.push(callback);
                     }
-                },this);
+                }, this);
             }
             return this;
         },
@@ -97,7 +102,7 @@ function Deferred(fn) {
                 return promise;
             }
             for (prop in promise) {
-                if(promise.hasOwnProperty(prop)){
+                if (promise.hasOwnProperty(prop)) {
                     object[prop] = promise[prop];
                 }
             }
@@ -106,14 +111,14 @@ function Deferred(fn) {
         state: function () {
             return status;
         },
-        isPending: function(){
-            return status === 'pending';
+        isPending: function () {
+            return status === PENDING;
         },
         isRejected: function () {
-            return status === 'rejected';
+            return status === REJECTED;
         },
         isResolved: function () {
-            return status === 'resolved';
+            return status === RESOLVED;
         }
     };
     /**
@@ -121,8 +126,8 @@ function Deferred(fn) {
      */
     var deferred = {
         resolveWith: function (context) {
-            if (status === 'pending') {
-                status = 'resolved';
+            if (status === PENDING) {
+                status = RESOLVED;
                 var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
                 for (var i = 0; i < doneFuncs.length; i++) {
                     doneFuncs[i].apply(context, args);
@@ -131,8 +136,8 @@ function Deferred(fn) {
             return this;
         },
         rejectWith: function (context) {
-            if (status === 'pending') {
-                status = 'rejected';
+            if (status === PENDING) {
+                status = REJECTED;
                 var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
                 for (var i = 0; i < failFuncs.length; i++) {
                     failFuncs[i].apply(context, args);
@@ -141,7 +146,7 @@ function Deferred(fn) {
             return this;
         },
         notifyWith: function (context) {
-            if (status === 'pending') {
+            if (status === PENDING) {
                 var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
                 for (var i = 0; i < progressFuncs.length; i++) {
                     progressFuncs[i].apply(context, args);

@@ -48,4 +48,4 @@ gulp.task('watcher', function(){
     ],gulp.series(['build']));
 });
 
-gulp.task('default',gulp.series(['clean','view','build']));
+gulp.task('default',gulp.series(['clean','views','build']));
