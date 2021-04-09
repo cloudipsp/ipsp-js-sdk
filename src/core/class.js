@@ -56,13 +56,13 @@ function assign(target,instance){
     return proto;
 }
 
-ClassObject.extend = function(instance){
+ClassObject.extend = function extend(instance){
     function Class(){
         if (!init && this.init) this.init.apply(this, arguments);
     }
     Class.prototype = assign(this,instance);
     Class.prototype.constructor = Class;
-    Class.extend = arguments.callee;
+    Class.extend = extend;
     return Class;
 }
 
