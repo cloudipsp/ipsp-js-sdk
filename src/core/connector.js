@@ -31,7 +31,7 @@ var Connector = Module.extend({
             response = JSON.parse(ev.data);
         } catch (e) {
         }
-        if (response.action && response.data) {
+        if (response && response.action && response.data) {
             this.trigger(response.action, response.data);
         }
     },
