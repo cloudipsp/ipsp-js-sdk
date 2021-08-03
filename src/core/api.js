@@ -33,11 +33,11 @@ var Api = Module.extend({
         return [this.params.origin, this.params.endpoint[type] || '/', url || ''].join('');
     },
     'extendParams': function(params){
-        this.params = this.utils.extend({},this.defaults,this.params, params);
+        this.utils.extend(this.params, params);
         return this;
     },
     'initParams': function (params) {
-        this.params = {};
+        this.params = this.utils.extend({},this.defaults);
         this.extendParams(params);
         this.setOrigin(this.params.origin);
         this.loaded = false;
