@@ -23,6 +23,7 @@ var METHODS = [
 ];
 /**
  * @type {ClassObject}
+ * @extends {Module}
  */
 var Request = Module.extend({
     'config': {
@@ -52,7 +53,9 @@ var Request = Module.extend({
             var request,method,config;
             var callback = arguments.callee;
             var item     = list[index] || false;
-            if( item === false ) return item;
+            if( item === false ) {
+                return item;
+            }
             index  = (index || 0 ) + 1;
             method = item[0];
             config = item[1];

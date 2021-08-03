@@ -1,6 +1,7 @@
 var Module = require('./module');
 /**
  * @type {ClassObject}
+ * @extends {Module}
  */
 var Model = Module.extend({
     'init': function (data) {
@@ -10,16 +11,52 @@ var Model = Module.extend({
     'create': function () {
 
     },
-    'each': function () {
-        var args = arguments;
+    'eachProps': function(args){
         var name = args[1] ? args[0] : null;
         var callback = args[1] ? args[1] : args[0];
-        var prop, value = name ? this.alt(name, []) : this.data;
-        for (prop in value) {
-            if (value.hasOwnProperty(prop)) {
-                callback(this.instance(value[prop]), value[prop], prop);
+        var list = name ? this.alt(name, []) : this.data;
+        return {
+            list: list,
+            callback: callback
+        }
+    },
+    'each': function () {
+        var prop;
+        var props = this.eachProps(arguments);
+        for (prop in props.list) {
+            if (props.list.hasOwnProperty(prop)) {
+                props.callback(this.instance(props.list[prop]), props.list[prop], prop)
             }
         }
+    },
+    'filter': function(){
+        var item,prop;
+        var props = this.eachProps(arguments);
+        for (prop in props.list) {
+            if (props.list.hasOwnProperty(prop)) {
+                item   = this.instance(props.list[prop]);
+                if( props.callback(item, props.list[prop], prop) ){
+                    return props.list[prop];
+                }
+            }
+        }
+    },
+    /**
+     *
+     * @return {boolean|Model}
+     */
+    'find': function(){
+        var item,prop;
+        var props = this.eachProps(arguments);
+        for (prop in props.list) {
+            if (props.list.hasOwnProperty(prop)) {
+                item   = this.instance(props.list[prop]);
+                if( props.callback(item, props.list[prop], prop) ){
+                    return item;
+                }
+            }
+        }
+        return false;
     },
     'alt': function (prop, defaults) {
         prop = this.attr(prop);

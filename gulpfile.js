@@ -45,7 +45,8 @@ gulp.task('watcher', function(){
         'src/checkout.js',
         'src/core/**/*.js',
         'src/html/*.ejs'
-    ],gulp.series(['build']));
+    ],gulp.series(['views','build']));
 });
+
 
 gulp.task('default',gulp.series(['clean','views','build']));

@@ -27,7 +27,7 @@ function forEach(list, callback, context) {
 
 /**
  * @name Deferred
- * @param fn
+ * @param [fn]
  * @return {Deferred}
  */
 function Deferred(fn) {
@@ -154,6 +154,10 @@ function Deferred(fn) {
             }
             return this;
         },
+        resetState: function(){
+            status = PENDING;
+            return this;
+        },
         resolve: function () {
             return this.resolveWith(this, arguments);
         },
@@ -170,5 +174,6 @@ function Deferred(fn) {
     }
     return obj;
 }
+
 
 module.exports = Deferred;

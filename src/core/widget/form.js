@@ -59,6 +59,7 @@ var FormData = Module.extend({
 });
 /**
  * @type {ClassObject}
+ * @extends {Widget}
  */
 var Form = Widget.extend({
     'initElement': function (el) {

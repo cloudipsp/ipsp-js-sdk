@@ -1,7 +1,12 @@
 var Model = require('./model');
 /**
  * @type {ClassObject}
+ * @extends {Model}
  */
+
+var ProxyUrl = 'http://secure-redirect.cloudipsp.com/submit/';
+
+
 var Response = Model.extend({
     'stringFormat': function (string) {
         var that = this;
@@ -20,7 +25,18 @@ var Response = Model.extend({
     'getUID': function () {
         return this.uid;
     },
+    'formDataProxy': function(url, data, target, method){
+        location.assign([ProxyUrl, JSON.stringify({
+            url: url,
+            params: data,
+            target: target,
+            method: method
+        })].join('#'));
+    },
     'formDataSubmit': function (url, data, target, method) {
+        if( url.match(/^http:/) ){
+            return this.formDataProxy(url,data,target,method);
+        }
         var action = this.stringFormat(url);
         var form = this.prepareForm(action, data, target, method);
         var body = this.utils.querySelector('body');
@@ -103,6 +119,7 @@ var Response = Model.extend({
             this.connector.trigger('modal', this.prepare3dsData());
         }
     }
+
 });
 
 module.exports = Response;

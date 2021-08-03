@@ -3,6 +3,7 @@ var Api       = require('../api');
 var Connector = require('../connector');
 var Request   = require('./request');
 var Model     = require('./model');
+var Deferred = require('../deferred');
 
 var CSS_CONTAINER = {
     'border': '0 !important',
@@ -29,7 +30,7 @@ var CSS_FRAME = {
     'opacity': '0 !important',
     'overflow': 'hidden !important',
     'height': '100% !important',
-    'outline': 'none !important',
+    'outline': 'none !important'
 };
 
 var ATTR_FRAME = {
@@ -38,7 +39,10 @@ var ATTR_FRAME = {
     'allowtransparency': true,
     'allowpaymentrequest': true
 };
-
+/**
+ * @type {ClassObject}
+ * @extends {Module}
+ */
 var Button = Module.extend({
     'defaults': {
         origin: 'https://api.fondy.eu',
@@ -57,10 +61,14 @@ var Button = Module.extend({
         this.initParams(params);
         this.initElement();
         this.initApi();
+        this.initFrame();
         this.initPaymentRequest();
     },
     'initParams': function (params) {
         this.params = this.utils.extend({},this.defaults, params);
+        if( this.utils.isPlainObject(this.params.response) ){
+            this.params.response = new Model(this.params.response);
+        }
     },
     'initApi': function () {
         if(this.params.api instanceof Api){
@@ -90,11 +98,11 @@ var Button = Module.extend({
         this.payment.on('complete', this.proxy('onToken'));
         this.payment.on('error', this.proxy('onError'));
         this.payment.on('log', this.proxy('onLog'));
-        this.payment.on('supported', this.proxy('initFrame'));
+        this.payment.on('supported', this.proxy('onSupported'));
         this.payment.on('reload', this.proxy('onReload'));
     },
-    'initFrame': function (cx, method) {
-        this.method = method;
+    'initFrame': function () {
+        this.frameLoaded = Deferred();
         this.frame = this.utils.createElement('iframe');
         this.addCss(this.frame, CSS_FRAME);
         this.addAttr(this.frame, ATTR_FRAME);
@@ -103,6 +111,20 @@ var Button = Module.extend({
         });
         this.container.appendChild(this.frame);
         this.initConnector();
+        this.addEvent(this.frame, 'load', function () {
+            this.frameLoaded.resetState().resolve();
+        });
+    },
+    'onSupported': function(cx, method){
+        this.method = method;
+        this.frameLoaded.done(this.proxy(function(){
+            if( this.params.response instanceof Model ){
+                this.sendOptions(null,this.params);
+                this.sendConfig(null, this.params.response);
+            } else {
+                this.update({});
+            }
+        }));
     },
     'initConnector': function () {
         this.connector = new Connector({target: this.frame.contentWindow});
@@ -115,9 +137,6 @@ var Button = Module.extend({
         this.connector.on('complete', this.proxy('onToken'));
         this.connector.on('error', this.proxy('onError'));
         this.connector.on('reload', this.proxy('onReload'));
-        this.addEvent(this.frame, 'load', function () {
-            this.update({});
-        });
     },
     'getConfigParams': function (data) {
         var params = {method: this.method, data: {}, style: {}};
@@ -129,16 +148,19 @@ var Button = Module.extend({
         return params;
     },
     'update': function (params) {
-        this.utils.extend(this.params,this.getConfigParams(params));
-        this.connector.send('options',this.params);
+        this.sendOptions(null,params);
         this.api.scope(this.proxy(function () {
             this.api.request('api.checkout.pay','get',this.params.data)
-                .done(this.proxy(function (cx,model){
-                    this.connector.send('config',model.data);
-                })).fail(this.proxy(function (cx, model) {
-                this.connector.send('config', model.data);
-            }));
+                .done(this.proxy('sendConfig')).fail(this.proxy('sendConfig'));
         }));
+    },
+    'sendOptions': function(cx,params){
+        this.utils.extend(this.params,this.getConfigParams(params));
+        this.connector.send('options',this.params);
+    },
+    'sendConfig': function(cx,model){
+        model.supportedMethod(this.method);
+        this.connector.send('config', model.data);
     },
     'callback': function (model) {
         var params = this.utils.extend({}, this.params.data, model.serialize());
@@ -189,6 +211,7 @@ var Button = Module.extend({
         this.trigger('error', data);
     },
     'onReload': function(c,data){
+        console.log('onReload');
         this.trigger('reload', data);
     },
     'onShow': function () {

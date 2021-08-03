@@ -1,3 +1,7 @@
+/**
+ * @var $checkout = require('./dist/checkout')
+ */
+
 QUnit.module('checkout',{
     before:function(){
         this.checkout = $checkout('Api');

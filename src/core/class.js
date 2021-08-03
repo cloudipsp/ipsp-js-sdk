@@ -58,7 +58,7 @@ function assign(target,instance){
 
 ClassObject.extend = function extend(instance){
     function Class(){
-        if (!init && this.init) this.init.apply(this, arguments);
+        if (!init && this['init']) this['init'].apply(this, arguments);
     }
     Class.prototype = assign(this,instance);
     Class.prototype.constructor = Class;

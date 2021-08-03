@@ -77,6 +77,7 @@ var template = function (text) {
 };
 /**
  * @type {ClassObject}
+ * @extends {Class}
  */
 var Template = Class.extend({
     'utils': Utils,

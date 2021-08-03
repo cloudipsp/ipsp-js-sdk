@@ -3,6 +3,7 @@ var Connector  = require('../connector');
 var Request    = require('./request');
 /**
  * @type {ClassObject}
+ * @extends {Module}
  */
 var Container = Module.extend({
     'defaults': {

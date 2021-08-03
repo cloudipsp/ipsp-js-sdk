@@ -2,12 +2,14 @@ var Module = require('./module');
 var Connector = require('./connector');
 var Template  = require('./template');
 /**
- * @type ClassObject
+ * @type {ClassObject}
+ * @extends {Module}
  */
 var Modal = Module.extend({
-    'init': function (params) {
-        this.checkout = params.checkout;
-        this.data = params.data;
+    'init': function (data) {
+        this.checkout = data.checkout;
+        this.model    = data.model || {};
+        this.messages = data.checkout.params.messages || {};
         this.template = new Template('3ds.ejs');
         this.body = this.utils.querySelector('body');
         this.initModal();
@@ -16,14 +18,17 @@ var Modal = Module.extend({
     'initModal': function () {
         this.name = ['modal-iframe', this.getRandomNumber()].join('-');
         this.modal = this.utils.createElement('div');
-        this.modal.innerHTML = this.template.render(this.data);
+        this.modal.innerHTML = this.template.render({
+            model: this.model,
+            messages: this.messages
+        });
         this.iframe = this.find('.ipsp-modal-iframe');
         this.addAttr(this.iframe, {name: this.name, id: this.name});
-        if (this.data['send_data']) {
-            this.form = this.prepareForm(this.data.url, this.data['send_data'], this.name);
+        if (this.model['send_data']) {
+            this.form = this.prepareForm(this.model['url'], this.model['send_data'], this.name);
             this.modal.appendChild(this.form);
         } else {
-            this.iframe.src = this.data.url;
+            this.iframe.src = this.model['url'];
         }
         this.addEvent(this.find('.ipsp-modal-close'), 'click', 'closeModal');
         this.addEvent(this.find('.ipsp-modal-title a'), 'click', 'submitForm');

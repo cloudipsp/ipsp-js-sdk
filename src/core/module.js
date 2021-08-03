@@ -3,6 +3,7 @@ var Event = require('./event');
 var Utils = require('./utils');
 /**
  * @type {ClassObject}
+ * @extends {Class}
  */
 var Module =  Class.extend({
     'utils': Utils,

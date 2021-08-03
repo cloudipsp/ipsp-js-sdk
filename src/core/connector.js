@@ -1,6 +1,7 @@
 var Module = require('./module');
 /**
  * @type {ClassObject}
+ * @extends {Module}
  */
 var Connector = Module.extend({
     'ns': 'crossDomain',
@@ -36,6 +37,10 @@ var Connector = Module.extend({
         }
     },
     'send': function (action, data) {
+        if(!this.target){
+            console.log(this.target,action,data);
+            return;
+        }
         this.target.postMessage(JSON.stringify({
             action: action,
             data: data

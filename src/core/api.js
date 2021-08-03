@@ -3,7 +3,6 @@ var Module    = require('./module');
 var Connector = require('./connector');
 var Modal     = require('./modal');
 var Response  = require('./response');
-
 var CSS_FRAME = {
     'width': '1px !important',
     'height': '1px !important',
@@ -14,12 +13,17 @@ var CSS_FRAME = {
 };
 /**
  * @type {ClassObject}
+ * @extends {Module}
  */
 var Api = Module.extend({
     'defaults': {
         'origin': 'https://api.fondy.eu',
         'endpoint': {
             'gateway': '/checkout/v2/index.html'
+        },
+        'messages':{
+            'modalHeader':'Now you will be redirected to your bank 3DSecure. If you are not redirected please refer',
+            'modalLinkLabel':'link'
         }
     },
     'init': function (params) {
@@ -28,8 +32,13 @@ var Api = Module.extend({
     'url': function (type, url) {
         return [this.params.origin, this.params.endpoint[type] || '/', url || ''].join('');
     },
+    'extendParams': function(params){
+        this.params = this.utils.extend({},this.defaults,this.params, params);
+        return this;
+    },
     'initParams': function (params) {
-        this.params = this.utils.extend({}, this.defaults, params);
+        this.params = {};
+        this.extendParams(params);
         this.setOrigin(this.params.origin);
         this.loaded = false;
         this.created = false;
@@ -102,8 +111,11 @@ var Api = Module.extend({
         }
         return this;
     },
-    '_onOpenModal': function (xhr, data) {
-        this.modal = new Modal({checkout: this, data: data});
+    '_onOpenModal': function (xhr, model) {
+        this.modal = new Modal({
+            checkout: this,
+            model: model
+        });
         this.modal.on('close', this.proxy('_onCloseModal'));
     },
     '_onCloseModal': function (modal, data) {
