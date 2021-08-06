@@ -122,8 +122,10 @@ var Response = Model.extend({
     'supportedMethod': function(method){
         var item = this.find('methods',function(item){
             return item.alt('supportedMethods','').match(method)
-        }).serialize();
-        this.attr('methods',[item])
+        });
+        if( item ){
+            this.attr('methods',[item.serialize()])
+        }
     }
 });
 
