@@ -118,8 +118,13 @@ var Response = Model.extend({
         if (this.attr('submit3ds.checkout_data')) {
             this.connector.trigger('modal', this.prepare3dsData());
         }
+    },
+    'supportedMethod': function(method){
+        var item = this.find('methods',function(item){
+            return item.alt('supportedMethods','').match(method)
+        }).serialize();
+        this.attr('methods',[item])
     }
-
 });
 
 module.exports = Response;

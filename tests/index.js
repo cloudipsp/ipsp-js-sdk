@@ -11,10 +11,11 @@ QUnit.module('checkout',{
         this.params   = {
             merchant_id:'1396424',
             currency:'UAH',
-            amount:'200'
+            amount:0
         };
     }
 });
+
 
 QUnit.test('api.checkout.form.request:card', function( assert ) {
     var params = {};
