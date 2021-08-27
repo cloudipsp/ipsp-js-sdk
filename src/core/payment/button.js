@@ -65,6 +65,7 @@ var Button = Module.extend({
         this.initPaymentRequest();
     },
     'initParams': function (params) {
+        this.supported = false;
         this.params = this.utils.extend({},this.defaults, params);
         if( this.utils.isPlainObject(this.params.response) ){
             this.params.response = new Model(this.params.response);
@@ -116,6 +117,7 @@ var Button = Module.extend({
         });
     },
     'onSupported': function(cx, method){
+        this.supported = true;
         this.method = method;
         this.frameLoaded.done(this.proxy(function(){
             if( this.params.response instanceof Model ){
@@ -147,6 +149,12 @@ var Button = Module.extend({
         }
         return params;
     },
+    'send': function(action,data){
+        if( this.supported === true ){
+            this.connector.send(action,data);
+        }
+        return this;
+    },
     'update': function (params) {
         this.sendOptions(null,params);
         this.api.scope(this.proxy(function () {
@@ -156,11 +164,11 @@ var Button = Module.extend({
     },
     'sendOptions': function(cx,params){
         this.utils.extend(this.params,this.getConfigParams(params));
-        this.connector.send('options',this.params);
+        this.send('options',this.params);
     },
     'sendConfig': function(cx,model){
         model.supportedMethod(this.method);
-        this.connector.send('config', model.data);
+        this.send('config',model.data);
     },
     'callback': function (model) {
         var params = this.utils.extend({}, this.params.data, model.serialize());
@@ -189,10 +197,10 @@ var Button = Module.extend({
     'click': function(){
         if( this.validateCallback ){
             this.validateCallback(function(){
-                this.connector.send('click', {});
+                this.send('click',{});
             });
         } else {
-            this.connector.send('click', {});
+            this.send('click',{});
         }
     },
     'cssUnit': function (value, unit) {
@@ -211,7 +219,6 @@ var Button = Module.extend({
         this.trigger('error', data);
     },
     'onReload': function(c,data){
-        console.log('onReload');
         this.trigger('reload', data);
     },
     'onShow': function () {
