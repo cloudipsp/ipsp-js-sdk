@@ -33,7 +33,7 @@ var Request = Module.extend({
         options: {}
     },
     'init': function (params) {
-        this.params = params;
+        this.params = params || {};
     },
     'setConfig': function (config) {
         this.config = config;

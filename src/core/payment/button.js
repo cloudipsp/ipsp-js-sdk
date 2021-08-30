@@ -92,7 +92,7 @@ var Button = Module.extend({
         this.element.appendChild(this.container);
     },
     'initPaymentRequest': function () {
-        this.payment = new Request();
+        this.payment = new Request({});
         this.payment.getSupportedMethod();
         this.payment.setApi(this.api);
         this.payment.setMerchant(this.params.data.merchant_id);
