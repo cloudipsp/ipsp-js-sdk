@@ -89,6 +89,9 @@ var Modal = Module.extend({
     'submitForm': function (el, ev) {
         ev.preventDefault();
         this.trigger('submit', this.data);
+        this.addAttr(this.form,{
+            target: '_blank'
+        });
         this.form.submit();
     },
     'removeModal': function () {
