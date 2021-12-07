@@ -2,8 +2,8 @@ var Deferred = require('../deferred');
 var Module = require('../module');
 var config = require('../config');
 
-
 var GooglePay = Module.extend({
+    'id':'google-payments-api',
     'init': function () {
         this.client  = null;
         this.wrapper = this.utils.querySelector('head');
@@ -13,14 +13,18 @@ var GooglePay = Module.extend({
         if( this.utils.getPath('google.payments.api.PaymentsClient') ) {
             return this.defer.resolveWith(this);
         }
+        if( this.utils.querySelector('#'.concat(this.id)) ){
+            return this.defer;
+        }
         this.script = this.utils.createElement('script');
         this.addAttr(this.script,{
+            id: this.id ,
             async:true,
             src:config.GooglePayApi
         });
+        this.utils.isElement(this.wrapper) && this.wrapper.appendChild(this.script);
         this.addEvent(this.script,'load', 'onLoadSuccess');
         this.addEvent(this.script,'error', 'onLoadError');
-        this.utils.isElement(this.wrapper) && this.wrapper.appendChild(this.script);
         return this.defer;
     },
     'show': function(methods){
