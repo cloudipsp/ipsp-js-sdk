@@ -9,10 +9,13 @@ Download and installation, API methods description, frequently asked questions ,
 ## Initialize Api Component
 
 ### Singleton usage
+
 ```javascript
 var checkout = $checkout('Api');
 ```
+
 Use **$checkout('Api')** instance in inside nested scope
+
 ```javascript
 var result = (function(instance){
     return $checkout('Api') === instance; // ==> their instances are equal

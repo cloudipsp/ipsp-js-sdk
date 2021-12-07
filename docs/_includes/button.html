@@ -1,0 +1,78 @@
+<script src="https://unpkg.com/ipsp-js-sdk"></script>
+<style>.block{margin-bottom:1rem;}.highlight{margin:0 0 1rem 0;}</style>
+<script>
+    var breaker = /[^\[\]]+|\[\]$/g;
+    var setProp = function (data, name, value) {
+        var i, last = name.pop(), len = name.length;
+        for (i = 0; i < len; i++) {
+            if (!data[name[i]]) {
+                data[name[i]] = len === i + 1 && last === '[]' ? [] : {};
+            }
+            data = data[name[i]];
+        }
+        if (last === '[]') {
+            data.push(value);
+        } else {
+            data[last] = value;
+        }
+    };
+    var queryString = (function (search) {
+        var query = {};
+        search.split('&').filter(function (item) {
+            return item;
+        }).map(function (item) {
+            return item.split('=');
+        }).forEach(function (item) {
+            setProp(query, item[0].match(breaker), item[1])
+        })
+        return query;
+    })(window.location.search.slice(1));
+</script>
+
+<script>
+
+    var $domain = queryString.domain || 'api.fondy.eu';
+
+    var $origin = 'https://'.concat($domain);
+
+    var $api = $checkout.get('Api', {
+        origin: $origin
+    });
+
+    function renderButton(name) {
+        var options;
+        var selector = ['[data-type="', name, '"]'].join('');
+        var element = document.querySelector(selector);
+        if (element === null) return;
+        options = element.getAttribute('data-params');
+        options = JSON.parse(options);
+        $checkout.get('PaymentButton', {
+            api: $api,
+            origin: $origin,
+            element: selector,
+            style: options.style || {},
+            data: {
+                merchant_id: queryString.merchant || 1396424,
+                currency: queryString.currency || 'USD',
+                amount: queryString.amount || 100
+            }
+        }).on('success', function (model) {
+            console.log('success', model);
+        }).on('error', function (model) {
+            console.log('error', model);
+        });
+    }
+
+</script>
+
+{% assign examples = site.data.buttons %}
+{% for item in examples %}
+{% assign name = item[0] %}
+{% assign options = item[1] %}
+<div class="block">
+    <h2>{{ options.name }}</h2>
+    {% highlight json %}{{ options.style | jsonify }}{% endhighlight %}
+    <div data-type="{{ name }}" data-params="{{ options | jsonify | escape }}"></div>
+    <script>renderButton("{{ name }}")</script>
+</div>
+{% endfor %}

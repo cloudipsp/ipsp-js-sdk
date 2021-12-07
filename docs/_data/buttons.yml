@@ -1,0 +1,86 @@
+defaults:
+  name: Black Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: default
+
+white:
+  name: White Button
+  summary:
+  style:
+    type: long
+    color: white
+    height: 46
+    mode: default
+
+buy:
+  name: Buy Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: buy
+
+book:
+  name: Book Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: book
+
+checkout:
+  name: Checkout Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: checkout
+
+donate:
+  name: Donate Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: donate
+
+order:
+  name: Order Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: order
+
+pay:
+  name: Pay Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: pay
+
+subscribe:
+  name: Subscribe Button
+  summary:
+  style:
+    type: long
+    color: black
+    height: 46
+    mode: subscribe
+
+
+
+
+
+

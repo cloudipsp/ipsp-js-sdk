@@ -12,9 +12,6 @@ exclude:
   - Gemfil.lock
   - gulpfile.js
 
-environment: production
-markdown_ext: markdown,md,liquid
-
 
 baseurl: /ipsp-js-sdk
 
