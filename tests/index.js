@@ -16,7 +16,6 @@ QUnit.module('checkout',{
     }
 });
 
-
 QUnit.test('api.checkout.form.request:card', function( assert ) {
     var params = {};
     var done   = assert.async();
