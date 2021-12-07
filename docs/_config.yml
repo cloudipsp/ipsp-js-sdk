@@ -3,6 +3,19 @@ remote_theme: kosatyi/sjt
 navigation: true
 projects: true
 
+exclude:
+  - .idea
+  - node_modules
+  - package.json
+  - package-lock.json
+  - Gemfile
+  - Gemfil.lock
+  - gulpfile.js
+
+environment: production
+markdown_ext: markdown,md,liquid
+
+
 baseurl: /ipsp-js-sdk
 
 brand: IPSP JS SDK
@@ -12,7 +25,7 @@ logo: fondy.svg
 
 author:
   name: Fondy Developer Team
-  url: https://fondy.eu/
+  url: https://fondy.io/
 
 toolbar:
   -
