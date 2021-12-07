@@ -7,77 +7,77 @@ defaults:
     height: 46
     mode: default
 
-white:
-  title: White Button
-  summary:
-  style:
-    type: long
-    color: white
-    height: 46
-    mode: default
-
-buy:
-  title: Buy Button
-  summary:
-  style:
-    type: long
-    color: black
-    height: 46
-    mode: buy
-
-book:
-  title: Book Button
-  summary:
-  style:
-    type: long
-    color: black
-    height: 46
-    mode: book
-
-checkout:
-  title: Checkout Button
-  summary:
-  style:
-    type: long
-    color: black
-    height: 46
-    mode: checkout
-
-donate:
-  title: Donate Button
-  summary:
-  style:
-    type: long
-    color: black
-    height: 46
-    mode: donate
-
-order:
-  title: Order Button
-  summary:
-  style:
-    type: long
-    color: black
-    height: 46
-    mode: order
-
-pay:
-  title: Pay Button
-  summary:
-  style:
-    type: long
-    color: black
-    height: 46
-    mode: pay
-
-subscribe:
-  title: Subscribe Button
-  summary:
-  style:
-    type: long
-    color: black
-    height: 46
-    mode: subscribe
+#white:
+#  title: White Button
+#  summary:
+#  style:
+#    type: long
+#    color: white
+#    height: 46
+#    mode: default
+#
+#buy:
+#  title: Buy Button
+#  summary:
+#  style:
+#    type: long
+#    color: black
+#    height: 46
+#    mode: buy
+#
+#book:
+#  title: Book Button
+#  summary:
+#  style:
+#    type: long
+#    color: black
+#    height: 46
+#    mode: book
+#
+#checkout:
+#  title: Checkout Button
+#  summary:
+#  style:
+#    type: long
+#    color: black
+#    height: 46
+#    mode: checkout
+#
+#donate:
+#  title: Donate Button
+#  summary:
+#  style:
+#    type: long
+#    color: black
+#    height: 46
+#    mode: donate
+#
+#order:
+#  title: Order Button
+#  summary:
+#  style:
+#    type: long
+#    color: black
+#    height: 46
+#    mode: order
+#
+#pay:
+#  title: Pay Button
+#  summary:
+#  style:
+#    type: long
+#    color: black
+#    height: 46
+#    mode: pay
+#
+#subscribe:
+#  title: Subscribe Button
+#  summary:
+#  style:
+#    type: long
+#    color: black
+#    height: 46
+#    mode: subscribe
 
 
 
