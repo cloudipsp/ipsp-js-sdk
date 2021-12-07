@@ -12,6 +12,12 @@ exclude:
   - Gemfil.lock
   - gulpfile.js
 
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
+  - jekyll-paginate
+  - jekyll-redirect-from
 
 baseurl: /ipsp-js-sdk
 
