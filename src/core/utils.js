@@ -44,33 +44,36 @@ var Utils = {
     'querySelector': function (o, p) {
         return (p || document).querySelector(o);
     },
+    'hasProp': function(o,v){
+        return o && o.hasOwnProperty(v);
+    },
     'forEach': function (ob, cb, cx) {
         var p;
         for (p in ob)
-            if (ob.hasOwnProperty(p))
+            if (this.hasProp(ob,p))
                 cb.call(cx || null, ob[p], p);
     },
     'map': function (ob, cb, cx) {
         var p, t, r = [];
         for (p in ob)
-            if (ob.hasOwnProperty(p))
+            if (this.hasProp(ob,p))
                 if ((t = cb.call(cx || null, ob[p], p)) !== undefined)
                     r[p] = t;
         return r;
     },
-    'cleanObject': function (object) {
-        var prop;
-        for (prop in object) {
-            if (object.hasOwnProperty(prop)) {
-                if (object[prop].length === 0) {
-                    if (this.isArray(object)) object.splice(prop, 1);
-                    if (this.isPlainObject(object)) delete object[prop];
-                } else if (this.isPlainObject(object[prop])) {
-                    this.cleanObject(object[prop]);
+    'cleanObject': function (ob) {
+        var p;
+        for (p in ob) {
+            if (this.hasProp(ob,p)) {
+                if (ob[p].length === 0) {
+                    if (this.isArray(ob)) ob.splice(p, 1);
+                    if (this.isPlainObject(ob)) delete ob[p];
+                } else if (this.isPlainObject(ob[p])) {
+                    this.cleanObject(ob[p]);
                 }
             }
         }
-        return object;
+        return ob;
     },
     'param': function (data) {
         var s = [];
@@ -79,34 +82,30 @@ var Utils = {
             v = v === null ? '' : v === undefined ? '' : v;
             s[s.length] = encodeURIComponent(k) + '=' + encodeURIComponent(v);
         };
-        var build = function (prefix, obj) {
-            var i, len, key;
+        var ns = function(o,i){
+            return (typeof o === 'object' && o ? i : '' )
+        };
+        var build = function (prefix, ob) {
             if (prefix) {
-                if (Array.isArray(obj)) {
-                    for (i = 0, len = obj.length; i < len; i++) {
-                        build(
-                            prefix + '[' + (typeof obj[i] === 'object' && obj[i] ? i : '') + ']',
-                            obj[i]
-                        );
-                    }
-                } else if (String(obj) === '[object Object]') {
-                    for (key in obj) {
-                        if (obj.hasOwnProperty(key))
-                            build(prefix + '[' + key + ']', obj[key]);
-                    }
+                if (Utils.isArray(ob)) {
+                    Utils.forEach(ob,function(v,k){
+                        build(prefix+'['+ns(v,k)+']',v);
+                    })
+                } else if (Utils.isObject(ob)) {
+                    Utils.forEach(ob,function(v,k){
+                        build(prefix+'['+k+']',v);
+                    });
                 } else {
-                    add(prefix, obj);
+                    add(prefix,ob);
                 }
-            } else if (Array.isArray(obj)) {
-                for (i = 0, len = obj.length; i < len; i++) {
-                    add(obj[i].name, obj[i].value);
-                }
+            } else if (Utils.isArray(ob)) {
+                Utils.forEach(ob,function(v){
+                    add(v.name,v.value);
+                });
             } else {
-                for (key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        build(key, obj[key]);
-                    }
-                }
+                Utils.forEach(ob,function(v,k){
+                    build(k,v);
+                });
             }
             return s;
         };
@@ -137,6 +136,29 @@ var Utils = {
             }
         }, this);
         return obj;
+    },
+    'uuid': function(){
+        var a=0,b='';
+        while(a++<36){
+            if( a * 51 & 52 ){
+                b+= ( a ^ 15 ? 8 ^ Math.random() * ( a ^ 20 ? 16 : 4 ) : 4 ).toString(16);
+            } else {
+                b+= '-';
+            }
+        }
+        return b;
+    },
+    'getPath': function(path){
+        var props = path.split('.');
+        var first = props.shift();
+        var value = null;
+        if( this.hasProp(window,first) ) {
+            value = window[first];
+            this.forEach(props,function(name){
+                value = this.hasProp(value,name) ? value[name] : null;
+            },this)
+        }
+        return value;
     }
 };
 

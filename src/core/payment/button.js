@@ -1,9 +1,11 @@
 var Module    = require('../module');
 var Api       = require('../api');
 var Connector = require('../connector');
-var Request   = require('./request');
-var Model     = require('./model');
+var Response  = require('../response');
 var Deferred = require('../deferred');
+var Request   = require('./request');
+
+
 
 var CSS_CONTAINER = {
     'border': '0 !important',
@@ -52,6 +54,7 @@ var Button = Module.extend({
         },
         style: {
             height: 38,
+            mode: 'default',
             type: 'long',
             color: 'black'
         },
@@ -67,9 +70,6 @@ var Button = Module.extend({
     'initParams': function (params) {
         this.supported = false;
         this.params = this.utils.extend({},this.defaults, params);
-        if( this.utils.isPlainObject(this.params.response) ){
-            this.params.response = new Model(this.params.response);
-        }
     },
     'initApi': function () {
         if(this.params.api instanceof Api){
@@ -93,14 +93,15 @@ var Button = Module.extend({
     },
     'initPaymentRequest': function () {
         this.payment = new Request({});
-        this.payment.getSupportedMethod();
-        this.payment.setApi(this.api);
-        this.payment.setMerchant(this.params.data.merchant_id);
         this.payment.on('complete', this.proxy('onToken'));
         this.payment.on('error', this.proxy('onError'));
         this.payment.on('log', this.proxy('onLog'));
         this.payment.on('supported', this.proxy('onSupported'));
+        this.payment.on('fallback', this.proxy('onFallback'));
         this.payment.on('reload', this.proxy('onReload'));
+        this.payment.setApi(this.api);
+        this.payment.setMerchant(this.params.data.merchant_id);
+        this.payment.getSupportedMethod();
     },
     'initFrame': function () {
         this.frameLoaded = Deferred();
@@ -116,17 +117,19 @@ var Button = Module.extend({
             this.frameLoaded.resetState().resolve();
         });
     },
+    'onFrameLoaded': function(){
+        this.update({});
+    },
+    'onFallback': function(){
+        this.fallback = true;
+        this.payment.fallback(this.proxy(function() {
+            this.onSupported(null, 'google');
+        }));
+    },
     'onSupported': function(cx, method){
         this.supported = true;
         this.method = method;
-        this.frameLoaded.done(this.proxy(function(){
-            if( this.params.response instanceof Model ){
-                this.sendOptions(null,this.params);
-                this.sendConfig(null, this.params.response);
-            } else {
-                this.update({});
-            }
-        }));
+        this.frameLoaded.done(this.proxy('onFrameLoaded'));
     },
     'initConnector': function () {
         this.connector = new Connector({target: this.frame.contentWindow});
@@ -141,7 +144,7 @@ var Button = Module.extend({
         this.connector.on('reload', this.proxy('onReload'));
     },
     'getConfigParams': function (data) {
-        var params = {method: this.method, data: {}, style: {}};
+        var params = {method: this.method, data: {}, style: {} , fallback: this.fallback};
         this.utils.extend(params.data, this.params.data);
         this.utils.extend(params.style, this.params.style);
         if (this.utils.isPlainObject(data)) {
@@ -210,7 +213,7 @@ var Button = Module.extend({
         this.click();
     },
     'onToken': function (c, data) {
-        this.callback(new Model(data));
+        this.callback(new Response(data));
     },
     'onSuccess': function (c, data) {
         this.trigger('success', data);
