@@ -39,14 +39,10 @@ toolbar:
     link: /examples/
 
 
-#defaults:
-#  -
-#    scope:
-#      path: ""
-#      type: "pages"
-#    values:
-#      layout: default
-#      image:
-#        path:  /assets/img/cover.png
-#        height: 1200
-#        width: 630
+defaults:
+  -
+    scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: default
