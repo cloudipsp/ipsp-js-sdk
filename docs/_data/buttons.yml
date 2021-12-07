@@ -1,5 +1,5 @@
 defaults:
-  name: Black Button
+  title: Black Button
   summary:
   style:
     type: long
@@ -8,7 +8,7 @@ defaults:
     mode: default
 
 white:
-  name: White Button
+  title: White Button
   summary:
   style:
     type: long
@@ -17,7 +17,7 @@ white:
     mode: default
 
 buy:
-  name: Buy Button
+  title: Buy Button
   summary:
   style:
     type: long
@@ -26,7 +26,7 @@ buy:
     mode: buy
 
 book:
-  name: Book Button
+  title: Book Button
   summary:
   style:
     type: long
@@ -35,7 +35,7 @@ book:
     mode: book
 
 checkout:
-  name: Checkout Button
+  title: Checkout Button
   summary:
   style:
     type: long
@@ -44,7 +44,7 @@ checkout:
     mode: checkout
 
 donate:
-  name: Donate Button
+  title: Donate Button
   summary:
   style:
     type: long
@@ -53,7 +53,7 @@ donate:
     mode: donate
 
 order:
-  name: Order Button
+  title: Order Button
   summary:
   style:
     type: long
@@ -62,7 +62,7 @@ order:
     mode: order
 
 pay:
-  name: Pay Button
+  title: Pay Button
   summary:
   style:
     type: long
@@ -71,7 +71,7 @@ pay:
     mode: pay
 
 subscribe:
-  name: Subscribe Button
+  title: Subscribe Button
   summary:
   style:
     type: long

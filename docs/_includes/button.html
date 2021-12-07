@@ -1,4 +1,4 @@
-<script src="https://unpkg.com/ipsp-js-sdk"></script>
+<script src="{{ '/static/checkout.min.js' | absolute_url }}"></script>
 <style>.block{margin-bottom:1rem;}.highlight{margin:0 0 1rem 0;}</style>
 <script>
     var breaker = /[^\[\]]+|\[\]$/g;
@@ -70,7 +70,7 @@
 {% assign name = item[0] %}
 {% assign options = item[1] %}
 <div class="block">
-    <h2>{{ options.name }}</h2>
+    <h2>{{ options.title }}</h2>
     {% highlight json %}{{ options.style | jsonify }}{% endhighlight %}
     <div data-type="{{ name }}" data-params="{{ options | jsonify | escape }}"></div>
     <script>renderButton("{{ name }}")</script>

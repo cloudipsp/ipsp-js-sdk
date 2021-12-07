@@ -27,11 +27,13 @@ gulp.task('build', function(){
       .pipe(source('checkout.js'))
       .pipe(buffer())
       .pipe(gulp.dest('dist'))
+      .pipe(gulp.dest('docs/static'))
       .pipe(sourcemaps.init())
       .pipe(uglify())
       .pipe(rename({extname:'.min.js'}))
       .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest('dist'));
+      .pipe(gulp.dest('dist'))
+      .pipe(gulp.dest('docs/static'));
 });
 
 gulp.task('clean', function(done) {
