@@ -32,7 +32,7 @@ or add dependency manually:
 ```json
 {
   "dependency": {
-    "ipsp-js-sdk":"^1.0"
+    "ipsp-js-sdk":"^2.0"
   }
 }
 ```
@@ -199,6 +199,7 @@ https://jsfiddle.net/fondyeu/jdc9o5cx/
 
 ## Author
 
-Stepan Kosatyi, stepan@kosatyi.com
-
 [![Stepan Kosatyi](https://img.shields.io/badge/stepan-kosatyi-purple.svg)](https://kosatyi.com/)
+[![Fondy.io](https://img.shields.io/badge/fondy-io-lightgreen.svg)](https://fondy.io/)
+
+
