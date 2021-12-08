@@ -7,14 +7,14 @@ defaults:
     height: 46
     mode: default
 
-white:
-  title: White Button
-  summary:
-  style:
-    type: long
-    color: white
-    height: 46
-    mode: default
+#white:
+#  title: White Button
+#  summary:
+#  style:
+#    type: long
+#    color: white
+#    height: 46
+#    mode: default
 
 #buy:
 #  title: Buy Button
