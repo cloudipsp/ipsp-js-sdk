@@ -1,11 +1,10 @@
+var Config = require('../config');
 var Module = require('../module');
 var Connector = require('../connector');
 var Request = require('./request');
 
-var config = require('../config');
-var svgLangList = config.GooglePayLanguages;
 var svgLang = function(lang,defaults){
-    return svgLangList.indexOf(lang) !== -1 ? lang : defaults;
+    return Config.GooglePayLanguages.indexOf(lang) !== -1 ? lang : defaults;
 }
 
 /**
@@ -103,52 +102,33 @@ var Container = Module.extend({
         this.payment.on('error', this.proxy(function (cx, data) {
             this.connector.send('error', data);
         }));
-        this.connector.on('click', this.proxy(function () {
-            if (!this.element.classList.contains('pending')) {
-                this.connector.send('pay', this.payment.config);
-            }
-        }));
         this.connector.on('options', this.proxy(function (cx, data) {
             this.extendParams(data);
             this.styleButton();
         }));
         this.connector.on('config', this.proxy(function (cx, data) {
             if (this.payment.setConfig(data).isValidConfig()) {
-                this.element.classList.add('ready');
                 this.element.classList.remove('pending');
+                this.element.classList.add('ready');
                 this.connector.send('show', {});
             } else {
                 this.connector.send('hide', {});
             }
         }));
-        this.addEvent(this.element, 'mouseenter', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.add('hover');
-            this.connector.send('event', {name: 'button.mouseenter'});
-        });
-        this.addEvent(this.element, 'mouseleave', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.remove('hover');
-            this.connector.send('event', {name: 'button.mouseleave'});
-        });
-        this.addEvent(this.element, 'click', function (cx, event) {
-            event.preventDefault();
-            this.connector.send('click', {});
-        });
-        this.addEvent(this.element, 'resize', function (cx, event) {
-            event.preventDefault();
-            this.send('event', {name: 'resize'});
-        });
-        this.addEvent(this.element, 'focus', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.add('active');
-            this.connector.send('event', {name: 'button.focus'});
-        });
-        this.addEvent(this.element, 'blur', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.remove('active');
-            this.connector.send('event', {name: 'button.blur'});
-        });
+        this.connector.on('event', this.proxy(function(cx,data){
+            if( data.type === 'mouseenter' ) {
+                this.element.classList.add('hover');
+            }
+            if( data.type === 'mouseleave' ) {
+                this.element.classList.remove('hover');
+            }
+            if( data.type === 'focus' ) {
+                this.element.classList.add('active');
+            }
+            if( data.type === 'blur' ) {
+                this.element.classList.remove('active');
+            }
+        }))
     }
 });
 

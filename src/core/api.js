@@ -1,16 +1,10 @@
+var Config    = require('./config');
 var Deferred  = require('./deferred');
 var Module    = require('./module');
 var Connector = require('./connector');
 var Modal     = require('./modal');
 var Response  = require('./response');
-var CSS_FRAME = {
-    'width': '1px !important',
-    'height': '1px !important',
-    'left': '1px !important',
-    'bottom': '1px !important',
-    'position': 'fixed !important',
-    'border': '0px !important'
-};
+
 /**
  * @type {ClassObject}
  * @extends {Module}
@@ -81,18 +75,11 @@ var Api = Module.extend({
         }));
         return defer;
     },
-    '_getFrameStyles': function () {
-        var props = [];
-        this.utils.forEach(CSS_FRAME, function (value, key) {
-            props.push([key, value].join(':'));
-        });
-        return props.join(';');
-    },
     '_loadFrame': function (url) {
         this.iframe = this.utils.createElement('iframe');
         this.addAttr(this.iframe, {'allowtransparency': true, 'frameborder': 0, 'scrolling': 'no'});
         this.addAttr(this.iframe, {'src': url});
-        this.addAttr(this.iframe, {'style': this._getFrameStyles()});
+        this.addCss(this.iframe,Config.ApiFrameCss);
         this.body = this.utils.querySelector('body');
         if (this.body.firstChild) {
             this.body.insertBefore(this.iframe, this.body.firstChild);

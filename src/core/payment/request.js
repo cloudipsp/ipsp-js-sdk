@@ -3,8 +3,7 @@ var Module = require('../module');
 var GooglePay = require('../google/pay')
 var Deferred = require('../deferred');
 var Utils = require('../utils');
-var config = require('../config');
-
+var Config = require('../config');
 
 var hasPaymentRequest = function () {
     return window.hasOwnProperty('PaymentRequest') && typeof (window.PaymentRequest) === 'function'
@@ -66,7 +65,7 @@ var Request = Module.extend({
             index = (index || 0) + 1;
             method = item[0];
             config = item[1];
-            request = getPaymentRequest([config], config.PaymentRequestDetails);
+            request = getPaymentRequest([config], Config.PaymentRequestDetails);
             if( request ){
                 request.canMakePayment().then(function (status) {
                     if (status === true) {
@@ -78,7 +77,7 @@ var Request = Module.extend({
             } else {
                 callback(module, list, index);
             }
-        })(this, config.PaymentRequestMethods , 0);
+        })(this, Config.PaymentRequestMethods , 0);
     },
     'modelRequest': function (method, params, callback, failure) {
         if (this.api instanceof Api) {

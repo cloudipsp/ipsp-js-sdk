@@ -1,3 +1,4 @@
+var Config = require('../config');
 var Module    = require('../module');
 var Api       = require('../api');
 var Connector = require('../connector');
@@ -6,41 +7,6 @@ var Deferred = require('../deferred');
 var Request   = require('./request');
 
 
-
-var CSS_CONTAINER = {
-    'border': '0 !important',
-    'margin': '0 !important',
-    'padding': '0 !important',
-    'display': 'block !important',
-    'background': 'transparent !important',
-    'overflow': 'hidden !important',
-    'position': 'relative !important',
-    'opacity': '1 !important',
-    'height': '0 !important',
-    'outline': 'none !important'
-};
-
-var CSS_FRAME = {
-    'border': 'none !important',
-    'margin': '0 !important',
-    'padding': '0 !important',
-    'display': 'block !important',
-    'width': '1px !important',
-    'min-width': '100% !important',
-    'background': 'transparent !important',
-    'position': 'relative !important',
-    'opacity': '0 !important',
-    'overflow': 'hidden !important',
-    'height': '100% !important',
-    'outline': 'none !important'
-};
-
-var ATTR_FRAME = {
-    'scrolling': 'no',
-    'frameborder': 0,
-    'allowtransparency': true,
-    'allowpaymentrequest': true
-};
 /**
  * @type {ClassObject}
  * @extends {Module}
@@ -49,8 +15,8 @@ var Button = Module.extend({
     'defaults': {
         origin: 'https://api.fondy.eu',
         endpoint: {
-            'gateway': '/checkout/v2/index.html',
-            'button': '/checkout/v2/button/index.html'
+            gateway: '/checkout/v2/index.html',
+            button: '/checkout/v2/button/index.html'
         },
         style: {
             height: 38,
@@ -63,6 +29,7 @@ var Button = Module.extend({
     'init': function (params) {
         this.initParams(params);
         this.initElement();
+        this.initEvents();
         this.initApi();
         this.initFrame();
         this.initPaymentRequest();
@@ -88,8 +55,22 @@ var Button = Module.extend({
     'initElement': function () {
         this.element = this.utils.querySelector(this.params.element);
         this.container = this.utils.createElement('div');
-        this.addCss(this.container, CSS_CONTAINER);
+        this.cover = this.utils.createElement('a');
+        this.addCss(this.cover,Config.ButtonCoverCss);
+        this.addAttr(this.cover,Config.ButtonCoverAttrs)
+        this.addCss(this.container,Config.ButtonContainerCss);
         this.element.appendChild(this.container);
+    },
+    'sendButtonEvent': function(cx,ev){
+        ev.preventDefault();
+        this.connector.send('event',{type:ev.type});
+    },
+    'initEvents': function(){
+        this.addEvent(this.cover, 'mouseenter', 'sendButtonEvent');
+        this.addEvent(this.cover, 'mouseleave', 'sendButtonEvent');
+        this.addEvent(this.cover, 'blur', 'sendButtonEvent');
+        this.addEvent(this.cover, 'focus', 'sendButtonEvent');
+        this.addEvent(this.cover, 'click', 'onClick');
     },
     'initPaymentRequest': function () {
         this.payment = new Request({});
@@ -106,12 +87,13 @@ var Button = Module.extend({
     'initFrame': function () {
         this.frameLoaded = Deferred();
         this.frame = this.utils.createElement('iframe');
-        this.addCss(this.frame, CSS_FRAME);
-        this.addAttr(this.frame, ATTR_FRAME);
+        this.addCss(this.frame,Config.ButtonFrameCss);
+        this.addAttr(this.frame,Config.ButtonFrameAttrs);
         this.addAttr(this.frame, {
             src: this.endpointUrl('button')
         });
         this.container.appendChild(this.frame);
+        this.container.appendChild(this.cover);
         this.initConnector();
         this.addEvent(this.frame, 'load', function () {
             this.frameLoaded.resetState().resolve();
@@ -133,8 +115,6 @@ var Button = Module.extend({
     },
     'initConnector': function () {
         this.connector = new Connector({target: this.frame.contentWindow});
-        this.connector.on('event', this.proxy('onEvent'));
-        this.connector.on('click', this.proxy('onClick'));
         this.connector.on('show', this.proxy('onShow'));
         this.connector.on('hide', this.proxy('onHide'));
         this.connector.on('log', this.proxy('onLog'));
@@ -159,19 +139,22 @@ var Button = Module.extend({
         return this;
     },
     'update': function (params) {
-        this.sendOptions(null,params);
-        this.api.scope(this.proxy(function () {
+        this.sendOptions(params);
+        this.api.scope(this.proxy(function(){
             this.api.request('api.checkout.pay','get',this.params.data)
-                .done(this.proxy('sendConfig')).fail(this.proxy('sendConfig'));
+                .done(this.proxy('sendConfig'))
+                .fail(this.proxy('sendConfig'));
         }));
     },
-    'sendOptions': function(cx,params){
+    'sendOptions': function(params){
         this.utils.extend(this.params,this.getConfigParams(params));
         this.send('options',this.params);
     },
     'sendConfig': function(cx,model){
-        model.supportedMethod(this.method);
-        this.send('config',model.data);
+        this.model = model;
+        this.model.supportedMethod(this.method);
+        this.payment.setConfig(this.model.data);
+        this.send('config',this.model.data);
     },
     'callback': function (model) {
         var params = this.utils.extend({}, this.params.data, model.serialize());
@@ -197,20 +180,17 @@ var Button = Module.extend({
             }
         })(this);
     },
-    'click': function(){
-        if( this.validateCallback ){
-            this.validateCallback(function(){
-                this.send('click',{});
-            });
-        } else {
-            this.send('click',{});
-        }
-    },
     'cssUnit': function (value, unit) {
         return String(value || 0).concat(unit || '').concat(' !important')
     },
     'onClick': function () {
-        this.click();
+        if( this.validateCallback ){
+            this.validateCallback(function(){
+                this.payment.pay();
+            });
+        } else {
+            this.payment.pay();
+        }
     },
     'onToken': function (c, data) {
         this.callback(new Response(data));
@@ -246,19 +226,11 @@ var Button = Module.extend({
         });
         this.trigger('hide', {});
     },
-    'onEvent': function (c, event) {
-        this.trigger('event', event);
-        this.trigger(event.name, event.data);
-    },
     'onLog': function (c, result) {
         this.trigger('log',{
             event: 'log',
             result: result
         });
-    },
-    'onPay': function (c, data) {
-        this.payment.setConfig(data);
-        this.payment.pay();
     }
 });
 

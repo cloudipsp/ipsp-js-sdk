@@ -28,19 +28,13 @@ module.exports['Response'] = Response;
 
 
 },{"./core/api":2,"./core/component":4,"./core/connector":6,"./core/payment/button":13,"./core/payment/container":14,"./core/response":16,"./core/widget/button":19,"./core/widget/form":20}],2:[function(require,module,exports){
+var Config    = require('./config');
 var Deferred  = require('./deferred');
 var Module    = require('./module');
 var Connector = require('./connector');
 var Modal     = require('./modal');
 var Response  = require('./response');
-var CSS_FRAME = {
-    'width': '1px !important',
-    'height': '1px !important',
-    'left': '1px !important',
-    'bottom': '1px !important',
-    'position': 'fixed !important',
-    'border': '0px !important'
-};
+
 /**
  * @type {ClassObject}
  * @extends {Module}
@@ -111,18 +105,11 @@ var Api = Module.extend({
         }));
         return defer;
     },
-    '_getFrameStyles': function () {
-        var props = [];
-        this.utils.forEach(CSS_FRAME, function (value, key) {
-            props.push([key, value].join(':'));
-        });
-        return props.join(';');
-    },
     '_loadFrame': function (url) {
         this.iframe = this.utils.createElement('iframe');
         this.addAttr(this.iframe, {'allowtransparency': true, 'frameborder': 0, 'scrolling': 'no'});
         this.addAttr(this.iframe, {'src': url});
-        this.addAttr(this.iframe, {'style': this._getFrameStyles()});
+        this.addCss(this.iframe,Config.ApiFrameCss);
         this.body = this.utils.querySelector('body');
         if (this.body.firstChild) {
             this.body.insertBefore(this.iframe, this.body.firstChild);
@@ -161,7 +148,7 @@ var Api = Module.extend({
 
 module.exports = Api;
 
-},{"./connector":6,"./deferred":7,"./modal":10,"./module":12,"./response":16}],3:[function(require,module,exports){
+},{"./config":5,"./connector":6,"./deferred":7,"./modal":10,"./module":12,"./response":16}],3:[function(require,module,exports){
 var init = false;
 var fnTest = /xyz/.test(function () {
     return 'xyz';
@@ -271,14 +258,14 @@ module.exports = Component;
 exports.GooglePayApi = 'https://pay.google.com/gp/p/js/pay.js';
 
 exports.GoogleBaseRequest = {
-    apiVersion: 2,
-    apiVersionMinor: 0,
-    allowedPaymentMethods: [
+    'apiVersion': 2,
+    'apiVersionMinor': 0,
+    'allowedPaymentMethods': [
         {
-            type: 'CARD',
-            parameters: {
-                allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
-                allowedCardNetworks: ['AMEX', 'DISCOVER', 'INTERAC', 'JCB', 'MASTERCARD', 'VISA']
+            'type': 'CARD',
+            'parameters': {
+                'allowedAuthMethods': ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+                'allowedCardNetworks': ['AMEX', 'DISCOVER', 'INTERAC', 'JCB', 'MASTERCARD', 'VISA']
             }
         }
     ]
@@ -328,14 +315,76 @@ exports.PaymentRequestMethods = [
 ];
 
 exports.PaymentRequestDetails = {
-    total: {
-        label: 'Total',
-        amount: {
-            currency: 'USD',
-            value: '0.00'
+    'total': {
+        'label': 'Total',
+        'amount': {
+            'currency': 'USD',
+            'value': '0.00'
         }
     }
-}
+};
+
+exports.ApiFrameCss = {
+    'width': '1px !important',
+    'height': '1px !important',
+    'left': '1px !important',
+    'bottom': '1px !important',
+    'position': 'fixed !important',
+    'border': '0px !important'
+};
+
+exports.ButtonFrameCss = {
+    'border': 'none !important',
+    'margin': '0 !important',
+    'padding': '0 !important',
+    'display': 'block !important',
+    'width': '1px !important',
+    'min-width': '100% !important',
+    'background': 'transparent !important',
+    'position': 'relative !important',
+    'opacity': '0 !important',
+    'overflow': 'hidden !important',
+    'height': '100% !important',
+    'outline': 'none !important',
+    'z-index':'1 !important'
+};
+
+exports.ButtonFrameAttrs = {
+    'tabindex':'-1',
+    'scrolling': 'no',
+    'frameborder': 0,
+    'allowtransparency': true,
+    'allowpaymentrequest': true
+};
+
+exports.ButtonCoverCss = {
+    'z-index':'2 !important',
+    'position':'absolute !important',
+    'left':'0 !important',
+    'top':'0 !important',
+    'cursor':'pointer !important',
+    'outline': 'none !important',
+    'width':'100% !important',
+    'height':'100% !important'
+};
+
+exports.ButtonCoverAttrs = {
+    'tabindex':'0',
+    'href':'javascript:void(0)'
+};
+
+exports.ButtonContainerCss = {
+    'border': '0 !important',
+    'margin': '0 !important',
+    'padding': '0 !important',
+    'display': 'block !important',
+    'background': 'transparent !important',
+    'overflow': 'hidden !important',
+    'position': 'relative !important',
+    'opacity': '1 !important',
+    'height': '0 !important',
+    'outline': 'none !important'
+};
 
 },{}],6:[function(require,module,exports){
 var Module = require('./module');
@@ -1003,6 +1052,7 @@ var Module =  Class.extend({
 module.exports = Module;
 
 },{"./class":3,"./event":8,"./utils":18}],13:[function(require,module,exports){
+var Config = require('../config');
 var Module    = require('../module');
 var Api       = require('../api');
 var Connector = require('../connector');
@@ -1011,41 +1061,6 @@ var Deferred = require('../deferred');
 var Request   = require('./request');
 
 
-
-var CSS_CONTAINER = {
-    'border': '0 !important',
-    'margin': '0 !important',
-    'padding': '0 !important',
-    'display': 'block !important',
-    'background': 'transparent !important',
-    'overflow': 'hidden !important',
-    'position': 'relative !important',
-    'opacity': '1 !important',
-    'height': '0 !important',
-    'outline': 'none !important'
-};
-
-var CSS_FRAME = {
-    'border': 'none !important',
-    'margin': '0 !important',
-    'padding': '0 !important',
-    'display': 'block !important',
-    'width': '1px !important',
-    'min-width': '100% !important',
-    'background': 'transparent !important',
-    'position': 'relative !important',
-    'opacity': '0 !important',
-    'overflow': 'hidden !important',
-    'height': '100% !important',
-    'outline': 'none !important'
-};
-
-var ATTR_FRAME = {
-    'scrolling': 'no',
-    'frameborder': 0,
-    'allowtransparency': true,
-    'allowpaymentrequest': true
-};
 /**
  * @type {ClassObject}
  * @extends {Module}
@@ -1054,8 +1069,8 @@ var Button = Module.extend({
     'defaults': {
         origin: 'https://api.fondy.eu',
         endpoint: {
-            'gateway': '/checkout/v2/index.html',
-            'button': '/checkout/v2/button/index.html'
+            gateway: '/checkout/v2/index.html',
+            button: '/checkout/v2/button/index.html'
         },
         style: {
             height: 38,
@@ -1068,6 +1083,7 @@ var Button = Module.extend({
     'init': function (params) {
         this.initParams(params);
         this.initElement();
+        this.initEvents();
         this.initApi();
         this.initFrame();
         this.initPaymentRequest();
@@ -1093,8 +1109,22 @@ var Button = Module.extend({
     'initElement': function () {
         this.element = this.utils.querySelector(this.params.element);
         this.container = this.utils.createElement('div');
-        this.addCss(this.container, CSS_CONTAINER);
+        this.cover = this.utils.createElement('a');
+        this.addCss(this.cover,Config.ButtonCoverCss);
+        this.addAttr(this.cover,Config.ButtonCoverAttrs)
+        this.addCss(this.container,Config.ButtonContainerCss);
         this.element.appendChild(this.container);
+    },
+    'sendButtonEvent': function(cx,ev){
+        ev.preventDefault();
+        this.connector.send('event',{type:ev.type});
+    },
+    'initEvents': function(){
+        this.addEvent(this.cover, 'mouseenter', 'sendButtonEvent');
+        this.addEvent(this.cover, 'mouseleave', 'sendButtonEvent');
+        this.addEvent(this.cover, 'blur', 'sendButtonEvent');
+        this.addEvent(this.cover, 'focus', 'sendButtonEvent');
+        this.addEvent(this.cover, 'click', 'onClick');
     },
     'initPaymentRequest': function () {
         this.payment = new Request({});
@@ -1111,12 +1141,13 @@ var Button = Module.extend({
     'initFrame': function () {
         this.frameLoaded = Deferred();
         this.frame = this.utils.createElement('iframe');
-        this.addCss(this.frame, CSS_FRAME);
-        this.addAttr(this.frame, ATTR_FRAME);
+        this.addCss(this.frame,Config.ButtonFrameCss);
+        this.addAttr(this.frame,Config.ButtonFrameAttrs);
         this.addAttr(this.frame, {
             src: this.endpointUrl('button')
         });
         this.container.appendChild(this.frame);
+        this.container.appendChild(this.cover);
         this.initConnector();
         this.addEvent(this.frame, 'load', function () {
             this.frameLoaded.resetState().resolve();
@@ -1138,8 +1169,6 @@ var Button = Module.extend({
     },
     'initConnector': function () {
         this.connector = new Connector({target: this.frame.contentWindow});
-        this.connector.on('event', this.proxy('onEvent'));
-        this.connector.on('click', this.proxy('onClick'));
         this.connector.on('show', this.proxy('onShow'));
         this.connector.on('hide', this.proxy('onHide'));
         this.connector.on('log', this.proxy('onLog'));
@@ -1164,19 +1193,22 @@ var Button = Module.extend({
         return this;
     },
     'update': function (params) {
-        this.sendOptions(null,params);
-        this.api.scope(this.proxy(function () {
+        this.sendOptions(params);
+        this.api.scope(this.proxy(function(){
             this.api.request('api.checkout.pay','get',this.params.data)
-                .done(this.proxy('sendConfig')).fail(this.proxy('sendConfig'));
+                .done(this.proxy('sendConfig'))
+                .fail(this.proxy('sendConfig'));
         }));
     },
-    'sendOptions': function(cx,params){
+    'sendOptions': function(params){
         this.utils.extend(this.params,this.getConfigParams(params));
         this.send('options',this.params);
     },
     'sendConfig': function(cx,model){
-        model.supportedMethod(this.method);
-        this.send('config',model.data);
+        this.model = model;
+        this.model.supportedMethod(this.method);
+        this.payment.setConfig(this.model.data);
+        this.send('config',this.model.data);
     },
     'callback': function (model) {
         var params = this.utils.extend({}, this.params.data, model.serialize());
@@ -1202,20 +1234,17 @@ var Button = Module.extend({
             }
         })(this);
     },
-    'click': function(){
-        if( this.validateCallback ){
-            this.validateCallback(function(){
-                this.send('click',{});
-            });
-        } else {
-            this.send('click',{});
-        }
-    },
     'cssUnit': function (value, unit) {
         return String(value || 0).concat(unit || '').concat(' !important')
     },
     'onClick': function () {
-        this.click();
+        if( this.validateCallback ){
+            this.validateCallback(function(){
+                this.payment.pay();
+            });
+        } else {
+            this.payment.pay();
+        }
     },
     'onToken': function (c, data) {
         this.callback(new Response(data));
@@ -1251,33 +1280,24 @@ var Button = Module.extend({
         });
         this.trigger('hide', {});
     },
-    'onEvent': function (c, event) {
-        this.trigger('event', event);
-        this.trigger(event.name, event.data);
-    },
     'onLog': function (c, result) {
         this.trigger('log',{
             event: 'log',
             result: result
         });
-    },
-    'onPay': function (c, data) {
-        this.payment.setConfig(data);
-        this.payment.pay();
     }
 });
 
 module.exports = Button;
 
-},{"../api":2,"../connector":6,"../deferred":7,"../module":12,"../response":16,"./request":15}],14:[function(require,module,exports){
+},{"../api":2,"../config":5,"../connector":6,"../deferred":7,"../module":12,"../response":16,"./request":15}],14:[function(require,module,exports){
+var Config = require('../config');
 var Module = require('../module');
 var Connector = require('../connector');
 var Request = require('./request');
 
-var config = require('../config');
-var svgLangList = config.GooglePayLanguages;
 var svgLang = function(lang,defaults){
-    return svgLangList.indexOf(lang) !== -1 ? lang : defaults;
+    return Config.GooglePayLanguages.indexOf(lang) !== -1 ? lang : defaults;
 }
 
 /**
@@ -1375,52 +1395,33 @@ var Container = Module.extend({
         this.payment.on('error', this.proxy(function (cx, data) {
             this.connector.send('error', data);
         }));
-        this.connector.on('click', this.proxy(function () {
-            if (!this.element.classList.contains('pending')) {
-                this.connector.send('pay', this.payment.config);
-            }
-        }));
         this.connector.on('options', this.proxy(function (cx, data) {
             this.extendParams(data);
             this.styleButton();
         }));
         this.connector.on('config', this.proxy(function (cx, data) {
             if (this.payment.setConfig(data).isValidConfig()) {
-                this.element.classList.add('ready');
                 this.element.classList.remove('pending');
+                this.element.classList.add('ready');
                 this.connector.send('show', {});
             } else {
                 this.connector.send('hide', {});
             }
         }));
-        this.addEvent(this.element, 'mouseenter', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.add('hover');
-            this.connector.send('event', {name: 'button.mouseenter'});
-        });
-        this.addEvent(this.element, 'mouseleave', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.remove('hover');
-            this.connector.send('event', {name: 'button.mouseleave'});
-        });
-        this.addEvent(this.element, 'click', function (cx, event) {
-            event.preventDefault();
-            this.connector.send('click', {});
-        });
-        this.addEvent(this.element, 'resize', function (cx, event) {
-            event.preventDefault();
-            this.send('event', {name: 'resize'});
-        });
-        this.addEvent(this.element, 'focus', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.add('active');
-            this.connector.send('event', {name: 'button.focus'});
-        });
-        this.addEvent(this.element, 'blur', function (cx, event) {
-            event.preventDefault();
-            this.element.classList.remove('active');
-            this.connector.send('event', {name: 'button.blur'});
-        });
+        this.connector.on('event', this.proxy(function(cx,data){
+            if( data.type === 'mouseenter' ) {
+                this.element.classList.add('hover');
+            }
+            if( data.type === 'mouseleave' ) {
+                this.element.classList.remove('hover');
+            }
+            if( data.type === 'focus' ) {
+                this.element.classList.add('active');
+            }
+            if( data.type === 'blur' ) {
+                this.element.classList.remove('active');
+            }
+        }))
     }
 });
 
@@ -1432,8 +1433,7 @@ var Module = require('../module');
 var GooglePay = require('../google/pay')
 var Deferred = require('../deferred');
 var Utils = require('../utils');
-var config = require('../config');
-
+var Config = require('../config');
 
 var hasPaymentRequest = function () {
     return window.hasOwnProperty('PaymentRequest') && typeof (window.PaymentRequest) === 'function'
@@ -1495,7 +1495,7 @@ var Request = Module.extend({
             index = (index || 0) + 1;
             method = item[0];
             config = item[1];
-            request = getPaymentRequest([config], config.PaymentRequestDetails);
+            request = getPaymentRequest([config], Config.PaymentRequestDetails);
             if( request ){
                 request.canMakePayment().then(function (status) {
                     if (status === true) {
@@ -1507,7 +1507,7 @@ var Request = Module.extend({
             } else {
                 callback(module, list, index);
             }
-        })(this, config.PaymentRequestMethods , 0);
+        })(this, Config.PaymentRequestMethods , 0);
     },
     'modelRequest': function (method, params, callback, failure) {
         if (this.api instanceof Api) {
