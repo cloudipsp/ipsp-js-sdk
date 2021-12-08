@@ -40,6 +40,8 @@
         origin: $origin
     });
 
+    var $endpoint = queryString.endpoint || {};
+
     function renderButton(name) {
         var options;
         var selector = ['[data-type="', name, '"]'].join('');
@@ -50,6 +52,10 @@
         $checkout.get('PaymentButton', {
             api: $api,
             origin: $origin,
+            endpoint: {
+                gateway: $endpoint.gateway || '/checkout/v2/index.html',
+                button: $endpoint.button || '/checkout/v2/button/index.html'
+            },
             element: selector,
             style: options.style || {},
             data: {
