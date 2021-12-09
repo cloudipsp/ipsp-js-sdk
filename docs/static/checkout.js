@@ -2,12 +2,15 @@
 var Component = require('./core/component');
 
 var Api = require('./core/api');
+var Module = require('./core/module');
 var Connector = require('./core/connector');
 var Response = require('./core/response');
 var PaymentButton = require('./core/payment/button');
 var PaymentContainer = require('./core/payment/container');
 var FormWidget = require('./core/widget/form');
 var ButtonWidget = require('./core/widget/button');
+var Utils = require('./core/utils');
+var Config = require('./core/config');
 
 Component.add('Api', Api);
 Component.add('Connector', Connector);
@@ -19,6 +22,9 @@ Component.add('Response', Response);
 
 module.exports = Component;
 module.exports['Api'] = Api;
+module.exports['Module'] = Module;
+module.exports['Utils'] = Utils;
+module.exports['Config'] = Config;
 module.exports['Connector'] = Connector;
 module.exports['PaymentContainer'] = PaymentContainer;
 module.exports['PaymentButton'] = PaymentButton;
@@ -26,8 +32,7 @@ module.exports['FormWidget'] = FormWidget;
 module.exports['ButtonWidget'] = ButtonWidget;
 module.exports['Response'] = Response;
 
-
-},{"./core/api":2,"./core/component":4,"./core/connector":6,"./core/payment/button":13,"./core/payment/container":14,"./core/response":16,"./core/widget/button":19,"./core/widget/form":20}],2:[function(require,module,exports){
+},{"./core/api":2,"./core/component":4,"./core/config":5,"./core/connector":6,"./core/module":12,"./core/payment/button":13,"./core/payment/container":14,"./core/response":16,"./core/utils":18,"./core/widget/button":19,"./core/widget/form":20}],2:[function(require,module,exports){
 var Config    = require('./config');
 var Deferred  = require('./deferred');
 var Module    = require('./module');
@@ -385,6 +390,49 @@ exports.ButtonContainerCss = {
     'height': '0 !important',
     'outline': 'none !important'
 };
+
+exports.ButtonDefaultColor = 'dark';
+
+exports.ButtonColorMap = {
+    'dark': 'dark',
+    'light': 'light',
+    'black': 'dark',
+    'white': 'light'
+}
+
+exports.ButtonLabelMap = {
+    'ar':'',
+    'bg':'',
+    'ca':'',
+    'zh':'',
+    'hr':'',
+    'cs':'',
+    'da':'',
+    'nl':'',
+    'en':'Pay with',
+    'et':'',
+    'es':'Comprar con',
+    'el':'',
+    'fi':'',
+    'fr':'Acheter avec',
+    'de':'Zahlen über',
+    'id':'',
+    'it':'Acquista con',
+    'ja':'',
+    'ko':'',
+    'ms':'',
+    'no':'',
+    'pl':'Zapłać przez',
+    'pt':'',
+    'ru':'Оплатить через',
+    'sr':'',
+    'sk':'Zaplatiť cez',
+    'sl':'',
+    'sv':'',
+    'th':'',
+    'tr':'',
+    'uk':'Оплатити через'
+}
 
 },{}],6:[function(require,module,exports){
 var Module = require('./module');
@@ -1294,11 +1342,6 @@ module.exports = Button;
 var Config = require('../config');
 var Module = require('../module');
 var Connector = require('../connector');
-var Request = require('./request');
-
-var svgLang = function(lang,defaults){
-    return Config.GooglePayLanguages.indexOf(lang) !== -1 ? lang : defaults;
-}
 
 /**
  * @type {ClassObject}
@@ -1321,9 +1364,6 @@ var Container = Module.extend({
         this.params = this.utils.extend({}, this.defaults, params);
         this.element = this.utils.querySelector(this.params.element);
         this.connector = new Connector({target: window.parent});
-        this.payment = new Request({
-            embedded: true
-        });
     },
     'extendParams': function (params) {
         this.utils.extend(this.params, {
@@ -1333,74 +1373,109 @@ var Container = Module.extend({
             css: params.css
         });
     },
-    'addFrameImage': function(){
-        var frame = this.utils.querySelector('iframe',this.element) || this.utils.createElement('iframe');
+    'getGoogleLangSupport': function (lang, defaults) {
+        return Config.GooglePayLanguages.indexOf(lang) !== -1 ? lang : defaults;
+    },
+    'getButtonColor': function(color){
+        return Config.ButtonColorMap[color] || Config.ButtonDefaultColor;
+    },
+    'getGoogleSvg': function (color, lang, mode) {
+        var format = 'url("{endpoint}/{color}/{mode}/{lang}.svg")';
+        var params = {
+            endpoint: 'https://www.gstatic.com/instantbuy/svg',
+            color: this.getButtonColor(color),
+            mode: mode || 'plain',
+            lang: lang || 'en'
+        };
+        if (mode === 'plain') {
+            format = 'url("{endpoint}/{color}_gpay.svg")';
+        }
+        if (mode === 'buy') {
+            format = 'url("{endpoint}/{color}/{lang}.svg")';
+        }
+        return this.utils.stringFormat(format, params)
+    },
+    'getAppleSvg': function (color, lang, mode) {
+        var format = 'url("svg/apple-pay-{color}.svg")';
+        var params = {
+            color: this.getButtonColor(color)
+        };
+        return this.utils.stringFormat(format, params);
+    },
+    'getAppleLabel': function (lang) {
+        return Config.ButtonLabelMap[lang || 'en'];
+    },
+    'addFrameImage': function () {
+        var frame = this.utils.querySelector('iframe', this.element) || this.utils.createElement('iframe');
         var url = 'https://pay.google.com/gp/p/generate_gpay_btn_img';
         var style = this.params.style || {};
-        var lang = svgLang(this.params.data.lang,'en');
+        var lang = this.getGoogleLangSupport(this.params.data.lang, 'en');
         var query = {
             buttonColor: style.color || 'black',
             browserLocale: lang,
             buttonSizeMode: 'fill'
         };
-        var src = [url,this.utils.param(query)].join('?');
-        this.addAttr(frame,{
+        var src = [url, this.utils.param(query)].join('?');
+        this.addAttr(frame, {
             'scrolling': 'no',
             'frameborder': 0,
             'src': src
         });
         this.element.appendChild(frame);
-        this.element.classList.remove('short','long');
+        this.element.classList.remove('short', 'long');
     },
     'styleButton': function () {
         var element = this.element;
-        var method = this.params.method;
-        var style = this.params.style || {};
-        var lang = this.params.data.lang || 'en';
-        var css = this.params.css || {};
+        var params = this.params;
+        var method = params.method;
+        var style = params.style || {};
+        var lang = params.data.lang || 'en';
+        var css = params.css || {};
         element.setAttribute('class', '');
-        element.classList.add('button', 'pending');
+        element.classList.add('button','pending');
         if (method === 'card') method = 'google';
         if (method) {
             element.classList.add(method);
         }
-        if ( lang ) {
+        if (lang) {
             element.classList.add(lang);
         }
-        if(style.type){
+        if (style.type) {
             element.classList.add(style.type);
         }
-        if(style.mode){
+        if (style.mode) {
             element.classList.add(style.mode);
         }
-        if(style.color){
+        if (style.color) {
             element.classList.add(style.color);
+        }
+        if (method === 'google') {
+            if (style.type === 'short') {
+                style.mode = 'plain';
+            }
+            if (style.mode === 'default') {
+                this.addFrameImage();
+            } else {
+                css.image = this.getGoogleSvg(style.color, lang, style.mode);
+            }
+        }
+        if (method === 'apple') {
+            css.image = this.getAppleSvg(style.color);
+            css.label = this.getAppleLabel(lang, style.mode);
         }
         if (css) {
             this.utils.forEach(css, function (value, name) {
                 element.style.setProperty(['--', name].join(''), value);
             });
         }
-        if(method === 'google' && style.mode === 'default') {
-            this.addFrameImage();
-        }
     },
     'initEvents': function () {
-        this.payment.on('complete', this.proxy(function (cx, data) {
-            this.connector.send('complete', data);
-        }));
-        this.payment.on('reload', this.proxy(function (cx, data) {
-            this.connector.send('reload', data);
-        }));
-        this.payment.on('error', this.proxy(function (cx, data) {
-            this.connector.send('error', data);
-        }));
         this.connector.on('options', this.proxy(function (cx, data) {
             this.extendParams(data);
             this.styleButton();
         }));
         this.connector.on('config', this.proxy(function (cx, data) {
-            if (this.payment.setConfig(data).isValidConfig()) {
+            if (data.payment_system && data.methods && data.methods.length > 0) {
                 this.element.classList.remove('pending');
                 this.element.classList.add('ready');
                 this.connector.send('show', {});
@@ -1408,17 +1483,17 @@ var Container = Module.extend({
                 this.connector.send('hide', {});
             }
         }));
-        this.connector.on('event', this.proxy(function(cx,data){
-            if( data.type === 'mouseenter' ) {
+        this.connector.on('event', this.proxy(function (cx, data) {
+            if (data.type === 'mouseenter') {
                 this.element.classList.add('hover');
             }
-            if( data.type === 'mouseleave' ) {
+            if (data.type === 'mouseleave') {
                 this.element.classList.remove('hover');
             }
-            if( data.type === 'focus' ) {
+            if (data.type === 'focus') {
                 this.element.classList.add('active');
             }
-            if( data.type === 'blur' ) {
+            if (data.type === 'blur') {
                 this.element.classList.remove('active');
             }
         }))
@@ -1427,7 +1502,7 @@ var Container = Module.extend({
 
 module.exports = Container;
 
-},{"../config":5,"../connector":6,"../module":12,"./request":15}],15:[function(require,module,exports){
+},{"../config":5,"../connector":6,"../module":12}],15:[function(require,module,exports){
 var Api = require('../api');
 var Module = require('../module');
 var GooglePay = require('../google/pay')
@@ -1992,6 +2067,11 @@ var Utils = {
             },this)
         }
         return value;
+    },
+    'stringFormat':function(format,params){
+        return (format || '').replace(/{(.+?)}/g, function(match, prop) {
+            return params[prop] || match;
+        });
     }
 };
 

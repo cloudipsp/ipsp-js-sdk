@@ -128,3 +128,46 @@ exports.ButtonContainerCss = {
     'height': '0 !important',
     'outline': 'none !important'
 };
+
+exports.ButtonDefaultColor = 'dark';
+
+exports.ButtonColorMap = {
+    'dark': 'dark',
+    'light': 'light',
+    'black': 'dark',
+    'white': 'light'
+}
+
+exports.ButtonLabelMap = {
+    'ar':'',
+    'bg':'',
+    'ca':'',
+    'zh':'',
+    'hr':'',
+    'cs':'',
+    'da':'',
+    'nl':'',
+    'en':'Pay with',
+    'et':'',
+    'es':'Comprar con',
+    'el':'',
+    'fi':'',
+    'fr':'Acheter avec',
+    'de':'Zahlen über',
+    'id':'',
+    'it':'Acquista con',
+    'ja':'',
+    'ko':'',
+    'ms':'',
+    'no':'',
+    'pl':'Zapłać przez',
+    'pt':'',
+    'ru':'Оплатить через',
+    'sr':'',
+    'sk':'Zaplatiť cez',
+    'sl':'',
+    'sv':'',
+    'th':'',
+    'tr':'',
+    'uk':'Оплатити через'
+}

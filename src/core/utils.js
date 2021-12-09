@@ -159,6 +159,11 @@ var Utils = {
             },this)
         }
         return value;
+    },
+    'stringFormat':function(format,params){
+        return (format || '').replace(/{(.+?)}/g, function(match, prop) {
+            return params[prop] || match;
+        });
     }
 };
 
