@@ -1282,6 +1282,9 @@ var Button = Module.extend({
             }
         })(this);
     },
+    'click': function(){
+        this.onClick();
+    },
     'cssUnit': function (value, unit) {
         return String(value || 0).concat(unit || '').concat(' !important')
     },
