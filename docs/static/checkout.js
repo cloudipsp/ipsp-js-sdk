@@ -1798,6 +1798,8 @@ var Response = Model.extend({
         });
         if( item ){
             this.attr('methods',[item.serialize()])
+        } else {
+            this.attr('methods',[]);
         }
     }
 });
