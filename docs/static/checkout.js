@@ -1206,9 +1206,7 @@ var Button = Module.extend({
     },
     'onFallback': function(){
         this.fallback = true;
-        this.payment.fallback(this.proxy(function() {
-            this.onSupported(null, 'google');
-        }));
+        this.onSupported(null, 'google');
     },
     'onSupported': function(cx, method){
         this.supported = true;
@@ -1291,10 +1289,10 @@ var Button = Module.extend({
     'onClick': function () {
         if( this.validateCallback ){
             this.validateCallback(function(){
-                this.payment.pay();
+                this.send('pay',{});
             });
         } else {
-            this.payment.pay();
+            this.send('pay',{});
         }
     },
     'onToken': function (c, data) {
@@ -1336,6 +1334,10 @@ var Button = Module.extend({
             event: 'log',
             result: result
         });
+    },
+    'onPay': function (c, data) {
+        this.payment.setConfig(data);
+        this.payment.pay();
     }
 });
 
@@ -1345,6 +1347,7 @@ module.exports = Button;
 var Config = require('../config');
 var Module = require('../module');
 var Connector = require('../connector');
+var Request = require('./request');
 
 /**
  * @type {ClassObject}
@@ -1367,6 +1370,9 @@ var Container = Module.extend({
         this.params = this.utils.extend({}, this.defaults, params);
         this.element = this.utils.querySelector(this.params.element);
         this.connector = new Connector({target: window.parent});
+        this.payment   = new Request({
+            embedded: true
+        });
     },
     'extendParams': function (params) {
         this.utils.extend(this.params, {
@@ -1477,7 +1483,17 @@ var Container = Module.extend({
             this.extendParams(data);
             this.styleButton();
         }));
+        this.connector.on('pay', this.proxy(function () {
+            if (!this.element.classList.contains('pending')) {
+                if (this.params.method === 'apple') {
+                    this.connector.send('pay', this.payment.config);
+                } else {
+                    this.payment.pay();
+                }
+            }
+        }));
         this.connector.on('config', this.proxy(function (cx, data) {
+            this.payment.setConfig(data);
             if (data.payment_system && data.methods && data.methods.length > 0) {
                 this.element.classList.remove('pending');
                 this.element.classList.add('ready');
@@ -1505,7 +1521,7 @@ var Container = Module.extend({
 
 module.exports = Container;
 
-},{"../config":5,"../connector":6,"../module":12}],15:[function(require,module,exports){
+},{"../config":5,"../connector":6,"../module":12,"./request":15}],15:[function(require,module,exports){
 var Api = require('../api');
 var Module = require('../module');
 var GooglePay = require('../google/pay')
@@ -1617,16 +1633,15 @@ var Request = Module.extend({
                 defer.rejectWith(module, [{code: e.code, message: e.message}]);
             });
         } else {
-            GooglePay.show(this.config.methods).then(function(details){
-                defer.resolveWith(module, [details])
-            }).catch(function(e){
-                defer.rejectWith(module, [{code: e.code, message: e.message}]);
-            });
+            GooglePay.load().then(this.proxy(function(){
+                GooglePay.show(this.config.methods).then(function(details){
+                    defer.resolveWith(module, [details])
+                }).catch(function(e){
+                    defer.rejectWith(module, [{code: e.code, message: e.message}]);
+                });
+            }));
         }
         return defer;
-    },
-    'fallback': function(callback){
-        GooglePay.load().then(callback);
     },
     'pay': function () {
         this.getRequest().done(function (details) {

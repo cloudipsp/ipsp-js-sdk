@@ -104,9 +104,7 @@ var Button = Module.extend({
     },
     'onFallback': function(){
         this.fallback = true;
-        this.payment.fallback(this.proxy(function() {
-            this.onSupported(null, 'google');
-        }));
+        this.onSupported(null, 'google');
     },
     'onSupported': function(cx, method){
         this.supported = true;
@@ -189,10 +187,10 @@ var Button = Module.extend({
     'onClick': function () {
         if( this.validateCallback ){
             this.validateCallback(function(){
-                this.payment.pay();
+                this.send('pay',{});
             });
         } else {
-            this.payment.pay();
+            this.send('pay',{});
         }
     },
     'onToken': function (c, data) {
@@ -234,6 +232,10 @@ var Button = Module.extend({
             event: 'log',
             result: result
         });
+    },
+    'onPay': function (c, data) {
+        this.payment.setConfig(data);
+        this.payment.pay();
     }
 });
 

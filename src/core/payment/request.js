@@ -109,16 +109,15 @@ var Request = Module.extend({
                 defer.rejectWith(module, [{code: e.code, message: e.message}]);
             });
         } else {
-            GooglePay.show(this.config.methods).then(function(details){
-                defer.resolveWith(module, [details])
-            }).catch(function(e){
-                defer.rejectWith(module, [{code: e.code, message: e.message}]);
-            });
+            GooglePay.load().then(this.proxy(function(){
+                GooglePay.show(this.config.methods).then(function(details){
+                    defer.resolveWith(module, [details])
+                }).catch(function(e){
+                    defer.rejectWith(module, [{code: e.code, message: e.message}]);
+                });
+            }));
         }
         return defer;
-    },
-    'fallback': function(callback){
-        GooglePay.load().then(callback);
     },
     'pay': function () {
         this.getRequest().done(function (details) {
