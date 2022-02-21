@@ -1746,18 +1746,26 @@ var Response = Model.extend({
     },
     'redirectUrl': function () {
         if (this.attr('url')) {
-            location.assign(this.attr('url'));
+            this.redirectToUrl(this.attr('url'));
             return true;
         }
         return false;
+    },
+    'redirectToUrl': function(url){
+        location.assign(url);
     },
     'submitToMerchant': function () {
         var ready = this.attr('order.ready_to_submit');
         var url = this.attr('model.url') || this.attr('order.response_url');
         var method = this.attr('order.method');
+        var action = this.attr('order.action');
         var data = this.attr('model.send_data') || this.attr('order.order_data');
         if (ready && url && data) {
-            this.formDataSubmit(url, data, '_self', method);
+            if( action === 'redirect' || data['get_without_parameters'] === true) {
+                this.redirectToUrl(url);
+            } else {
+                this.formDataSubmit(url, data, '_self', method);
+            }
             return true;
         }
     },
