@@ -1107,7 +1107,7 @@ var Connector = require('../connector');
 var Response  = require('../response');
 var Deferred = require('../deferred');
 var Request   = require('./request');
-
+var GooglePay = require('../google/pay')
 
 /**
  * @type {ClassObject}
@@ -1206,7 +1206,9 @@ var Button = Module.extend({
     },
     'onFallback': function(){
         this.fallback = true;
-        this.onSupported(null, 'google');
+        GooglePay.load().then(this.proxy(function(){
+            this.onSupported(null, 'google');
+        }));
     },
     'onSupported': function(cx, method){
         this.supported = true;
@@ -1289,8 +1291,22 @@ var Button = Module.extend({
     'onClick': function () {
         if( this.validateCallback ){
             this.validateCallback(function(){
-                this.send('pay',{});
+                this.sendPay();
             });
+        } else {
+            this.sendPay();
+        }
+    },
+    'sendPay': function(){
+        if( this.fallback === true ) {
+             GooglePay.show(this.model.data.methods).then(this.proxy(function(cx,details){
+                 this.callback(new Response({
+                     payment_system: this.model.data.payment_system,
+                     data: details
+                 }));
+             })).catch(this.proxy(function(cx,error){
+                 this.trigger('error', {code: error.code, message: error.message});
+             }));
         } else {
             this.send('pay',{});
         }
@@ -1343,7 +1359,7 @@ var Button = Module.extend({
 
 module.exports = Button;
 
-},{"../api":2,"../config":5,"../connector":6,"../deferred":7,"../module":12,"../response":16,"./request":15}],14:[function(require,module,exports){
+},{"../api":2,"../config":5,"../connector":6,"../deferred":7,"../google/pay":9,"../module":12,"../response":16,"./request":15}],14:[function(require,module,exports){
 var Config = require('../config');
 var Module = require('../module');
 var Connector = require('../connector');
