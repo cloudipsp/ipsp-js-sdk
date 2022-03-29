@@ -1495,6 +1495,15 @@ var Container = Module.extend({
         }
     },
     'initEvents': function () {
+        this.payment.on('complete', this.proxy(function (cx, data) {
+            this.connector.send('complete',data);
+        }));
+        this.payment.on('reload', this.proxy(function (cx, data) {
+            this.connector.send('reload',data);
+        }));
+        this.payment.on('error', this.proxy(function (cx, data) {
+            this.connector.send('error',data);
+        }));
         this.connector.on('options', this.proxy(function (cx, data) {
             this.extendParams(data);
             this.styleButton();
