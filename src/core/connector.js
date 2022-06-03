@@ -33,18 +33,30 @@ var Connector = Module.extend({
         } catch (e) {
         }
         if (response && response.action && response.data) {
+            if( response.action === 'pay' ) {
+                console.log(JSON.stringify(ev))
+            }
             this.trigger(response.action, response.data);
         }
     },
-    'send': function (action, data) {
+    'send': function (action, data, request, options) {
         if(!this.target){
-            console.log(this.target,action,data);
             return;
         }
-        this.target.postMessage(JSON.stringify({
+        request = JSON.stringify({
             action: action,
             data: data
-        }), this.origin, []);
+        });
+        options = {
+            targetOrigin: this.origin,
+            delegate: 'payment',
+            transfer: []
+        }
+        try{
+            this.target.postMessage(request,options,[]);
+        } catch(e) {
+            this.target.postMessage(request,this.origin,[]);
+        }
     }
 });
 
