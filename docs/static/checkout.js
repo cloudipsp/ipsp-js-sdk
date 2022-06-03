@@ -490,7 +490,7 @@ var Connector = Module.extend({
             transfer: []
         }
         try{
-            this.target.postMessage(request,options,[]);
+            this.target.postMessage(request,options);
         } catch(e) {
             this.target.postMessage(request,this.origin,[]);
         }
