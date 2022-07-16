@@ -1797,13 +1797,15 @@ var Response = Model.extend({
         var method = this.attr('order.method');
         var action = this.attr('order.action');
         var data = this.attr('model.send_data') || this.attr('order.order_data');
-        if (ready && url && data) {
+        if (action && ready && url && data) {
             if( action === 'redirect' || data['get_without_parameters'] === true) {
                 this.redirectToUrl(url);
-            } else {
-                this.formDataSubmit(url, data, '_self', method);
+                return true;
             }
-            return true;
+            if( action === 'submit') {
+                this.formDataSubmit(url, data, '_self', method);
+                return true;
+            }
         }
     },
     'submitForm': function () {
