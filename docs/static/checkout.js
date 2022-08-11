@@ -1806,15 +1806,13 @@ var Response = Model.extend({
         var method = this.attr('order.method');
         var action = this.attr('order.action');
         var data = this.attr('model.send_data') || this.attr('order.order_data');
-        if (action && ready && url && data) {
+        if (ready && url && data) {
             if( action === 'redirect' || data['get_without_parameters'] === true) {
                 this.redirectToUrl(url);
-                return true;
-            }
-            if( action === 'submit') {
+            } else {
                 this.formDataSubmit(url, data, '_self', method);
-                return true;
             }
+            return true;
         }
     },
     'submitForm': function () {
