@@ -127,7 +127,10 @@ var Api = Module.extend({
         if (this.created === false) {
             this.created = true;
             this.iframe = this._loadFrame(this.url('gateway'));
-            this.connector = new Connector({target: this.iframe.contentWindow});
+            this.connector = new Connector({
+                target: this.iframe.contentWindow,
+                origin: this.params.origin
+            });
             this.connector.on('load', this.proxy('_onLoadConnector'));
             this.connector.on('modal', this.proxy('_onOpenModal'));
         }
@@ -447,10 +450,14 @@ var Connector = Module.extend({
     'signature': null,
     'init': function (params) {
         this.setTarget(params.target);
+        this.setOrigin(params.origin);
         this.create();
     },
     'create': function () {
         this.addEvent(window, 'message', 'router');
+    },
+    'setOrigin': function(origin){
+        this.origin = origin || '*';
     },
     'setTarget': function (target) {
         this.target = target;
@@ -486,8 +493,7 @@ var Connector = Module.extend({
         });
         options = {
             targetOrigin: this.origin,
-            delegate: 'payment',
-            transfer: []
+            delegate: 'payment'
         }
         try{
             this.target.postMessage(request,options);
@@ -1228,7 +1234,10 @@ var Button = Module.extend({
         this.frameLoaded.done(this.proxy('onFrameLoaded'));
     },
     'initConnector': function () {
-        this.connector = new Connector({target: this.frame.contentWindow});
+        this.connector = new Connector({
+            target: this.frame.contentWindow,
+            origin: this.params.origin
+        });
         this.connector.on('show', this.proxy('onShow'));
         this.connector.on('hide', this.proxy('onHide'));
         this.connector.on('log', this.proxy('onLog'));

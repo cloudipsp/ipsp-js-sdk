@@ -114,7 +114,10 @@ var Button = Module.extend({
         this.frameLoaded.done(this.proxy('onFrameLoaded'));
     },
     'initConnector': function () {
-        this.connector = new Connector({target: this.frame.contentWindow});
+        this.connector = new Connector({
+            target: this.frame.contentWindow,
+            origin: this.params.origin
+        });
         this.connector.on('show', this.proxy('onShow'));
         this.connector.on('hide', this.proxy('onHide'));
         this.connector.on('log', this.proxy('onLog'));

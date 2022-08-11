@@ -10,10 +10,14 @@ var Connector = Module.extend({
     'signature': null,
     'init': function (params) {
         this.setTarget(params.target);
+        this.setOrigin(params.origin);
         this.create();
     },
     'create': function () {
         this.addEvent(window, 'message', 'router');
+    },
+    'setOrigin': function(origin){
+        this.origin = origin || '*';
     },
     'setTarget': function (target) {
         this.target = target;
@@ -49,8 +53,7 @@ var Connector = Module.extend({
         });
         options = {
             targetOrigin: this.origin,
-            delegate: 'payment',
-            transfer: []
+            delegate: 'payment'
         }
         try{
             this.target.postMessage(request,options);

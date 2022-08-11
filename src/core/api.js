@@ -92,7 +92,10 @@ var Api = Module.extend({
         if (this.created === false) {
             this.created = true;
             this.iframe = this._loadFrame(this.url('gateway'));
-            this.connector = new Connector({target: this.iframe.contentWindow});
+            this.connector = new Connector({
+                target: this.iframe.contentWindow,
+                origin: this.params.origin
+            });
             this.connector.on('load', this.proxy('_onLoadConnector'));
             this.connector.on('modal', this.proxy('_onOpenModal'));
         }
