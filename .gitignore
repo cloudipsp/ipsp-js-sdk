@@ -1,5 +1,8 @@
 node_modules
 dist
 .idea
-tests/pay.html
+.wrangler
+showcase
+src/worker
 npm-debug.log
+wrangler.toml

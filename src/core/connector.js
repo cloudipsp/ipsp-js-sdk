@@ -1,36 +1,33 @@
-var Module = require('./module');
-/**
- * @type {ClassObject}
- * @extends {Module}
- */
-var Connector = Module.extend({
-    'ns': 'crossDomain',
-    'origin': '*',
-    'uniqueId': 1,
-    'signature': null,
-    'init': function (params) {
+const {Module} = require('./module');
+
+exports.Connector = Module.extend({
+    ns: 'crossDomain',
+    origin: '*',
+    uniqueId: 1,
+    signature: null,
+    init(params) {
         this.setTarget(params.target);
         this.setOrigin(params.origin);
         this.create();
     },
-    'create': function () {
+    create() {
         this.addEvent(window, 'message', 'router');
     },
-    'setOrigin': function(origin){
+    setOrigin(origin){
         this.origin = origin || '*';
     },
-    'setTarget': function (target) {
+    setTarget(target) {
         this.target = target;
         return this;
     },
-    'getUID': function () {
+    getUID() {
         return ++this.uniqueId;
     },
-    'destroy': function () {
+    destroy() {
         this.removeEvent(window, 'message', 'router');
         this._super();
     },
-    'router': function (window, ev, response) {
+    router(window, ev, response) {
         if (this.target !== ev.source) return false;
         try {
             response = JSON.parse(ev.data);
@@ -43,7 +40,7 @@ var Connector = Module.extend({
             this.trigger(response.action, response.data);
         }
     },
-    'send': function (action, data, request, options) {
+    send(action, data, request, options) {
         if(!this.target){
             return;
         }
@@ -62,6 +59,3 @@ var Connector = Module.extend({
         }
     }
 });
-
-
-module.exports = Connector;

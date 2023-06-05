@@ -1,8 +1,8 @@
-var Deferred = require('../deferred');
-var Module = require('../module');
-var config = require('../config');
+const {Deferred} = require('../deferred');
+const {Module} = require('../module');
+const {GooglePayApi, GoogleBaseRequest} = require('../config');
 
-var GooglePay = Module.extend({
+const GooglePay = Module.extend({
     'id': 'google-payments-api',
     'init': function () {
         this.client = null;
@@ -20,7 +20,7 @@ var GooglePay = Module.extend({
         this.addAttr(this.script, {
             id: this.id,
             async: true,
-            src: config.GooglePayApi
+            src: GooglePayApi
         });
         this.utils.isElement(this.wrapper) && this.wrapper.appendChild(this.script);
         this.addEvent(this.script, 'load', 'onLoadSuccess');
@@ -43,7 +43,9 @@ var GooglePay = Module.extend({
         this.defer.rejectWith(this, error);
     },
     'onLoadSuccess': function () {
-        this.getClient().isReadyToPay(config.GoogleBaseRequest)
+        const client = this.getClient()
+        if( client )
+            client.isReadyToPay(GoogleBaseRequest)
             .then(this.proxy('readyToPay'))
             .catch(this.proxy('onError'));
     },
@@ -52,7 +54,7 @@ var GooglePay = Module.extend({
     },
     'getClient': function (options) {
         if( options || this.client === null ) {
-            var PaymentClient = this.utils.getPath('google.payments.api.PaymentsClient');
+            const PaymentClient = this.utils.getPath('google.payments.api.PaymentsClient');
             if (PaymentClient) {
                 this.client = new PaymentClient(options);
             } else {
@@ -63,4 +65,4 @@ var GooglePay = Module.extend({
     }
 });
 
-module.exports = new GooglePay;
+exports.GooglePay = new GooglePay;

@@ -1,18 +1,21 @@
-var Config = require('../config');
-var Module    = require('../module');
-var Api       = require('../api');
-var Connector = require('../connector');
-var Response  = require('../response');
-var Deferred = require('../deferred');
-var Request   = require('./request');
-var GooglePay = require('../google/pay')
+const {Module}    = require('../module');
+const {Api}       = require('../api');
+const {Connector} = require('../connector');
+const {Response}  = require('../response');
+const {Deferred} = require('../deferred');
+const {PaymentRequest}   = require('./request');
+const {GooglePay} = require('../google/pay')
 
-/**
- * @type {ClassObject}
- * @extends {Module}
- */
-var Button = Module.extend({
-    'defaults': {
+const {
+    ButtonCoverCss,
+    ButtonCoverAttrs,
+    ButtonContainerCss,
+    ButtonFrameCss,
+    ButtonFrameAttrs
+} = require('../config');
+
+exports.PaymentButton = Module.extend({
+    defaults: {
         origin: 'https://api.fondy.eu',
         endpoint: {
             gateway: '/checkout/v2/index.html',
@@ -26,7 +29,7 @@ var Button = Module.extend({
         },
         data: {}
     },
-    'init': function (params) {
+    init(params) {
         this.initParams(params);
         this.initElement();
         this.initEvents();
@@ -34,11 +37,11 @@ var Button = Module.extend({
         this.initFrame();
         this.initPaymentRequest();
     },
-    'initParams': function (params) {
+    initParams(params) {
         this.supported = false;
         this.params = this.utils.extend({},this.defaults, params);
     },
-    'initApi': function () {
+    initApi() {
         if(this.params.api instanceof Api){
             this.api = this.params.api;
             delete this.params['api'];
@@ -49,31 +52,31 @@ var Button = Module.extend({
             });
         }
     },
-    'endpointUrl': function (type, url) {
+    endpointUrl(type, url) {
         return [this.params.origin, this.params.endpoint[type] || '/', url || ''].join('');
     },
-    'initElement': function () {
+    initElement() {
         this.element = this.utils.querySelector(this.params.element);
         this.container = this.utils.createElement('div');
         this.cover = this.utils.createElement('a');
-        this.addCss(this.cover,Config.ButtonCoverCss);
-        this.addAttr(this.cover,Config.ButtonCoverAttrs)
-        this.addCss(this.container,Config.ButtonContainerCss);
+        this.addCss(this.cover,ButtonCoverCss);
+        this.addAttr(this.cover,ButtonCoverAttrs)
+        this.addCss(this.container,ButtonContainerCss);
         this.element.appendChild(this.container);
     },
-    'sendButtonEvent': function(cx,ev){
+    sendButtonEvent(cx,ev){
         ev.preventDefault();
         this.connector.send('event',{type:ev.type});
     },
-    'initEvents': function(){
+    initEvents(){
         this.addEvent(this.cover, 'mouseenter', 'sendButtonEvent');
         this.addEvent(this.cover, 'mouseleave', 'sendButtonEvent');
         this.addEvent(this.cover, 'blur', 'sendButtonEvent');
         this.addEvent(this.cover, 'focus', 'sendButtonEvent');
         this.addEvent(this.cover, 'click', 'onClick');
     },
-    'initPaymentRequest': function () {
-        this.payment = new Request({});
+    initPaymentRequest() {
+        this.payment = new PaymentRequest();
         this.payment.on('complete', this.proxy('onToken'));
         this.payment.on('error', this.proxy('onError'));
         this.payment.on('log', this.proxy('onLog'));
@@ -84,11 +87,11 @@ var Button = Module.extend({
         this.payment.setMerchant(this.params.data.merchant_id);
         this.payment.getSupportedMethod();
     },
-    'initFrame': function () {
+    initFrame() {
         this.frameLoaded = Deferred();
         this.frame = this.utils.createElement('iframe');
-        this.addCss(this.frame,Config.ButtonFrameCss);
-        this.addAttr(this.frame,Config.ButtonFrameAttrs);
+        this.addCss(this.frame,ButtonFrameCss);
+        this.addAttr(this.frame,ButtonFrameAttrs);
         this.addAttr(this.frame, {
             src: this.endpointUrl('button')
         });
@@ -99,21 +102,21 @@ var Button = Module.extend({
             this.frameLoaded.resetState().resolve();
         });
     },
-    'onFrameLoaded': function(){
+    onFrameLoaded(){
         this.update({});
     },
-    'onFallback': function(){
+    onFallback(){
         this.fallback = true;
         GooglePay.load().then(this.proxy(function(){
             this.onSupported(null, 'google');
         }));
     },
-    'onSupported': function(cx, method){
+    onSupported(cx, method){
         this.supported = true;
         this.method = method;
         this.frameLoaded.done(this.proxy('onFrameLoaded'));
     },
-    'initConnector': function () {
+    initConnector() {
         this.connector = new Connector({
             target: this.frame.contentWindow,
             origin: this.params.origin
@@ -126,8 +129,8 @@ var Button = Module.extend({
         this.connector.on('error', this.proxy('onError'));
         this.connector.on('reload', this.proxy('onReload'));
     },
-    'getConfigParams': function (data) {
-        var params = {method: this.method, data: {}, style: {} , fallback: this.fallback};
+    getConfigParams(data) {
+        const params = {method: this.method, data: {}, style: {} , fallback: this.fallback};
         this.utils.extend(params.data, this.params.data);
         this.utils.extend(params.style, this.params.style);
         if (this.utils.isPlainObject(data)) {
@@ -135,13 +138,13 @@ var Button = Module.extend({
         }
         return params;
     },
-    'send': function(action,data){
+    send(action,data){
         if( this.supported === true ){
             this.connector.send(action,data);
         }
         return this;
     },
-    'update': function (params) {
+    update(params) {
         this.sendOptions(params);
         this.api.scope(this.proxy(function(){
             this.api.request('api.checkout.pay','get',this.params.data)
@@ -149,18 +152,18 @@ var Button = Module.extend({
                 .fail(this.proxy('sendConfig'));
         }));
     },
-    'sendOptions': function(params){
+    sendOptions(params){
         this.utils.extend(this.params,this.getConfigParams(params));
         this.send('options',this.params);
     },
-    'sendConfig': function(cx,model){
+    sendConfig(cx,model){
         this.model = model;
         this.model.supportedMethod(this.method);
         this.payment.setConfig(this.model.data);
         this.send('config',this.model.data);
     },
-    'callback': function (model) {
-        var params = this.utils.extend({}, this.params.data, model.serialize());
+    callback(model) {
+        const params = this.utils.extend({}, this.params.data, model.serialize());
         this.api.scope(this.proxy(function(){
             this.api.request('api.checkout.form','request',params)
                 .done(this.proxy('onSuccess'))
@@ -258,4 +261,4 @@ var Button = Module.extend({
     }
 });
 
-module.exports = Button;
+

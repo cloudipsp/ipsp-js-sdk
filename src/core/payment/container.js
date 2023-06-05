@@ -1,14 +1,10 @@
-var Config = require('../config');
-var Module = require('../module');
-var Connector = require('../connector');
-var Request = require('./request');
+const Config = require('../config');
+const {Module} = require('../module');
+const {Connector} = require('../connector');
+const {PaymentRequest} = require('./request');
 
-/**
- * @type {ClassObject}
- * @extends {Module}
- */
-var Container = Module.extend({
-    'defaults': {
+exports.PaymentContainer = Module.extend({
+    defaults: {
         element: null,
         method: 'card',
         data: {
@@ -16,19 +12,19 @@ var Container = Module.extend({
         },
         style: {}
     },
-    'init': function (params) {
+    init(params) {
         this.initParams(params);
         this.initEvents();
     },
-    'initParams': function (params) {
+    initParams(params) {
         this.params = this.utils.extend({}, this.defaults, params);
         this.element = this.utils.querySelector(this.params.element);
         this.connector = new Connector({target: window.parent});
-        this.payment   = new Request({
+        this.payment   = new PaymentRequest({
             embedded: true
         });
     },
-    'extendParams': function (params) {
+    extendParams(params) {
         this.utils.extend(this.params, {
             method: params.method,
             style: params.style,
@@ -36,20 +32,20 @@ var Container = Module.extend({
             css: params.css
         });
     },
-    'getGoogleLangSupport': function (lang, defaults) {
+    getGoogleLangSupport(lang, defaults) {
         return Config.GooglePayLanguages.indexOf(lang) !== -1 ? lang : defaults;
     },
-    'getButtonColor': function(color){
+    getButtonColor(color){
         return Config.ButtonColorMap[color] || Config.ButtonDefaultColor;
     },
-    'getGoogleSvg': function (color, lang, mode) {
-        var format = 'url("{endpoint}/{color}/{mode}/{lang}.svg")';
-        var params = {
+    getGoogleSvg(color, lang, mode) {
+        const params = {
             endpoint: 'https://www.gstatic.com/instantbuy/svg',
             color: this.getButtonColor(color),
             mode: mode || 'plain',
             lang: lang || 'en'
         };
+        let format = 'url("{endpoint}/{color}/{mode}/{lang}.svg")';
         if (mode === 'plain') {
             format = 'url("{endpoint}/{color}_gpay.svg")';
         }
@@ -58,27 +54,27 @@ var Container = Module.extend({
         }
         return this.utils.stringFormat(format, params)
     },
-    'getAppleSvg': function (color, lang, mode) {
-        var format = 'url("svg/apple-pay-{color}.svg")';
-        var params = {
+    getAppleSvg(color) {
+        const format = 'url("svg/apple-pay-{color}.svg")';
+        const params = {
             color: this.getButtonColor(color)
         };
         return this.utils.stringFormat(format, params);
     },
-    'getAppleLabel': function (lang) {
+    getAppleLabel(lang) {
         return Config.ButtonLabelMap[lang || 'en'];
     },
-    'addFrameImage': function () {
-        var frame = this.utils.querySelector('iframe', this.element) || this.utils.createElement('iframe');
-        var url = 'https://pay.google.com/gp/p/generate_gpay_btn_img';
-        var style = this.params.style || {};
-        var lang = this.getGoogleLangSupport(this.params.data.lang, 'en');
-        var query = {
+    addFrameImage() {
+        const frame = this.utils.querySelector('iframe', this.element) || this.utils.createElement('iframe');
+        const url = 'https://pay.google.com/gp/p/generate_gpay_btn_img';
+        const style = this.params.style || {};
+        const lang = this.getGoogleLangSupport(this.params.data.lang, 'en');
+        const query = {
             buttonColor: style.color || 'black',
             browserLocale: lang,
             buttonSizeMode: 'fill'
         };
-        var src = [url, this.utils.param(query)].join('?');
+        const src = [url, this.utils.param(query)].join('?');
         this.addAttr(frame, {
             'scrolling': 'no',
             'frameborder': 0,
@@ -87,13 +83,13 @@ var Container = Module.extend({
         this.element.appendChild(frame);
         this.element.classList.remove('short', 'long');
     },
-    'styleButton': function () {
-        var element = this.element;
-        var params = this.params;
-        var method = params.method;
-        var style = params.style || {};
-        var lang = params.data.lang || 'en';
-        var css = params.css || {};
+    styleButton() {
+        let element = this.element;
+        let params = this.params;
+        let method = params.method;
+        let style = params.style || {};
+        let lang = params.data.lang || 'en';
+        let css = params.css || {};
         element.setAttribute('class', '');
         element.classList.add('button','pending');
         if (method === 'card') method = 'google';
@@ -132,7 +128,7 @@ var Container = Module.extend({
             });
         }
     },
-    'initEvents': function () {
+    initEvents() {
         this.payment.on('complete', this.proxy(function (cx, data) {
             this.connector.send('complete',data);
         }));
@@ -181,5 +177,3 @@ var Container = Module.extend({
         }))
     }
 });
-
-module.exports = Container;

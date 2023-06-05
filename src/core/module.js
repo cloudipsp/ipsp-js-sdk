@@ -1,28 +1,25 @@
-var Class = require('./class');
-var Event = require('./event');
-var Utils = require('./utils');
-/**
- * @type {ClassObject}
- * @extends {Class}
- */
-var Module =  Class.extend({
-    'utils': Utils,
-    'getListener': function () {
+const {ClassObject} = require('./class');
+const {Event} = require('./event');
+const Utils = require('./utils');
+
+exports.Module = ClassObject.extend({
+    utils: Utils,
+    getListener() {
         if (!this._listener_) this._listener_ = new Event();
         return this._listener_;
     },
-    'destroy': function () {
+    destroy() {
         this.off();
     },
-    'on': function (type, callback) {
+    on(type, callback) {
         this.getListener().on(type, callback);
         return this;
     },
-    'off': function (type, callback) {
+    off(type, callback) {
         this.getListener().off(type, callback);
         return this;
     },
-    'proxy': function (fn) {
+    proxy(fn) {
         if (!this._proxy_cache_) this._proxy_cache_ = {};
         if (this.utils.isString(fn)) {
             if (!this._proxy_cache_[fn]) {
@@ -32,27 +29,27 @@ var Module =  Class.extend({
         }
         return this._super(fn);
     },
-    'trigger': function () {
+    trigger() {
         this.getListener().trigger.apply(this.getListener(), arguments);
         return this;
     },
-    'each': function (ob, cb) {
+    each(ob, cb) {
         this.utils.forEach(ob, this.proxy(cb));
     },
-    'addAttr': function (el, ob) {
+    addAttr(el, ob) {
         if (!this.utils.isElement(el)) return false;
         this.utils.forEach(ob, function (v, k) {
             el.setAttribute(k, v);
         });
     },
-    'addCss': function (el, ob) {
+    addCss(el, ob) {
         if (!this.utils.isElement(el)) return false;
         this.utils.forEach(ob, function (v, k) {
             this.addCssProperty(el, k, v);
         }, this);
     },
-    'addCssProperty': function (el, style, value) {
-        var result = el.style.cssText.match(new RegExp("(?:[;\\s]|^)(" +
+    addCssProperty(el, style, value) {
+        let result = el.style.cssText.match(new RegExp("(?:[;\\s]|^)(" +
             style.replace("-", "\\-") + "\\s*:(.*?)(;|$))")),
             idx;
         if (result) {
@@ -64,20 +61,20 @@ var Module =  Class.extend({
             el.style.cssText += " " + style + ": " + value + ";";
         }
     },
-    'addEvent': function (el, ev, cb) {
+    addEvent(el, ev, cb) {
         if (!el || !ev || !cb) return false;
         cb = this.proxy(cb);
         if (el.addEventListener) el.addEventListener(ev, cb);
         else if (el['attachEvent']) el['attachEvent']('on' + ev, cb);
     },
-    'removeEvent': function (el, ev, cb) {
+    removeEvent(el, ev, cb) {
         if (!el || !ev || !cb) return false;
         cb = this.proxy(cb);
         if (el.removeEventListener) el.removeEventListener(ev, cb, false);
         else if (el['detachEvent']) el['detachEvent']('on' + ev, cb);
     },
-    'prepareForm': function (url, data, target, method) {
-        var form = this.utils.createElement('form');
+    prepareForm(url, data, target, method) {
+        const form = this.utils.createElement('form');
         this.addAttr(form, {
             'action': url,
             'target': target || '_self',
@@ -96,5 +93,3 @@ var Module =  Class.extend({
         return form;
     }
 });
-
-module.exports = Module;

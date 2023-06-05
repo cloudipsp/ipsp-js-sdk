@@ -1,21 +1,18 @@
-var Module = require('./module');
-var Connector = require('./connector');
-var Template  = require('./template');
-/**
- * @type {ClassObject}
- * @extends {Module}
- */
-var Modal = Module.extend({
-    'init': function (data) {
+const {Module} = require('./module');
+const {Connector} = require('./connector');
+const {Template}  = require('./template');
+
+exports.Modal = Module.extend({
+    init(data) {
         this.checkout = data.checkout;
         this.model    = data.model || {};
         this.messages = data.checkout.params.messages || {};
-        this.template = new Template('3ds.ejs');
+        this.template = new Template('acs');
         this.body = this.utils.querySelector('body');
         this.initModal();
         this.initConnector();
     },
-    'initModal': function () {
+    initModal() {
         this.name = ['modal-iframe', this.getRandomNumber()].join('-');
         this.modal = this.utils.createElement('div');
         this.modal.innerHTML = this.template.render({
@@ -38,18 +35,16 @@ var Modal = Module.extend({
             this.form.submit();
         }
     },
-    'measureScrollbar': function () {
-        var width;
-        var scrollDiv = document.createElement('div');
+    measureScrollbar() {
+        const scrollDiv = document.createElement('div');
         scrollDiv.className = 'modal-scrollbar-measure';
         this.body.appendChild(scrollDiv);
-        width = scrollDiv.offsetWidth - scrollDiv.clientWidth;
         this.utils.removeElement(scrollDiv);
-        return width;
+        return scrollDiv.offsetWidth - scrollDiv.clientWidth;
     },
-    'checkScrollbar': function () {
-        var documentElementRect;
-        var fullWindowWidth = window.innerWidth;
+    checkScrollbar() {
+        let documentElementRect;
+        let fullWindowWidth = window.innerWidth;
         if (!fullWindowWidth) {
             documentElementRect = document.documentElement.getBoundingClientRect();
             fullWindowWidth = documentElementRect.right - Math.abs(documentElementRect.left);
@@ -57,7 +52,7 @@ var Modal = Module.extend({
         this.bodyIsOverflowing = document.body.clientWidth < fullWindowWidth;
         this.scrollbarWidth = this.measureScrollbar()
     },
-    'initScrollbar': function () {
+    initScrollbar() {
         this.checkScrollbar();
         this.bodyPad = parseInt(this.utils.getStyle(this.body, 'padding-right') || 0, 10);
         this.originalBodyPad = document.body.style.paddingRight || '';
@@ -69,24 +64,24 @@ var Modal = Module.extend({
             });
         }
     },
-    'resetScrollbar': function () {
+    resetScrollbar() {
         this.addCss(this.body, {
             'paddingRight': this.originalBodyPad ? [this.originalBodyPad, 'px'].join('') : '',
             'overflow': this.originalOverflow
         });
     },
-    'getRandomNumber': function () {
+    getRandomNumber() {
         return Math.round(Math.random() * 1000000000);
     },
-    'find': function (selector) {
+    find(selector) {
         return this.utils.querySelector(selector, this.modal);
     },
-    'closeModal': function (el, ev) {
+    closeModal(el, ev) {
         ev.preventDefault();
         this.trigger('close', this.data);
         this.removeModal();
     },
-    'submitForm': function (el, ev) {
+    submitForm(el, ev) {
         ev.preventDefault();
         this.trigger('submit', this.data);
         this.addAttr(this.form,{
@@ -94,24 +89,24 @@ var Modal = Module.extend({
         });
         this.form.submit();
     },
-    'removeModal': function () {
+    removeModal() {
         this.destroy();
     },
-    'destroy': function () {
+    destroy() {
         this.utils.removeElement(this.modal);
         this.resetScrollbar();
         this.connector.destroy();
         this._super();
     },
-    'initConnector': function () {
+    initConnector() {
         this.connector = new Connector({target: this.iframe.contentWindow});
         this.connector.on('response', this.proxy('onResponse'));
     },
-    'onResponse': function (ev, data) {
+    onResponse(ev, data) {
         this.sendResponse(data);
         this.removeModal();
     },
-    'sendResponse': function (data) {
+    sendResponse(data) {
         this.checkout.connector.send('request', {
             uid: data.uid,
             action: 'api.checkout.proxy',
@@ -120,5 +115,3 @@ var Modal = Module.extend({
         });
     }
 });
-
-module.exports = Modal;

@@ -1,23 +1,21 @@
-var Module = require('../module');
-var Widget = require('./index');
-/**
- * @type {ClassObject}
- */
-var FormData = Module.extend({
-    'init': function (form) {
+const {Module} = require('../module');
+const {Widget} = require('./index');
+
+const FormData = Module.extend({
+    init(form) {
         this.setFormElement(form);
     },
-    'setFormElement': function (form) {
+    setFormElement(form) {
         if (this.utils.isElement(form)) {
             this.form = form;
         }
     },
-    'getData': function (filter) {
-        var params = this.deparam(this.serializeArray());
+    getData(filter) {
+        const params = this.deparam(this.serializeArray());
         return filter === true ? this.utils.cleanObject(params) : params;
     },
-    'serializeArray': function () {
-        var list = this.utils.toArray(this.form.elements);
+    serializeArray() {
+        const list = this.utils.toArray(this.form.elements);
         return this.utils.map(list, function (field) {
             if (field.disabled || field.name === '') return;
             if (field.type.match('checkbox|radio') && !field.checked) return;
@@ -27,17 +25,16 @@ var FormData = Module.extend({
             };
         });
     },
-    'serializeAndEncode': function () {
+    serializeAndEncode() {
         return this.utils.map(this.serializeArray(), function (field) {
             return [field.name, encodeURIComponent(field.value)].join('=');
         }).join('&');
     },
-    'deparam': function (obj) {
-        var prop;
-        var result = {};
-        var breaker = /[^\[\]]+|\[\]$/g;
-        var attr = function (name, value) {
-            var i, data = result, last = name.pop(), len = name.length;
+    deparam(obj) {
+        let prop,result = {};
+        const breaker = /[^\[\]]+|\[\]$/g;
+        const attr = function (name, value) {
+            let i, data = result, last = name.pop(), len = name.length;
             for (i = 0; i < len; i++) {
                 if (!data[name[i]])
                     data[name[i]] = len === i + 1 && last === '[]' ? [] : {};
@@ -57,17 +54,14 @@ var FormData = Module.extend({
         return result;
     }
 });
-/**
- * @type {ClassObject}
- * @extends {Widget}
- */
-var Form = Widget.extend({
-    'initElement': function (el) {
+
+exports.WidgetForm = Widget.extend({
+    initElement(el) {
         this.addSelectorEvent(el, 'submit', 'sendRequest');
     },
-    'getRequestParams': function (el) {
+    getRequestParams(el) {
         return this.utils.extend({}, this.params.options, new FormData(el).getData() );
     }
 });
 
-module.exports = Form;
+

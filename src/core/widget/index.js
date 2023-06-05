@@ -1,37 +1,34 @@
-var Api = require('../api');
-/**
- * @type {ClassObject}
- * @extends {Api}
- */
-var Widget = Api.extend({
-    'init': function (params) {
+const {Api} = require('../api');
+
+exports.Widget = Api.extend({
+    init(params) {
         this.initParams(params);
         this.initWidget();
     },
-    'initWidget': function () {
+    initWidget() {
         this.initOptions(this.params.options);
         if (this.utils.isString(this.params.element)) {
             this.initElement(this.params.element);
         }
     },
-    'initOptions': function () {
+    initOptions() {
         if (this.utils.isPlainObject(this.params.options)) {
             this.params.options = this.params.options || {};
         }
     },
-    'initElement': function (el) {
+    initElement(el) {
 
     },
-    'addSelectorEvent': function (el, ev, cb) {
+    addSelectorEvent(el, ev, cb) {
         this.each(this.utils.querySelectorAll(el), function (cx, element) {
             this.addEvent(element, ev, cb);
         });
         return this;
     },
-    'getRequestParams': function () {
+    getRequestParams() {
         return {};
     },
-    'sendRequest': function (el, ev) {
+    sendRequest(el, ev) {
         if (ev.defaultPrevented) return;
         ev.preventDefault();
         this.trigger('request', this.getRequestParams(el));
@@ -42,18 +39,15 @@ var Widget = Api.extend({
                 .progress(this.proxy('onProgress'));
         });
     },
-    'onProgress': function (cx, model) {
+    onProgress(cx, model) {
         this.trigger('progress', model);
     },
-    'onSuccess': function (cx, model) {
+    onSuccess(cx, model) {
         model.sendResponse();
         model.submitToMerchant();
         this.trigger('success', model);
     },
-    'onError': function (cx, model) {
+    onError(cx, model) {
         this.trigger('error', model);
     }
 });
-
-
-module.exports = Widget;

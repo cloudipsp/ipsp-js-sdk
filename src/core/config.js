@@ -48,14 +48,7 @@ exports.GooglePayLanguages = [
     'uk'
 ];
 
-exports.PaymentRequestMethods = [
-    ['google', {
-        'supportedMethods': ['https://google.com/pay'],
-        'data': exports.GoogleBaseRequest
-    }],
-    ['apple', {'supportedMethods': ['https://apple.com/apple-pay']}],
-    ['card', {'supportedMethods': ['basic-card']}]
-];
+exports.PaymentRequestOptions = {}
 
 exports.PaymentRequestDetails = {
     'total': {
@@ -65,7 +58,7 @@ exports.PaymentRequestDetails = {
             'value': '0.00'
         }
     }
-};
+}
 
 exports.ApiFrameCss = {
     'width': '1px !important',

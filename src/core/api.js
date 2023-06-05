@@ -1,49 +1,45 @@
-var Config    = require('./config');
-var Deferred  = require('./deferred');
-var Module    = require('./module');
-var Connector = require('./connector');
-var Modal     = require('./modal');
-var Response  = require('./response');
+const Config    = require('./config');
+const {Deferred}  = require('./deferred');
+const {Module}    = require('./module');
+const {Connector} = require('./connector');
+const {Modal}     = require('./modal');
+const {Response}  = require('./response');
 
-/**
- * @type {ClassObject}
- * @extends {Module}
- */
-var Api = Module.extend({
-    'defaults': {
-        'origin': 'https://api.fondy.eu',
-        'endpoint': {
+exports.Api = Module.extend({
+    defaults: {
+        origin: 'https://api.fondy.eu',
+        endpoint: {
             'gateway': '/checkout/v2/index.html'
         },
-        'messages':{
+        messages:{
             'modalHeader':'Now you will be redirected to your bank 3DSecure. If you are not redirected please refer',
             'modalLinkLabel':'link'
         }
     },
-    'init': function (params) {
+    init(params){
         this.initParams(params);
     },
-    'url': function (type, url) {
+    url(type, url){
         return [this.params.origin, this.params.endpoint[type] || '/', url || ''].join('');
     },
-    'extendParams': function(params){
+    extendParams(params){
         this.utils.extend(this.params, params);
         return this;
     },
-    'initParams': function (params) {
+    initParams(params) {
         this.params = this.utils.extend({},this.defaults);
         this.extendParams(params);
         this.setOrigin(this.params.origin);
         this.loaded = false;
         this.created = false;
     },
-    'setOrigin': function (origin) {
+    setOrigin(origin) {
         if (this.utils.isString(origin)) {
             this.params.origin = origin;
         }
         return this;
     },
-    'scope': function (callback) {
+    scope(callback) {
         callback = this.proxy(callback);
         if (this._createFrame().loaded === true) {
             callback();
@@ -51,9 +47,9 @@ var Api = Module.extend({
             this.on('checkout.api', callback);
         }
     },
-    'request': function (model, method, params) {
-        var defer = Deferred();
-        var data = {
+    request(model, method, params) {
+        const defer = Deferred();
+        const data = {
             uid: this.connector.getUID(),
             action: model,
             method: method,
@@ -75,7 +71,7 @@ var Api = Module.extend({
         }));
         return defer;
     },
-    '_loadFrame': function (url) {
+    _loadFrame(url) {
         this.iframe = this.utils.createElement('iframe');
         this.addAttr(this.iframe, {'allowtransparency': true, 'frameborder': 0, 'scrolling': 'no'});
         this.addAttr(this.iframe, {'src': url});
@@ -88,7 +84,7 @@ var Api = Module.extend({
         }
         return this.iframe;
     },
-    '_createFrame': function () {
+    _createFrame() {
         if (this.created === false) {
             this.created = true;
             this.iframe = this._loadFrame(this.url('gateway'));
@@ -101,17 +97,17 @@ var Api = Module.extend({
         }
         return this;
     },
-    '_onOpenModal': function (xhr, model) {
+    _onOpenModal(xhr, model) {
         this.modal = new Modal({
             checkout: this,
             model: model
         });
         this.modal.on('close', this.proxy('_onCloseModal'));
     },
-    '_onCloseModal': function (modal, data) {
+    _onCloseModal(modal, data) {
         this.trigger('modal.close', modal, data);
     },
-    '_onLoadConnector': function () {
+    _onLoadConnector() {
         this.loaded = true;
         this.connector.off('load');
         this.trigger('checkout.api');
@@ -119,4 +115,3 @@ var Api = Module.extend({
     }
 });
 
-module.exports = Api;

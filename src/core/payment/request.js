@@ -1,34 +1,11 @@
-var Api = require('../api');
-var Module = require('../module');
-var GooglePay = require('../google/pay')
-var Deferred = require('../deferred');
-var Utils = require('../utils');
-var Config = require('../config');
+const {Api} = require('../api');
+const {Module} = require('../module');
+const {GooglePay} = require('../google/pay')
+const {Deferred} = require('../deferred');
+const Utils = require('../utils');
+const {GoogleBaseRequest, PaymentRequestDetails} = require("../config");
 
-var hasPaymentRequest = function () {
-    return window.hasOwnProperty('PaymentRequest') && typeof (window.PaymentRequest) === 'function'
-}
-
-var getPaymentRequest = function (methods, details, options) {
-    var request = null;
-    options = options || {};
-    details = details || {};
-    details.id = Utils.uuid();
-    if (hasPaymentRequest()) {
-        try {
-            request = new PaymentRequest(methods, details, options);
-        } catch (e) {
-            request = null;
-        }
-    }
-    return request;
-};
-
-/**
- * @type {ClassObject}
- * @extends {Module}
- */
-var Request = Module.extend({
+exports.PaymentRequest = Module.extend({
     'config': {
         payment_system: '',
         fallback: false,
@@ -51,33 +28,73 @@ var Request = Module.extend({
             this.api = api;
         }
     },
-    'isValidConfig': function(){
+    'isValidConfig': function () {
         return this.config.payment_system && this.config.methods && this.config.methods.length > 0;
     },
-    'getSupportedMethod': function () {
-        (function (module, list, index) {
-            var request, method, config;
-            var callback = arguments.callee;
-            var item = list[index] || false;
-            if (item === false) {
-                return module.trigger('fallback');
+    'getPaymentMethods':function(){
+        return [
+            ['google', {
+                'supportedMethods': 'https://google.com/pay',
+                'data': GoogleBaseRequest
+            }],
+            ['apple', {
+                'supportedMethods': 'https://apple.com/apple-pay'
+            }]
+        ];
+    },
+    'getSupportedMethods': function () {
+        const defer = Deferred();
+        const methods = this.getPaymentMethods();
+        const details = PaymentRequestDetails;
+        const response = {
+            fallback: false,
+            supported: []
+        };
+        (function check() {
+            const item = methods.shift()
+            if (item === undefined) {
+                if (response.supported.indexOf('google') === -1) {
+                    response.fallback = true
+                    response.supported.push('google')
+                }
+                return defer.resolve(response)
             }
-            index = (index || 0) + 1;
-            method = item[0];
-            config = item[1];
-            request = getPaymentRequest([config], Config.PaymentRequestDetails);
-            if( request ){
+            const config = item.pop()
+            const method = item.pop()
+            const request = Utils.getPaymentRequest([config], details);
+            if (request) {
+                request.canMakePayment().then(function (status) {
+                    if (status === true) response.supported.push(method)
+                    check()
+                }).catch(check);
+            } else {
+                check()
+            }
+        })()
+        return defer
+    },
+    'getSupportedMethod': function () {
+        const module = this
+        const methods = this.getPaymentMethods();
+        const details = PaymentRequestDetails;
+        (function next() {
+            const item = methods.shift() || false;
+            if (item === false) return module.trigger('fallback');
+            const method = item.shift();
+            const config = item.shift();
+            const request = Utils.getPaymentRequest([config], details);
+            if (request) {
                 request.canMakePayment().then(function (status) {
                     if (status === true) {
                         module.trigger('supported', method);
                     } else {
-                        callback(module, list, index);
+                        next();
                     }
                 });
             } else {
-                callback(module, list, index);
+                next();
             }
-        })(this, Config.PaymentRequestMethods , 0);
+        })();
     },
     'modelRequest': function (method, params, callback, failure) {
         if (this.api instanceof Api) {
@@ -88,9 +105,9 @@ var Request = Module.extend({
         }
     },
     'getRequest': function () {
-        var module = this;
-        var defer = Deferred();
-        var request = getPaymentRequest(
+        const module = this;
+        const defer = Deferred();
+        const request = Utils.getPaymentRequest(
             this.config.methods,
             this.config.details,
             this.config.options
@@ -109,10 +126,10 @@ var Request = Module.extend({
                 defer.rejectWith(module, [{code: e.code, message: e.message}]);
             });
         } else {
-            GooglePay.load().then(this.proxy(function(){
-                GooglePay.show(this.config.methods).then(function(details){
+            GooglePay.load().then(this.proxy(function () {
+                GooglePay.show(this.config.methods).then(function (details) {
                     defer.resolveWith(module, [details])
-                }).catch(function(e){
+                }).catch(function (e) {
                     defer.rejectWith(module, [{code: e.code, message: e.message}]);
                 });
             }));
@@ -134,7 +151,7 @@ var Request = Module.extend({
         });
     },
     'appleSession': function (params) {
-        var defer = Deferred();
+        const defer = Deferred();
         this.modelRequest('session', params, function (c, model) {
             defer.resolveWith(this, [model.serialize()]);
         }, function (c, model) {
@@ -158,5 +175,3 @@ var Request = Module.extend({
         });
     }
 });
-
-module.exports = Request;

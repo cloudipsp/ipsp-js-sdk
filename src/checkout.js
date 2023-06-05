@@ -1,32 +1,43 @@
-var Component = require('./core/component');
+const {Component} = require('./core/component');
 
-var Api = require('./core/api');
-var Module = require('./core/module');
-var Connector = require('./core/connector');
-var Response = require('./core/response');
-var PaymentButton = require('./core/payment/button');
-var PaymentContainer = require('./core/payment/container');
-var FormWidget = require('./core/widget/form');
-var ButtonWidget = require('./core/widget/button');
-var Utils = require('./core/utils');
-var Config = require('./core/config');
+const {Api} = require('./core/api');
+const {Module} = require('./core/module');
+const {Connector} = require('./core/connector');
+const {Response} = require('./core/response');
+const {PaymentButton} = require('./core/payment/button');
+const {PaymentRequest} = require('./core/payment/request');
+const {PaymentElement} = require('./core/payment/element');
+const {PaymentContainer} = require('./core/payment/container');
+const {WidgetForm} = require('./core/widget/form');
+const {WidgetButton} = require('./core/widget/button');
+const Utils = require('./core/utils');
+const Config = require('./core/config');
 
 Component.add('Api', Api);
 Component.add('Connector', Connector);
 Component.add('PaymentContainer', PaymentContainer);
+Component.add('PaymentRequest', PaymentRequest);
+Component.add('PaymentElement', PaymentElement);
 Component.add('PaymentButton', PaymentButton);
-Component.add('FormWidget', FormWidget);
-Component.add('ButtonWidget', ButtonWidget);
+Component.add('FormWidget', WidgetForm);
+Component.add('ButtonWidget', WidgetButton);
 Component.add('Response', Response);
 
+Component.Utils = Utils
+Component.Config = Config
+
+
 module.exports = Component;
-module.exports['Api'] = Api;
-module.exports['Module'] = Module;
-module.exports['Utils'] = Utils;
-module.exports['Config'] = Config;
-module.exports['Connector'] = Connector;
-module.exports['PaymentContainer'] = PaymentContainer;
-module.exports['PaymentButton'] = PaymentButton;
-module.exports['FormWidget'] = FormWidget;
-module.exports['ButtonWidget'] = ButtonWidget;
-module.exports['Response'] = Response;
+
+exports.Api = Api;
+exports.Module = Module;
+exports.Utils = Utils;
+exports.Config = Config;
+exports.Connector = Connector;
+exports.PaymentRequest = PaymentRequest;
+exports.PaymentContainer = PaymentContainer;
+exports.PaymentElement = PaymentElement;
+exports.PaymentButton = PaymentButton;
+exports.FormWidget = WidgetForm;
+exports.WidgetButton = WidgetButton;
+exports.Response = Response;

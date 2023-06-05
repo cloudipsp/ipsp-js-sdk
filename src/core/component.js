@@ -1,14 +1,25 @@
-var modules = {};
-var instance = {};
-
-var newModule = function (name, params) {
+/**
+ * Modules registry
+ * @type {Object<string,any>}
+ */
+const modules = {};
+/**
+ * @type {Object<string,any>}
+ */
+const instance = {};
+/**
+ * @param {string} name
+ * @param {Object} [params]
+ * @returns {{}}
+ */
+const newModule = function (name, params) {
     if (!modules[name]) {
         throw Error(['module is undefined', name].join(' '));
     }
     return new modules[name](params || {});
 };
 
-var addModule = function (name, module) {
+const addModule = function (name, module) {
     if (modules[name]) {
         throw Error(['module already added', name].join(' '));
     }
@@ -30,4 +41,4 @@ Component.add = function (name, module) {
 };
 
 
-module.exports = Component;
+exports.Component = Component

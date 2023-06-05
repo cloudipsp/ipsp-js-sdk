@@ -1,70 +1,68 @@
-var Utils = {
-    'getType': function (o) {
+const Utils = {
+    getType(o) {
         return ({}).toString.call(o).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
     },
-    'isObject': function (o) {
+    isObject(o) {
         return this.getType(o) === 'object';
     },
-    'isPlainObject': function (o) {
+    isPlainObject(o) {
         return (!!o && typeof o === 'object' && o.constructor === Object);
     },
-    'isFunction': function (o) {
+    isFunction(o) {
         return this.getType(o) === 'function';
     },
-    'isRegexp': function (o) {
+    isRegexp(o) {
         return this.getType(o) === 'regexp';
     },
-    'isArguments': function (o) {
+    isArguments(o) {
         return this.getType(o) === 'arguments';
     },
-    'isError': function (o) {
+    isError(o) {
         return this.getType(o) === 'error';
     },
-    'isArray': function (o) {
+    isArray(o) {
         return this.getType(o) === 'array';
     },
-    'isDate': function (o) {
+    isDate(o) {
         return this.getType(o) === 'date';
     },
-    'isString': function (o) {
+    isString(o) {
         return this.getType(o) === 'string';
     },
-    'isNumber': function (o) {
+    isNumber(o) {
         return this.getType(o) === 'number';
     },
-    'isElement': function (o) {
+    isElement(o) {
         return o && o.nodeType === 1;
     },
-    'toArray': function (o) {
+    toArray(o) {
         return [].slice.call(o);
     },
-    'querySelectorAll': function (o, p) {
+    querySelectorAll(o, p) {
         return this.toArray((p || document).querySelectorAll(o));
     },
-    'querySelector': function (o, p) {
+    querySelector(o, p) {
         return (p || document).querySelector(o);
     },
-    'hasProp': function(o,v){
+    hasProp(o, v) {
         return o && o.hasOwnProperty(v);
     },
-    'forEach': function (ob, cb, cx) {
-        var p;
-        for (p in ob)
-            if (this.hasProp(ob,p))
+    forEach(ob, cb, cx) {
+        for (let p in ob)
+            if (this.hasProp(ob, p))
                 cb.call(cx || null, ob[p], p);
     },
-    'map': function (ob, cb, cx) {
-        var p, t, r = [];
+    map(ob, cb, cx) {
+        let p, t, r = [];
         for (p in ob)
-            if (this.hasProp(ob,p))
+            if (this.hasProp(ob, p))
                 if ((t = cb.call(cx || null, ob[p], p)) !== undefined)
                     r[p] = t;
         return r;
     },
-    'cleanObject': function (ob) {
-        var p;
-        for (p in ob) {
-            if (this.hasProp(ob,p)) {
+    cleanObject(ob) {
+        for (let p in ob) {
+            if (this.hasProp(ob, p)) {
                 if (ob[p].length === 0) {
                     if (this.isArray(ob)) ob.splice(p, 1);
                     if (this.isPlainObject(ob)) delete ob[p];
@@ -75,55 +73,106 @@ var Utils = {
         }
         return ob;
     },
-    'param': function (data) {
-        var s = [];
-        var add = function (k, v) {
+    parseQuery(string, coerce, spaces) {
+        let obj = {}, coerce_types = {'true': !0, 'false': !1, 'null': null};
+        if (string === "" || string == null) return obj
+        if (string.charAt(0) === "?") string = string.slice(1)
+        if (spaces) string = string.replace(/\+/g,' ');
+        string.split('&').forEach(function (v) {
+            let param = v.split('=');
+            let key = decodeURIComponent(param[0]);
+            let cur = obj;
+            let i = 0;
+            let keys = key.split('][');
+            let keys_last = keys.length - 1;
+            if (/\[/.test(keys[0]) && /]$/.test(keys[keys_last])) {
+                keys[keys_last] = keys[keys_last].replace(/]$/, '');
+                keys = keys.shift().split('[').concat(keys);
+                keys_last = keys.length - 1;
+            } else {
+                keys_last = 0;
+            }
+            if (param.length === 2) {
+                let val = decodeURIComponent(param[1]);
+                if (coerce) {
+                    val = val && !isNaN(val) && ((+val + '') === val) ? +val
+                        : val === 'undefined' ? undefined
+                            : coerce_types[val] !== undefined ? coerce_types[val]
+                                : val;
+                }
+                if (keys_last) {
+                    for (; i <= keys_last; i++) {
+                        key = keys[i] === '' ? cur.length : keys[i];
+                        cur = cur[key] = i < keys_last
+                            ? cur[key] || (keys[i + 1] && isNaN(keys[i + 1]) ? {} : [])
+                            : val;
+                    }
+                } else {
+                    if (Object.prototype.toString.call(obj[key]) === '[object Array]') {
+                        obj[key].push(val);
+                    } else if ({}.hasOwnProperty.call(obj, key)) {
+                        obj[key] = [obj[key], val];
+                    } else {
+                        obj[key] = val;
+                    }
+                }
+            } else if (key) {
+                obj[key] = coerce ? undefined : '';
+            }
+        });
+        return obj;
+    },
+    buildQuery(data) {
+        const s = [];
+        const add = (k, v) => {
             v = typeof v === 'function' ? v() : v;
             v = v === null ? '' : v === undefined ? '' : v;
             s[s.length] = encodeURIComponent(k) + '=' + encodeURIComponent(v);
         };
-        var ns = function(o,i){
-            return (typeof o === 'object' && o ? i : '' )
+        const ns = function (o, i) {
+            return (typeof o === 'object' && o ? i : '')
         };
-        var build = function (prefix, ob) {
+        return (function build(prefix, ob) {
             if (prefix) {
                 if (Utils.isArray(ob)) {
-                    Utils.forEach(ob,function(v,k){
-                        build(prefix+'['+ns(v,k)+']',v);
+                    Utils.forEach(ob, function (v, k) {
+                        build(prefix + '[' + ns(v, k) + ']', v);
                     })
                 } else if (Utils.isObject(ob)) {
-                    Utils.forEach(ob,function(v,k){
-                        build(prefix+'['+k+']',v);
+                    Utils.forEach(ob, function (v, k) {
+                        build(prefix + '[' + k + ']', v);
                     });
                 } else {
-                    add(prefix,ob);
+                    add(prefix, ob);
                 }
             } else if (Utils.isArray(ob)) {
-                Utils.forEach(ob,function(v){
-                    add(v.name,v.value);
+                Utils.forEach(ob, function (v) {
+                    add(v.name, v.value);
                 });
             } else {
-                Utils.forEach(ob,function(v,k){
-                    build(k,v);
+                Utils.forEach(ob, function (v, k) {
+                    build(k, v);
                 });
             }
             return s;
-        };
-        return build('', data).join('&');
+        })('', data).join('&');
     },
-    'removeElement': function (el) {
+    param(data) {
+        return this.buildQuery(data)
+    },
+    removeElement(el) {
         el.parentNode.removeChild(el);
     },
-    'createElement': function (el) {
+    createElement(el) {
         return document.createElement(el);
     },
-    'getStyle': function (el, prop, getComputedStyle) {
+    getStyle(el, prop, getComputedStyle) {
         getComputedStyle = window.getComputedStyle;
         return (getComputedStyle ? getComputedStyle(el) : el['currentStyle'])[prop.replace(/-(\w)/gi, function (word, letter) {
             return letter.toUpperCase()
         })];
     },
-    'extend': function (obj) {
+    extend(obj) {
         this.forEach([].slice.call(arguments, 1), function (o) {
             if (o !== null) {
                 this.forEach(o, function (value, key) {
@@ -137,33 +186,53 @@ var Utils = {
         }, this);
         return obj;
     },
-    'uuid': function(){
-        var a=0,b='';
-        while(a++<36){
-            if( a * 51 & 52 ){
-                b+= ( a ^ 15 ? 8 ^ Math.random() * ( a ^ 20 ? 16 : 4 ) : 4 ).toString(16);
+    uuid() {
+        let a = 0, b = '';
+        while (a++ < 36) {
+            if (a * 51 & 52) {
+                b += (a ^ 15 ? 8 ^ Math.random() * (a ^ 20 ? 16 : 4) : 4).toString(16);
             } else {
-                b+= '-';
+                b += '-';
             }
         }
         return b;
     },
-    'getPath': function(path){
-        var props = path.split('.');
-        var first = props.shift();
-        var value = null;
-        if( this.hasProp(window,first) ) {
+    getPath(path) {
+        const props = path.split('.');
+        const first = props.shift();
+        let value = null;
+        if (this.hasProp(window, first)) {
             value = window[first];
-            this.forEach(props,function(name){
-                value = this.hasProp(value,name) ? value[name] : null;
-            },this)
+            this.forEach(props, function (name) {
+                value = this.hasProp(value, name) ? value[name] : null;
+            }, this)
         }
         return value;
     },
-    'stringFormat':function(format,params){
-        return (format || '').replace(/{(.+?)}/g, function(match, prop) {
+    stringFormat(format, params) {
+        return (format || '').replace(/{(.+?)}/g, function (match, prop) {
             return params[prop] || match;
         });
+    },
+    cssUnit(value, unit) {
+        return String(value || 0).concat(unit || '').concat(' !important')
+    },
+    hasPaymentRequest() {
+        return window.hasOwnProperty('PaymentRequest') && typeof (window.PaymentRequest) === 'function'
+    },
+    getPaymentRequest(methods, details, options) {
+        let request = null;
+        options = options || {};
+        details = details || {};
+        details.id = this.uuid();
+        if (this.hasPaymentRequest()) {
+            try {
+                request = new window.PaymentRequest(methods, details, options);
+            } catch (e) {
+                request = null;
+            }
+        }
+        return request;
     }
 };
 

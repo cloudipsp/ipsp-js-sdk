@@ -1,10 +1,8 @@
-var init = false;
-var fnTest = /xyz/.test(function () {
+let init = false;
+const fnTest = /xyz/.test(function () {
     return 'xyz';
 }.toString()) ? /\b_super\b/ : /.*/;
-/**
- * @type {ClassObject}
- */
+
 function ClassObject() {
 
 }
@@ -28,7 +26,7 @@ ClassObject.prototype.proxy = function(fn){
 
 function superMethod(parent,name,method){
     return function () {
-        var temp = this._super, result;
+        let temp = this._super, result;
         this._super = parent[name];
         result = method.apply(this,arguments);
         this._super = temp;
@@ -37,7 +35,7 @@ function superMethod(parent,name,method){
 }
 
 function assign(target,instance){
-    var prop,proto,parent = target.prototype;
+    let prop,proto,parent = target.prototype;
     init = true;
     proto = new target();
     init = false;
@@ -58,12 +56,14 @@ function assign(target,instance){
 
 ClassObject.extend = function extend(instance){
     function Class(){
-        if (!init && this['init']) this['init'].apply(this, arguments);
+        if (!init && this) this['init'].apply(this, arguments);
     }
     Class.prototype = assign(this,instance);
-    Class.prototype.constructor = Class;
+    Class.prototype.constructor = Class
     Class.extend = extend;
     return Class;
 }
 
-module.exports = ClassObject;
+exports.ClassObject = ClassObject
+
+
