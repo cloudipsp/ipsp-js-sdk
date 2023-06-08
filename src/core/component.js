@@ -40,5 +40,4 @@ Component.add = function (name, module) {
     return this;
 };
 
-
 exports.Component = Component

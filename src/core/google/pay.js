@@ -3,13 +3,13 @@ const {Module} = require('../module');
 const {GooglePayApi, GoogleBaseRequest} = require('../config');
 
 const GooglePay = Module.extend({
-    'id': 'google-payments-api',
-    'init': function () {
+    id: 'google-payments-api',
+    init() {
         this.client = null;
         this.wrapper = this.utils.querySelector('head');
         this.defer = Deferred();
     },
-    'load': function () {
+    load() {
         if (this.utils.getPath('google.payments.api.PaymentsClient')) {
             return this.defer.resolveWith(this);
         }
@@ -27,32 +27,32 @@ const GooglePay = Module.extend({
         this.addEvent(this.script, 'error', 'onLoadError');
         return this.defer;
     },
-    'show': function (methods) {
-        var method = methods.find(function (item) {
+    show(methods) {
+        const method = methods.find(function (item) {
             return item.supportedMethods === 'https://google.com/pay';
         });
-        var client = this.getClient({environment: method.data.environment});
+        const client = this.getClient({environment: method.data.environment});
         return client.loadPaymentData(method.data);
     },
-    'readyToPay': function (cx, response) {
+    readyToPay(cx, response) {
         if (response.result) {
             this.defer.resolveWith(this);
         }
     },
-    'onError': function (cx, error) {
+    onError(cx, error) {
         this.defer.rejectWith(this, error);
     },
-    'onLoadSuccess': function () {
+    onLoadSuccess() {
         const client = this.getClient()
         if( client )
             client.isReadyToPay(GoogleBaseRequest)
             .then(this.proxy('readyToPay'))
             .catch(this.proxy('onError'));
     },
-    'onLoadError': function () {
+    onLoadError() {
         this.defer.rejectWith(this);
     },
-    'getClient': function (options) {
+    getClient(options) {
         if( options || this.client === null ) {
             const PaymentClient = this.utils.getPath('google.payments.api.PaymentsClient');
             if (PaymentClient) {

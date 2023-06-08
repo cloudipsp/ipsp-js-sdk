@@ -1,18 +1,9 @@
-const Utils = require('./utils');
-
+const {isArray,isFunction} = require('./utils');
 const PENDING = 0;
 const RESOLVED = 1;
 const REJECTED = 2;
 
-function isArray(value) {
-    return Utils.isArray(value);
-}
-
-function isFunction(value) {
-    return Utils.isFunction(value);
-}
-
-function forEach(list, callback, context) {
+const eachCallback = (list, callback, context) => {
     if (list) {
         if (isArray(list)) {
             for (let i=0; i < list.length; i++) {
@@ -44,7 +35,7 @@ exports.Deferred = function Deferred(fn) {
                 if (!arguments[i]) {
                     continue;
                 }
-                forEach(arguments[i], function (callback) {
+                eachCallback(arguments[i], function (callback) {
                     if (status === RESOLVED) {
                         callback.apply(this, resultArgs);
                     }
@@ -58,7 +49,7 @@ exports.Deferred = function Deferred(fn) {
                 if (!arguments[i]) {
                     continue;
                 }
-                forEach(arguments[i], function (callback) {
+                eachCallback(arguments[i], function (callback) {
                     if (status === REJECTED) {
                         callback.apply(this, resultArgs);
                     }
@@ -75,7 +66,7 @@ exports.Deferred = function Deferred(fn) {
                 if (!arguments[i]) {
                     continue;
                 }
-                forEach(arguments[i], function (callback) {
+                eachCallback(arguments[i], function (callback) {
                     if (status === PENDING) {
                         progressFuncs.push(callback);
                     }

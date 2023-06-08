@@ -2,36 +2,36 @@ const {Api} = require('../api');
 const {Module} = require('../module');
 const {GooglePay} = require('../google/pay')
 const {Deferred} = require('../deferred');
-const Utils = require('../utils');
+const {getPaymentRequest} = require("../utils");
 const {GoogleBaseRequest, PaymentRequestDetails} = require("../config");
 
 exports.PaymentRequest = Module.extend({
-    'config': {
+    config: {
         payment_system: '',
         fallback: false,
         methods: [],
         details: {},
         options: {}
     },
-    'init': function (params) {
+    init(params) {
         this.params = params || {};
     },
-    'setConfig': function (config) {
+    setConfig(config) {
         this.config = config;
         return this;
     },
-    'setMerchant': function (merchant) {
+    setMerchant(merchant) {
         this.merchant = merchant;
     },
-    'setApi': function (api) {
+    setApi(api) {
         if (api instanceof Api) {
             this.api = api;
         }
     },
-    'isValidConfig': function () {
+    isValidConfig() {
         return this.config.payment_system && this.config.methods && this.config.methods.length > 0;
     },
-    'getPaymentMethods':function(){
+    getPaymentMethods(){
         return [
             ['google', {
                 'supportedMethods': 'https://google.com/pay',
@@ -42,7 +42,7 @@ exports.PaymentRequest = Module.extend({
             }]
         ];
     },
-    'getSupportedMethods': function () {
+    getSupportedMethods() {
         const defer = Deferred();
         const methods = this.getPaymentMethods();
         const details = PaymentRequestDetails;
@@ -61,7 +61,7 @@ exports.PaymentRequest = Module.extend({
             }
             const config = item.pop()
             const method = item.pop()
-            const request = Utils.getPaymentRequest([config], details);
+            const request = getPaymentRequest([config], details);
             if (request) {
                 request.canMakePayment().then(function (status) {
                     if (status === true) response.supported.push(method)
@@ -73,7 +73,7 @@ exports.PaymentRequest = Module.extend({
         })()
         return defer
     },
-    'getSupportedMethod': function () {
+    getSupportedMethod() {
         const module = this
         const methods = this.getPaymentMethods();
         const details = PaymentRequestDetails;
@@ -82,7 +82,7 @@ exports.PaymentRequest = Module.extend({
             if (item === false) return module.trigger('fallback');
             const method = item.shift();
             const config = item.shift();
-            const request = Utils.getPaymentRequest([config], details);
+            const request = getPaymentRequest([config], details);
             if (request) {
                 request.canMakePayment().then(function (status) {
                     if (status === true) {
@@ -96,7 +96,7 @@ exports.PaymentRequest = Module.extend({
             }
         })();
     },
-    'modelRequest': function (method, params, callback, failure) {
+    modelRequest(method, params, callback, failure) {
         if (this.api instanceof Api) {
             this.api.scope(this.proxy(function () {
                 this.api.request('api.checkout.pay', method, params)
@@ -104,10 +104,10 @@ exports.PaymentRequest = Module.extend({
             }));
         }
     },
-    'getRequest': function () {
+    getRequest() {
         const module = this;
         const defer = Deferred();
-        const request = Utils.getPaymentRequest(
+        const request = getPaymentRequest(
             this.config.methods,
             this.config.details,
             this.config.options
@@ -126,17 +126,11 @@ exports.PaymentRequest = Module.extend({
                 defer.rejectWith(module, [{code: e.code, message: e.message}]);
             });
         } else {
-            GooglePay.load().then(this.proxy(function () {
-                GooglePay.show(this.config.methods).then(function (details) {
-                    defer.resolveWith(module, [details])
-                }).catch(function (e) {
-                    defer.rejectWith(module, [{code: e.code, message: e.message}]);
-                });
-            }));
+            this.fallback(defer,this.config.methods)
         }
         return defer;
     },
-    'pay': function () {
+    pay() {
         this.getRequest().done(function (details) {
             this.trigger('complete', {
                 payment_system: this.config.payment_system,
@@ -150,7 +144,34 @@ exports.PaymentRequest = Module.extend({
             }
         });
     },
-    'appleSession': function (params) {
+    fallback(defer,methods){
+        const module = this
+        GooglePay.load().then(function () {
+            GooglePay.show(methods).then(function (details) {
+                defer.resolveWith(module, [details])
+            }).catch(function (e) {
+                defer.rejectWith(module, [{code: e.code, message: e.message}]);
+            });
+        });
+    },
+    show(params,fallback) {
+        const module = this;
+        const defer = Deferred();
+        if( fallback ) {
+            this.fallback(defer,params.methods)
+        } else {
+            const request = getPaymentRequest(
+                params.methods,
+                params.details,
+                params.options
+            );
+            if (request) {
+                this.addEvent(request, 'merchantvalidation', 'merchantValidation');
+            }
+        }
+        return defer
+    },
+    appleSession(params) {
         const defer = Deferred();
         this.modelRequest('session', params, function (c, model) {
             defer.resolveWith(this, [model.serialize()]);
@@ -159,7 +180,7 @@ exports.PaymentRequest = Module.extend({
         });
         return defer;
     },
-    'merchantValidation': function (cx, event) {
+    merchantValidation(cx, event) {
         this.appleSession({
             url: event['validationURL'],
             domain: location['host'],

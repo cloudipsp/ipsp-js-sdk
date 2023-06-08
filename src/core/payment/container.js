@@ -2,6 +2,7 @@ const Config = require('../config');
 const {Module} = require('../module');
 const {Connector} = require('../connector');
 const {PaymentRequest} = require('./request');
+const {GooglePayLanguages, ButtonColorMap, ButtonDefaultColor, ButtonLabelMap} = require("../config");
 
 exports.PaymentContainer = Module.extend({
     defaults: {
@@ -33,10 +34,10 @@ exports.PaymentContainer = Module.extend({
         });
     },
     getGoogleLangSupport(lang, defaults) {
-        return Config.GooglePayLanguages.indexOf(lang) !== -1 ? lang : defaults;
+        return GooglePayLanguages.indexOf(lang) !== -1 ? lang : defaults;
     },
     getButtonColor(color){
-        return Config.ButtonColorMap[color] || Config.ButtonDefaultColor;
+        return ButtonColorMap[color] || ButtonDefaultColor;
     },
     getGoogleSvg(color, lang, mode) {
         const params = {
@@ -62,7 +63,7 @@ exports.PaymentContainer = Module.extend({
         return this.utils.stringFormat(format, params);
     },
     getAppleLabel(lang) {
-        return Config.ButtonLabelMap[lang || 'en'];
+        return ButtonLabelMap[lang || 'en'];
     },
     addFrameImage() {
         const frame = this.utils.querySelector('iframe', this.element) || this.utils.createElement('iframe');

@@ -3,29 +3,29 @@ const {Connector} = require('../connector');
 const {ButtonContainerCss, ButtonCoverCss, ButtonCoverAttrs, ButtonFrameCss, ButtonFrameAttrs} = require("../config");
 
 exports.PaymentElement = Module.extend({
-    'defaults': {
+    defaults: {
         origin: 'https://pay.fondy.eu',
         endpoint: '/latest/checkout/v2/button/element.html',
         method: null,
-        mode: 'default',
-        type: 'long',
+        mode: 'plain',
+        style: 'long',
         color: 'black',
         lang: 'en',
         height: 38
     },
-    'getElementUrl': function () {
+    getElementUrl() {
         return [this.params.origin, this.params.endpoint].join('')
     },
-    'getElementOptions': function(){
+    getElementOptions(){
         return this.utils.param({
             method: this.params.method,
             mode: this.params.mode,
-            type: this.params.type,
+            style: this.params.style,
             color: this.params.color,
             lang: this.params.lang
         })
     },
-    'init': function (params) {
+    init(params) {
         this.params = {}
         this.extendParams(this.defaults);
         this.extendParams(params);
@@ -33,37 +33,44 @@ exports.PaymentElement = Module.extend({
         this.initEvents();
         this.initConfig();
     },
-    'sendButtonEvent': function(cx,ev){
+    sendButtonEvent(cx,ev){
         ev.preventDefault();
         this.connector.send('event',{type:ev.type});
     },
-    'initEvents': function(){
+    initEvents(){
         this.addEvent(this.button, 'mouseenter', 'sendButtonEvent');
         this.addEvent(this.button, 'mouseleave', 'sendButtonEvent');
         this.addEvent(this.button, 'blur', 'sendButtonEvent');
         this.addEvent(this.button, 'focus', 'sendButtonEvent');
         this.addEvent(this.button, 'click', 'onClick');
     },
-    'initConfig': function(){
-
+    setPaymentRequest(request){
+        this.request = request
+        return this
     },
-    'appendTo': function(container){
+    setFallback(fallback){
+        this.params.fallback = fallback
+    },
+    initConfig(config){
+        this.config = config
+    },
+    appendTo(container){
         container.appendChild(this.element)
         return this;
     },
-    'extendParams': function(params){
+    extendParams(params){
         this.utils.extend(this.params,params);
     },
-    'initConnector': function(){
+    initConnector(){
         this.connector = new Connector({
             target: this.iframe.contentWindow,
             origin: this.params.origin
         });
     },
-    'onClick': function(){
-
+    onClick(){
+        console.log(this.params.method,this.params.fallback,this.config)
     },
-    'initElement': function(){
+    initElement(){
         this.element = this.utils.createElement('div');
         this.button = this.utils.createElement('a');
         this.iframe = this.utils.createElement('iframe');
@@ -81,7 +88,7 @@ exports.PaymentElement = Module.extend({
         this.element.appendChild(this.iframe)
         this.element.appendChild(this.button)
     },
-    'show': function () {
+    show() {
         this.addCss(this.iframe, {
             'transition': 'opacity 0.6s 0.4s ease-out',
             'opacity': this.utils.cssUnit(1)
@@ -93,7 +100,7 @@ exports.PaymentElement = Module.extend({
         this.trigger('show', {});
         return this;
     },
-    'hide': function () {
+    hide() {
         this.addCss(this.iframe, {
             'transition': 'opacity 0.4s ease-out',
             'opacity': this.utils.cssUnit(0)

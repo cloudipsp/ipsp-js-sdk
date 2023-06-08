@@ -1,7 +1,8 @@
-node_modules
-dist
 .idea
 .wrangler
+.well-known
+node_modules
+dist
 showcase
 src/worker
 npm-debug.log

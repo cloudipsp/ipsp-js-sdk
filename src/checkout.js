@@ -1,5 +1,4 @@
 const {Component} = require('./core/component');
-
 const {Api} = require('./core/api');
 const {Module} = require('./core/module');
 const {Connector} = require('./core/connector');
@@ -25,7 +24,6 @@ Component.add('Response', Response);
 
 Component.Utils = Utils
 Component.Config = Config
-
 
 module.exports = Component;
 
