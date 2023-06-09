@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://fondy.eu/"><img src="https://fondy.ua/wp-content/themes/Fondy_UA/img/pages/marketing-info/fondy_color_square.svg" alt="IPSP JS SDK" width="130" height="129"></a>
+  <a href="https://fondy.eu/"><img src="https://fondy.ua/uploads/2022/08/fondy_logo.svg" alt="IPSP JS SDK" width="109" height="25"></a>
   <br>
   IPSP JS SDK
   <br>
