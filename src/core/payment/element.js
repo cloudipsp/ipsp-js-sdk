@@ -4,6 +4,7 @@ const {ButtonContainerCss, ButtonCoverCss, ButtonCoverAttrs, ButtonFrameCss, But
 
 exports.PaymentElement = Module.extend({
     defaults: {
+        className: 'payment-element',
         origin: 'https://pay.fondy.eu',
         endpoint: '/latest/checkout/v2/button/element.html',
         method: null,
@@ -72,7 +73,6 @@ exports.PaymentElement = Module.extend({
     },
     initElement(){
         this.element = this.utils.createElement('div');
-        this.button = this.utils.createElement('a');
         this.iframe = this.utils.createElement('iframe');
         this.addCss(this.element,ButtonContainerCss);
         this.addCss(this.button,ButtonCoverCss);
@@ -85,8 +85,11 @@ exports.PaymentElement = Module.extend({
         this.addEvent(this.iframe,'load',function(){
             this.initConnector()
         })
+        this.addAttr(this.element,{
+            class: this.params.className
+        })
         this.element.appendChild(this.iframe)
-        this.element.appendChild(this.button)
+        //this.element.appendChild(this.button)
     },
     show() {
         this.addCss(this.iframe, {

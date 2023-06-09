@@ -150,6 +150,14 @@ const deparam = exports.deparam = (params) => {
     return data;
 }
 
+const flatten = exports.flatten = (array) => {
+    let result = []
+    forEach(array,(item)=>{
+        result = result.concat(isArray(item) ? flatten(item) : item)
+    })
+    return result
+}
+
 const param = exports.param = (obj) => {
     const result = [];
     forEach(obj, (item, prop) => {
@@ -165,15 +173,60 @@ const removeElement = exports.removeElement = (el) => {
     el.parentNode.removeChild(el);
 }
 
-const createElement = exports.createElement = (el,attrs) => {
-    const node = document.createElement(el);
+const createElement = exports.createElement = (tag) => {
+    return document.createElement(tag);
+}
+
+
+
+const addClass = exports.addClass = (...args) => {
+    const el = args.shift()
+    if(isElement(el) === false) return;
+    const classList = el.className.trim().split(/\s+/)
+    const tokens = flatten(args.map(item=>item.trim().split(/\s+/)));
+    tokens.forEach(token => {
+        if (token && !~classList.indexOf(token)) {
+            classList.push(token)
+        }
+    })
+    el.className = classList.join(' ').trim()
+}
+
+const removeClass = exports.removeClass = (...args) => {
+    const el = args.shift()
+    if(isElement(el) === false) return;
+    const classList = el.className.trim().split(/\s+/)
+    const tokens = flatten(args.map(item=>item.trim().split(/\s+/)));
+    tokens.forEach((token) => {
+        if( token) {
+            const index = classList.indexOf(token)
+            if(!!~index){
+                classList.splice(index, 1)
+            }
+        }
+    })
+    el.className = classList.join(' ').trim()
+}
+
+const addAttr = exports.addAttr = (el,attrs) => {
+    if(isElement(el)===false) return false;
     if(isPlainObject(attrs)) {
         forEach(attrs,(value,name)=>{
-            node.setAttribute(name,value)
+            el.setAttribute(name,value)
         })
     }
-    return node;
 }
+
+const removeAttr = exports.removeAttr = (el,attrs) => {
+    if(isElement(el)===false) return false;
+    if(isPlainObject(attrs)) {
+        forEach(attrs,(value,name)=>{
+            el.removeAttribute(name,value)
+        })
+    }
+}
+
+
 
 const getStyle = exports.getStyle = (el, prop, getComputedStyle) => {
     getComputedStyle = window.getComputedStyle;
@@ -236,9 +289,6 @@ const hasPaymentRequest = exports.hasPaymentRequest = () => {
     return hasProp(window,'PaymentRequest') && isFunction(window.PaymentRequest)
 }
 
-
-
-
 const getPaymentRequest = exports.getPaymentRequest = (methods, details, options) => {
     let request = null;
     options = options || {};
@@ -261,3 +311,4 @@ const jsonParse = exports.jsonParse = (value, defaults) => {
         return defaults
     }
 }
+

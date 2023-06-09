@@ -115,12 +115,15 @@ exports.ButtonContainerCss = {
     'padding': '0 !important',
     'display': 'block !important',
     'background': 'transparent !important',
+    'user-select': 'none !important',
     'overflow': 'hidden !important',
     'position': 'relative !important',
     'opacity': '1 !important',
     'height': '0 !important',
+    'width': '100% !important',
     'outline': 'none !important'
 };
+
 
 exports.ButtonDefaultColor = 'dark';
 
