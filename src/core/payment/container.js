@@ -1,4 +1,3 @@
-const Config = require('../config');
 const {Module} = require('../module');
 const {Connector} = require('../connector');
 const {PaymentRequest} = require('./request');

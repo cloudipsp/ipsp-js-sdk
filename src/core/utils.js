@@ -285,24 +285,27 @@ const cssUnit = exports.cssUnit = (value, unit) => {
     return String(value || 0).concat(unit || '').concat(' !important')
 }
 
-const hasPaymentRequest = exports.hasPaymentRequest = () => {
-    return hasProp(window,'PaymentRequest') && isFunction(window.PaymentRequest)
-}
-
-const getPaymentRequest = exports.getPaymentRequest = (methods, details, options) => {
-    let request = null;
-    options = options || {};
-    details = details || {};
-    details.id = uuid();
-    if (hasPaymentRequest()) {
-        try {
-            request = new window.PaymentRequest(methods, details, options);
-        } catch (e) {
-            request = null;
-        }
+const getPaymentRequest = exports.getPaymentRequest = ((cx) => {
+    let NativePaymentRequest;
+    if( hasProp(cx,'PaymentRequest') && isFunction(cx.PaymentRequest) ) {
+        NativePaymentRequest = cx.PaymentRequest
     }
-    return request;
-}
+    return (methods, details, options) => {
+        let request = null;
+        details = details || {};
+        details.id = uuid();
+        options = options || {};
+        if(NativePaymentRequest){
+            try {
+                request = new NativePaymentRequest(methods, details,options);
+            } catch (e) {
+                request = null;
+            }
+        }
+        return request
+    }
+})(window)
+
 
 const jsonParse = exports.jsonParse = (value, defaults) => {
     try {
