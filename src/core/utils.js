@@ -235,8 +235,8 @@ exports.removeClass = (...args) => {
 exports.removeAttr = (el, attrs) => {
     if (isElement(el) === false) return false;
     if (isPlainObject(attrs)) {
-        forEach(attrs, (value, name) => {
-            el.removeAttribute(name, value)
+        forEach(attrs, (value) => {
+            el.removeAttribute(value)
         })
     }
 }
@@ -249,7 +249,6 @@ exports.addAttr = (el, attrs) => {
         })
     }
 }
-
 
 exports.getStyle = (el, prop, getComputedStyle) => {
     getComputedStyle = window.getComputedStyle;
@@ -281,7 +280,10 @@ exports.stringFormat = (format, params, expr) => {
 exports.cssUnit = (value, unit) => {
     return String(value || 0).concat(unit || '').concat(' !important')
 }
-
+/**
+ * @function
+ * @type {function(*, *, *)}
+ */
 exports.getPaymentRequest = ((cx) => {
     let NativePaymentRequest;
     if (hasProp(cx, 'PaymentRequest') && isFunction(cx.PaymentRequest)) {
