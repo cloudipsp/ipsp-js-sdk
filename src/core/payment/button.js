@@ -58,7 +58,7 @@ exports.PaymentButton = Module.extend({
     initElement() {
         this.element = this.utils.querySelector(this.params.element);
         this.container = this.utils.createElement('div');
-        this.cover = this.utils.createElement('a');
+        this.cover = this.utils.createElement('span');
         this.addCss(this.cover,ButtonCoverCss);
         this.addAttr(this.cover,ButtonCoverAttrs)
         this.addCss(this.container,ButtonContainerCss);
@@ -81,7 +81,6 @@ exports.PaymentButton = Module.extend({
         this.payment.on('error', this.proxy('onError'));
         this.payment.on('log', this.proxy('onLog'));
         this.payment.on('supported', this.proxy('onSupported'));
-        this.payment.on('fallback', this.proxy('onFallback'));
         this.payment.on('reload', this.proxy('onReload'));
         this.payment.setApi(this.api);
         this.payment.setMerchant(this.params.data.merchant_id);
@@ -105,16 +104,17 @@ exports.PaymentButton = Module.extend({
     onFrameLoaded(){
         this.update({});
     },
-    onFallback(){
-        this.fallback = true;
-        GooglePay.load().then(this.proxy(function(){
-            this.onSupported(null, 'google');
-        }));
-    },
-    onSupported(cx, method){
+    onSupported(cx, method, fallback){
         this.supported = true;
         this.method = method;
-        this.frameLoaded.done(this.proxy('onFrameLoaded'));
+        this.fallback = fallback
+        if( this.fallback ) {
+            GooglePay.load().then(this.proxy(function(){
+                this.frameLoaded.done(this.proxy('onFrameLoaded'));
+            }));
+        } else {
+            this.frameLoaded.done(this.proxy('onFrameLoaded'));
+        }
     },
     initConnector() {
         this.connector = new Connector({
@@ -170,11 +170,11 @@ exports.PaymentButton = Module.extend({
                 .fail(this.proxy('onError'));
         }));
     },
-    'process': function (callback) {
+    process(callback) {
         this.callback = callback;
         return this;
     },
-    'validate': function(callback){
+    validate(callback){
         this.validateCallback = (function(context){
             return function(resolve){
                 if( context.validationProgress === true ) return false;
@@ -186,13 +186,13 @@ exports.PaymentButton = Module.extend({
             }
         })(this);
     },
-    'click': function(){
+    click(){
         this.onClick();
     },
-    'cssUnit': function (value, unit) {
+    cssUnit(value, unit) {
         return String(value || 0).concat(unit || '').concat(' !important')
     },
-    'onClick': function () {
+    onClick() {
         if( this.validateCallback ){
             this.validateCallback(function(){
                 this.sendPay();
@@ -201,7 +201,7 @@ exports.PaymentButton = Module.extend({
             this.sendPay();
         }
     },
-    'sendPay': function(){
+    sendPay(){
         if( this.fallback === true ) {
              GooglePay.show(this.model.data.methods).then(this.proxy(function(cx,details){
                  this.callback(new Response({
@@ -215,19 +215,19 @@ exports.PaymentButton = Module.extend({
             this.send('pay',{});
         }
     },
-    'onToken': function (c, data) {
+    onToken(c, data) {
         this.callback(new Response(data));
     },
-    'onSuccess': function (c, data) {
+    onSuccess(c, data) {
         this.trigger('success', data);
     },
-    'onError': function (c, data) {
+    onError(c, data) {
         this.trigger('error', data);
     },
-    'onReload': function(c,data){
+    onReload(c,data){
         this.trigger('reload', data);
     },
-    'onShow': function () {
+    onShow() {
         this.addCss(this.frame, {
             'transition': 'opacity 0.6s 0.4s ease-out',
             'opacity': this.cssUnit(1)
@@ -238,7 +238,7 @@ exports.PaymentButton = Module.extend({
         });
         this.trigger('show', {});
     },
-    'onHide': function () {
+    onHide() {
         this.addCss(this.frame, {
             'transition': 'opacity 0.4s ease-out',
             'opacity': this.cssUnit(0)
@@ -249,13 +249,13 @@ exports.PaymentButton = Module.extend({
         });
         this.trigger('hide', {});
     },
-    'onLog': function (c, result) {
+    onLog(c, result) {
         this.trigger('log',{
             event: 'log',
             result: result
         });
     },
-    'onPay': function (c, data) {
+    onPay(c, data) {
         this.payment.setConfig(data);
         this.payment.pay();
     }

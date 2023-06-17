@@ -1,5 +1,5 @@
-const {Api} = require('../api');
 const {Module} = require('../module');
+const {Api} = require('../api');
 const {GooglePay} = require('../google/pay')
 const {Deferred} = require('../deferred');
 const {getPaymentRequest} = require("../utils");
@@ -28,73 +28,61 @@ exports.PaymentRequest = Module.extend({
             this.api = api;
         }
     },
-    isValidConfig() {
-        return this.config.payment_system && this.config.methods && this.config.methods.length > 0;
+    setSupported(supported){
+        this.supported = supported
+    },
+    setPayload(data){
+        this.payload = data
     },
     getPaymentMethods(){
         return [
             ['google', {
                 'supportedMethods': 'https://google.com/pay',
                 'data': GoogleBaseRequest
-            }],
-            ['apple', {
+            }]
+            , ['apple', {
                 'supportedMethods': 'https://apple.com/apple-pay'
             }]
         ];
     },
     getSupportedMethods() {
-        const defer = Deferred();
+        const self = this.constructor
+        if( self.defer ) return self.defer
+        self.defer = Deferred()
         const methods = this.getPaymentMethods();
         const details = PaymentRequestDetails;
         const response = {
+            provider: [],
             fallback: false,
-            supported: []
         };
         (function check() {
             const item = methods.shift()
             if (item === undefined) {
-                if (response.supported.indexOf('google') === -1) {
+                if (response.provider.indexOf('google') === -1){
                     response.fallback = true
-                    response.supported.push('google')
+                    response.provider.push('google')
                 }
-                return defer.resolve(response)
+                return self.defer.resolve(response)
             }
             const config = item.pop()
             const method = item.pop()
-            const request = getPaymentRequest([config], details);
+            const request = getPaymentRequest([config], details,{});
             if (request) {
                 request.canMakePayment().then(function (status) {
-                    if (status === true) response.supported.push(method)
+                    if (status === true) response.provider.push(method)
                     check()
                 }).catch(check);
             } else {
                 check()
             }
         })()
-        return defer
+        return self.defer
     },
     getSupportedMethod() {
-        const module = this
-        const methods = this.getPaymentMethods();
-        const details = PaymentRequestDetails;
-        (function next() {
-            const item = methods.shift() || false;
-            if (item === false) return module.trigger('fallback');
-            const method = item.shift();
-            const config = item.shift();
-            const request = getPaymentRequest([config], details);
-            if (request) {
-                request.canMakePayment().then(function (status) {
-                    if (status === true) {
-                        module.trigger('supported', method);
-                    } else {
-                        next();
-                    }
-                });
-            } else {
-                next();
-            }
-        })();
+        this.getSupportedMethods().then((response)=> {
+            const [method] = response.provider
+            this.trigger('supported',method,response.fallback && response.provider.length === 1)
+        })
     },
     modelRequest(method, params, callback, failure) {
         if (this.api instanceof Api) {
@@ -105,7 +93,6 @@ exports.PaymentRequest = Module.extend({
         }
     },
     getRequest() {
-        const module = this;
         const defer = Deferred();
         const request = getPaymentRequest(
             this.config.methods,
@@ -113,22 +100,36 @@ exports.PaymentRequest = Module.extend({
             this.config.options
         );
         if (request) {
-            this.addEvent(request, 'merchantvalidation', 'merchantValidation');
-            request.canMakePayment().then(function () {
-                request.show().then(function (response) {
-                    response.complete('success').then(function () {
-                        defer.resolveWith(module, [response.details])
-                    });
-                }).catch(function (e) {
-                    defer.rejectWith(module, [{code: e.code, message: e.message}]);
-                })
-            }).catch(function (e) {
-                defer.rejectWith(module, [{code: e.code, message: e.message}]);
-            });
+            this.makePayment(defer,request);
         } else {
-            this.fallback(defer,this.config.methods)
+            this.makePaymentFallback(defer,this.config.methods)
         }
         return defer;
+    },
+    makePayment(defer,request){
+        const self = this
+        this.addEvent(request, 'merchantvalidation', 'merchantValidation');
+        request.canMakePayment().then(function () {
+            request.show().then(function (response) {
+                response.complete('success').then(function () {
+                    defer.resolveWith(self, [response.details])
+                });
+            }).catch(function (e) {
+                defer.rejectWith(self, [{code: e.code, message: e.message}]);
+            })
+        }).catch(function (e) {
+            defer.rejectWith(self, [{code: e.code, message: e.message}]);
+        });
+    },
+    makePaymentFallback(defer,methods){
+        const self = this
+        GooglePay.load().then(()=> {
+            GooglePay.show(methods).then( (details) => {
+                defer.resolveWith(self, [details])
+            }).catch( (e) => {
+                defer.rejectWith(self, [{code: e.code, message: e.message}]);
+            });
+        });
     },
     pay() {
         this.getRequest().done(function (details) {
@@ -144,21 +145,18 @@ exports.PaymentRequest = Module.extend({
             }
         });
     },
-    fallback(defer,methods){
-        const module = this
-        GooglePay.load().then(function () {
-            GooglePay.show(methods).then(function (details) {
-                defer.resolveWith(module, [details])
-            }).catch(function (e) {
-                defer.rejectWith(module, [{code: e.code, message: e.message}]);
-            });
-        });
-    },
-    show(params,fallback) {
-        const module = this;
+    show(method) {
         const defer = Deferred();
-        if( fallback ) {
-            this.fallback(defer,params.methods)
+        const params = this.payload.provider[method] || {}
+        const supported = this.supported.provider.indexOf(method) !== -1
+        const fallback = this.supported.fallback || false;
+        if( supported === false ){
+            return defer.rejectWith(this,[{
+
+            }]);
+        }
+        if( method === 'google' && fallback ) {
+            this.makePaymentFallback(defer,params.methods)
         } else {
             const request = getPaymentRequest(
                 params.methods,
@@ -166,10 +164,17 @@ exports.PaymentRequest = Module.extend({
                 params.options
             );
             if (request) {
-                this.addEvent(request, 'merchantvalidation', 'merchantValidation');
+                this.makePayment(defer, request);
             }
         }
-        return defer
+        return defer.done(function (details) {
+            this.trigger('details', {
+                payment_system: this.payload.payment_system,
+                data: details
+            });
+        }).fail(function (error) {
+            this.trigger('error', error);
+        })
     },
     appleSession(params) {
         const defer = Deferred();
@@ -181,9 +186,11 @@ exports.PaymentRequest = Module.extend({
         return defer;
     },
     merchantValidation(cx, event) {
+        const {validationURL} = event
+        const {host} = location
         this.appleSession({
-            url: event['validationURL'],
-            domain: location['host'],
+            url: validationURL,
+            domain: host,
             merchant_id: this.merchant
         }).done(function (session) {
             try {

@@ -96,6 +96,8 @@ exports.ButtonFrameAttrs = {
 exports.ButtonCoverCss = {
     'z-index':'2 !important',
     'position':'absolute !important',
+    'border':'none !important',
+    'background':'transparent !important',
     'left':'0 !important',
     'top':'0 !important',
     'cursor':'pointer !important',
@@ -104,10 +106,7 @@ exports.ButtonCoverCss = {
     'height':'100% !important'
 };
 
-exports.ButtonCoverAttrs = {
-    'tabindex':'0',
-    'href':'javascript:void(0)'
-};
+exports.ButtonCoverAttrs = {};
 
 exports.ButtonContainerCss = {
     'border': '0 !important',

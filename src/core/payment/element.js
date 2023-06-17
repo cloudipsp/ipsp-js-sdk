@@ -31,49 +31,15 @@ exports.PaymentElement = Module.extend({
         this.extendParams(this.defaults);
         this.extendParams(params);
         this.initElement();
-        this.initEvents();
-        this.initConfig();
     },
     sendButtonEvent(cx,ev){
         ev.preventDefault();
         this.connector.send('event',{type:ev.type});
     },
-    initEvents(){
-        this.addEvent(this.button, 'mouseenter', 'sendButtonEvent');
-        this.addEvent(this.button, 'mouseleave', 'sendButtonEvent');
-        this.addEvent(this.button, 'blur', 'sendButtonEvent');
-        this.addEvent(this.button, 'focus', 'sendButtonEvent');
-        this.addEvent(this.button, 'click', 'onClick');
-    },
-    setPaymentRequest(request){
-        this.request = request
-        return this
-    },
-    setFallback(fallback){
-        this.params.fallback = fallback
-    },
-    initConfig(config){
-        this.config = config
-    },
-    appendTo(container){
-        container.appendChild(this.element)
-        return this;
-    },
-    extendParams(params){
-        this.utils.extend(this.params,params);
-    },
-    initConnector(){
-        this.connector = new Connector({
-            target: this.iframe.contentWindow,
-            origin: this.params.origin
-        });
-    },
-    onClick(){
-        console.log(this.params.method,this.params.fallback,this.config)
-    },
     initElement(){
         this.element = this.utils.createElement('div');
         this.iframe = this.utils.createElement('iframe');
+        this.button = this.utils.createElement('span');
         this.addCss(this.element,ButtonContainerCss);
         this.addCss(this.button,ButtonCoverCss);
         this.addAttr(this.button,ButtonCoverAttrs)
@@ -89,7 +55,38 @@ exports.PaymentElement = Module.extend({
             class: this.params.className
         })
         this.element.appendChild(this.iframe)
-        //this.element.appendChild(this.button)
+        this.element.appendChild(this.button);
+    },
+    initEvents(){
+        this.addEvent(this.button, 'mouseenter', 'sendButtonEvent');
+        this.addEvent(this.button, 'mouseleave', 'sendButtonEvent');
+        this.addEvent(this.button, 'blur', 'sendButtonEvent');
+        this.addEvent(this.button, 'focus', 'sendButtonEvent');
+        this.addEvent(this.button, 'click', 'sendClick');
+    },
+    setPaymentRequest(request){
+        this.request = request
+        return this
+    },
+    setFallback(fallback){
+        this.params.fallback = fallback
+    },
+    appendTo(container){
+        container.appendChild(this.element)
+        this.initEvents();
+        return this;
+    },
+    extendParams(params){
+        this.utils.extend(this.params,params);
+    },
+    initConnector(){
+        this.connector = new Connector({
+            target: this.iframe.contentWindow,
+            origin: this.params.origin
+        });
+    },
+    sendClick(el,ev){
+        this.request.show(this.params.method)
     },
     show() {
         this.addCss(this.iframe, {

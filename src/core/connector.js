@@ -34,9 +34,6 @@ exports.Connector = Module.extend({
         } catch (e) {
         }
         if (response && response.action && response.data) {
-            if( response.action === 'pay' ) {
-                console.log(JSON.stringify(ev))
-            }
             this.trigger(response.action, response.data);
         }
     },

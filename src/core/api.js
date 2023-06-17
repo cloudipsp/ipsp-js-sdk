@@ -1,9 +1,9 @@
-const Config    = require('./config');
 const {Deferred}  = require('./deferred');
 const {Module}    = require('./module');
 const {Connector} = require('./connector');
 const {Modal}     = require('./modal');
 const {Response}  = require('./response');
+const {ApiFrameCss} = require('./config');
 
 exports.Api = Module.extend({
     defaults: {
@@ -56,18 +56,18 @@ exports.Api = Module.extend({
             params: params || {}
         };
         this.connector.send('request', data);
-        this.connector.on(data.uid, this.proxy(function (ev, response, model, action) {
-            model = new Response(response);
-            model.setUID(data.uid);
-            model.setConnector(this.connector);
+        this.connector.on(data.uid, this.proxy(function(ev,response, model, action){
+            const responseModel  = new Response(response);
+            responseModel.setUID(data.uid);
+            responseModel.setConnector(this.connector);
             action = 'resolveWith';
-            if (model.attr('submit3ds')) {
+            if (responseModel.attr('submit3ds')) {
                 action = 'notifyWith';
             }
-            if (model.attr('error')) {
+            if (responseModel.attr('error')) {
                 action = 'rejectWith';
             }
-            defer[action](this, [model]);
+            defer[action](this,[responseModel]);
         }));
         return defer;
     },
@@ -75,7 +75,7 @@ exports.Api = Module.extend({
         this.iframe = this.utils.createElement('iframe');
         this.addAttr(this.iframe, {'allowtransparency': true, 'frameborder': 0, 'scrolling': 'no'});
         this.addAttr(this.iframe, {'src': url});
-        this.addCss(this.iframe,Config.ApiFrameCss);
+        this.addCss(this.iframe,ApiFrameCss);
         this.body = this.utils.querySelector('body');
         if (this.body.firstChild) {
             this.body.insertBefore(this.iframe, this.body.firstChild);
