@@ -39,7 +39,7 @@ exports.PaymentElement = Module.extend({
     initElement(){
         this.element = this.utils.createElement('div');
         this.iframe = this.utils.createElement('iframe');
-        this.button = this.utils.createElement('span');
+        this.button = this.utils.createElement('a');
         this.addCss(this.element,ButtonContainerCss);
         this.addCss(this.button,ButtonCoverCss);
         this.addAttr(this.button,ButtonCoverAttrs)
@@ -67,9 +67,6 @@ exports.PaymentElement = Module.extend({
     setPaymentRequest(request){
         this.request = request
         return this
-    },
-    setFallback(fallback){
-        this.params.fallback = fallback
     },
     appendTo(container){
         container.appendChild(this.element)

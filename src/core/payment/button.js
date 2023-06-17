@@ -3,7 +3,7 @@ const {Api}       = require('../api');
 const {Connector} = require('../connector');
 const {Response}  = require('../response');
 const {Deferred} = require('../deferred');
-const {PaymentRequest}   = require('./request');
+const {PaymentRequestApi}   = require('./request');
 const {GooglePay} = require('../google/pay')
 
 const {
@@ -76,7 +76,7 @@ exports.PaymentButton = Module.extend({
         this.addEvent(this.cover, 'click', 'onClick');
     },
     initPaymentRequest() {
-        this.payment = new PaymentRequest();
+        this.payment = new PaymentRequestApi();
         this.payment.on('complete', this.proxy('onToken'));
         this.payment.on('error', this.proxy('onError'));
         this.payment.on('log', this.proxy('onLog'));
@@ -124,7 +124,6 @@ exports.PaymentButton = Module.extend({
         this.connector.on('show', this.proxy('onShow'));
         this.connector.on('hide', this.proxy('onHide'));
         this.connector.on('log', this.proxy('onLog'));
-        this.connector.on('pay', this.proxy('onPay'));
         this.connector.on('complete', this.proxy('onToken'));
         this.connector.on('error', this.proxy('onError'));
         this.connector.on('reload', this.proxy('onReload'));
@@ -147,7 +146,7 @@ exports.PaymentButton = Module.extend({
     update(params) {
         this.sendOptions(params);
         this.api.scope(this.proxy(function(){
-            this.api.request('api.checkout.pay','get',this.params.data)
+            this.api.request('api.checkout.pay','methods',this.params.data)
                 .done(this.proxy('sendConfig'))
                 .fail(this.proxy('sendConfig'));
         }));
@@ -158,8 +157,7 @@ exports.PaymentButton = Module.extend({
     },
     sendConfig(cx,model){
         this.model = model;
-        this.model.supportedMethod(this.method);
-        this.payment.setConfig(this.model.data);
+        this.payment.setPayload(this.model.data);
         this.send('config',this.model.data);
     },
     callback(model) {
@@ -211,8 +209,14 @@ exports.PaymentButton = Module.extend({
              })).catch(this.proxy(function(cx,error){
                  this.trigger('error', {code: error.code, message: error.message});
              }));
-        } else {
-            this.send('pay',{});
+        } else if( this.method === 'google') {
+            this.send('pay',{
+                method: 'google',
+                supported: this.payment.supported,
+                payload: this.payment.payload
+            });
+        } else if( this.method === 'apple' ) {
+            this.payment.show(this.method);
         }
     },
     onToken(c, data) {
@@ -254,10 +258,6 @@ exports.PaymentButton = Module.extend({
             event: 'log',
             result: result
         });
-    },
-    onPay(c, data) {
-        this.payment.setConfig(data);
-        this.payment.pay();
     }
 });
 

@@ -106,7 +106,10 @@ exports.ButtonCoverCss = {
     'height':'100% !important'
 };
 
-exports.ButtonCoverAttrs = {};
+exports.ButtonCoverAttrs = {
+    'role': 'button',
+    'aria-pressed':"false"
+};
 
 exports.ButtonContainerCss = {
     'border': '0 !important',

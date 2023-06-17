@@ -5,13 +5,21 @@ const {Deferred} = require('../deferred');
 const {getPaymentRequest} = require("../utils");
 const {GoogleBaseRequest, PaymentRequestDetails} = require("../config");
 
-exports.PaymentRequest = Module.extend({
+exports.PaymentRequestApi = Module.extend({
     config: {
         payment_system: '',
         fallback: false,
         methods: [],
         details: {},
         options: {}
+    },
+    supported: {
+        fallback: false,
+        provider: []
+    },
+    payload: {
+        payment_system: null,
+        provider:[]
     },
     init(params) {
         this.params = params || {};
@@ -31,8 +39,8 @@ exports.PaymentRequest = Module.extend({
     setSupported(supported){
         this.supported = supported
     },
-    setPayload(data){
-        this.payload = data
+    setPayload(payload){
+        this.payload = payload
     },
     getPaymentMethods(){
         return [
@@ -81,6 +89,7 @@ exports.PaymentRequest = Module.extend({
     getSupportedMethod() {
         this.getSupportedMethods().then((response)=> {
             const [method] = response.provider
+            this.setSupported(response);
             this.trigger('supported',method,response.fallback && response.provider.length === 1)
         })
     },
@@ -145,35 +154,44 @@ exports.PaymentRequest = Module.extend({
             }
         });
     },
+    getProviderPayload(method){
+        return this.payload.provider[method] || {}
+    },
+    isMethodSupported(method){
+        return this.supported.provider.indexOf(method) !== -1
+    },
+    isFallbackMethod(method){
+        return method === 'google' && this.supported.fallback
+    },
     show(method) {
         const defer = Deferred();
-        const params = this.payload.provider[method] || {}
-        const supported = this.supported.provider.indexOf(method) !== -1
-        const fallback = this.supported.fallback || false;
-        if( supported === false ){
-            return defer.rejectWith(this,[{
-
-            }]);
+        const payload = this.getProviderPayload(method)
+        if( this.isMethodSupported(method) === false ){
+            return defer.rejectWith(this,[{}]);
         }
-        if( method === 'google' && fallback ) {
-            this.makePaymentFallback(defer,params.methods)
+        if( this.isFallbackMethod(method) ) {
+            this.makePaymentFallback(defer,payload.methods)
         } else {
             const request = getPaymentRequest(
-                params.methods,
-                params.details,
-                params.options
+                payload.methods,
+                payload.details,
+                payload.options
             );
             if (request) {
                 this.makePayment(defer, request);
             }
         }
         return defer.done(function (details) {
-            this.trigger('details', {
+            this.trigger('complete', {
                 payment_system: this.payload.payment_system,
                 data: details
             });
         }).fail(function (error) {
             this.trigger('error', error);
+            if (this.params.embedded === true) {
+                location.reload();
+                this.trigger('reload', this.params);
+            }
         })
     },
     appleSession(params) {

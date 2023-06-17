@@ -1,6 +1,6 @@
 const {Module} = require('../module');
 const {Connector} = require('../connector');
-const {PaymentRequest} = require('./request');
+const {PaymentRequestApi} = require('./request');
 const {GooglePayLanguages, ButtonColorMap, ButtonDefaultColor, ButtonLabelMap} = require("../config");
 
 exports.PaymentContainer = Module.extend({
@@ -19,8 +19,10 @@ exports.PaymentContainer = Module.extend({
     initParams(params) {
         this.params = this.utils.extend({}, this.defaults, params);
         this.element = this.utils.querySelector(this.params.element);
-        this.connector = new Connector({target: window.parent});
-        this.payment   = new PaymentRequest({
+        this.connector = new Connector({
+            target: window.parent
+        });
+        this.payment   = new PaymentRequestApi({
             embedded: true
         });
     },
@@ -142,18 +144,16 @@ exports.PaymentContainer = Module.extend({
             this.extendParams(data);
             this.styleButton();
         }));
-        this.connector.on('pay', this.proxy(function () {
+        this.connector.on('pay', this.proxy(function (cx,data) {
+            this.payment.setSupported(data.supported)
+            this.payment.setPayload(data.payload)
             if (!this.element.classList.contains('pending')) {
-                if (this.params.method === 'apple') {
-                    this.connector.send('pay', this.payment.config);
-                } else {
-                    this.payment.pay();
-                }
+                this.payment.show(data.method)
             }
         }));
         this.connector.on('config', this.proxy(function (cx, data) {
-            this.payment.setConfig(data);
-            if (data.payment_system && data.methods && data.methods.length > 0) {
+            this.payment.setPayload(data);
+            if (data.payment_system && Object.keys(data.provider).length > 0) {
                 this.element.classList.remove('pending');
                 this.element.classList.add('ready');
                 this.connector.send('show', {});
@@ -168,10 +168,10 @@ exports.PaymentContainer = Module.extend({
             if (data.type === 'mouseleave') {
                 this.element.classList.remove('hover');
             }
-            if (data.type === 'focus') {
+            if (data.type === 'focusin') {
                 this.element.classList.add('active');
             }
-            if (data.type === 'blur') {
+            if (data.type === 'focusout') {
                 this.element.classList.remove('active');
             }
         }))
