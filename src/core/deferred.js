@@ -1,19 +1,25 @@
-const { isArray, isFunction } = require('./utils')
+const { isArray, isFunction, hasProp, forEach } = require('./utils')
 const PENDING = 0
 const RESOLVED = 1
 const REJECTED = 2
 
-const eachCallback = (list, callback, context) => {
-    if (list) {
-        if (isArray(list)) {
-            for (let i = 0; i < list.length; i++) {
-                callback.call(context, list[i])
-            }
-        } else {
-            callback.call(context, list)
-        }
+const asyncCallback = (window.asyncCallback = (() => {
+    let head = {},
+        tail = head
+    const id = Math.random()
+    window.addEventListener('message', (ev) => {
+        if (ev.data !== id) return
+        head = head.next
+        let fn = head.fn
+        delete head.fn
+        fn()
+    })
+    return (fn) => {
+        tail = tail.next = { fn }
+        window.postMessage(id, '*')
     }
-}
+})())
+
 /**
  * @name Deferred
  * @param [fn]
@@ -29,84 +35,48 @@ exports.Deferred = function Deferred(fn) {
      * @lends Deferred.prototype
      */
     const promise = {
-        done() {
-            for (let i = 0; i < arguments.length; i++) {
-                if (!arguments[i]) {
-                    continue
-                }
-                eachCallback(
-                    arguments[i],
-                    function (callback) {
-                        if (status === RESOLVED) {
-                            callback.apply(this, resultArgs)
-                        }
-                        doneFuncs.push(callback)
-                    },
-                    this
-                )
+        done(fn) {
+            if (status === RESOLVED) {
+                fn.apply(this, resultArgs)
+            }
+            doneFuncs.push(fn)
+            return this
+        },
+        fail(fn) {
+            if (status === RESOLVED) {
+                fn.apply(this, resultArgs)
+            }
+            failFuncs.push(fn)
+            return this
+        },
+        always(fn) {
+            return this.done(fn).fail(fn)
+        },
+        progress(fn) {
+            if (status === PENDING) {
+                progressFuncs.push(fn)
             }
             return this
         },
-        fail() {
-            for (let i = 0; i < arguments.length; i++) {
-                if (!arguments[i]) {
-                    continue
-                }
-                eachCallback(
-                    arguments[i],
-                    function (callback) {
-                        if (status === REJECTED) {
-                            callback.apply(this, resultArgs)
-                        }
-                        failFuncs.push(callback)
-                    },
-                    this
-                )
+        then(done, fail, progress) {
+            if (done) {
+                this.done(done)
             }
-            return this
-        },
-        always() {
-            return this.done.apply(this, arguments).fail.apply(this, arguments)
-        },
-        progress() {
-            for (let i = 0; i < arguments.length; i++) {
-                if (!arguments[i]) {
-                    continue
-                }
-                eachCallback(
-                    arguments[i],
-                    function (callback) {
-                        if (status === PENDING) {
-                            progressFuncs.push(callback)
-                        }
-                    },
-                    this
-                )
+            if (fail) {
+                this.fail(fail)
             }
-            return this
-        },
-        then() {
-            if (arguments.length > 1 && arguments[1]) {
-                this.fail(arguments[1])
-            }
-            if (arguments.length > 0 && arguments[0]) {
-                this.done(arguments[0])
-            }
-            if (arguments.length > 2 && arguments[2]) {
-                this.progress(arguments[2])
+            if (progress) {
+                this.progress(progress)
             }
             return this
         },
         promise(object) {
-            let prop
             if (object === null) {
                 return promise
             }
-            for (prop in promise) {
-                if (promise.hasOwnProperty(prop)) {
-                    object[prop] = promise[prop]
-                }
-            }
+            forEach(promise, function (value, name) {
+                object[name] = value
+            })
             return object
         },
         state() {
@@ -126,32 +96,29 @@ exports.Deferred = function Deferred(fn) {
      * @lends Deferred.prototype
      */
     const deferred = {
-        resolveWith(context) {
+        resolveWith(context, params) {
             if (status === PENDING) {
                 status = RESOLVED
-                let args = (resultArgs =
-                    arguments.length > 1 ? arguments[1] : [])
+                let args = (resultArgs = params || [])
                 for (let i = 0; i < doneFuncs.length; i++) {
                     doneFuncs[i].apply(context, args)
                 }
             }
             return this
         },
-        rejectWith(context) {
+        rejectWith(context, params) {
             if (status === PENDING) {
                 status = REJECTED
-                let args = (resultArgs =
-                    arguments.length > 1 ? arguments[1] : [])
+                let args = (resultArgs = params || [])
                 for (let i = 0; i < failFuncs.length; i++) {
                     failFuncs[i].apply(context, args)
                 }
             }
             return this
         },
-        notifyWith(context) {
+        notifyWith(context, params) {
             if (status === PENDING) {
-                let args = (resultArgs =
-                    arguments.length > 1 ? arguments[1] : [])
+                let args = (resultArgs = params || [])
                 for (let i = 0; i < progressFuncs.length; i++) {
                     progressFuncs[i].apply(context, args)
                 }

@@ -7,6 +7,7 @@ const {
     ButtonFrameCss,
     ButtonFrameAttrs,
 } = require('../config')
+
 const { PaymentRequestApi } = require('./request')
 
 exports.PaymentElement = Module.extend({

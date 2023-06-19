@@ -19,6 +19,7 @@ exports.PaymentButton = Module.extend({
             lang: 'en',
         },
     },
+
     init(params) {
         this.elements = {}
         this.supported = false
@@ -34,16 +35,20 @@ exports.PaymentButton = Module.extend({
             style: this.utils.extend({}, this.defaults.style, params.style),
             data: this.utils.extend({}, this.defaults.data, params.data),
         }
-        this.api =
-            params.api instanceof Api
-                ? params.api
-                : new Api({
-                      origin: this.params.origin,
-                      endpoint: this.params.endpoint,
-                  })
+        this.initApi(params.api)
         this.initPaymentRequestApi()
         this.initElements()
         this.update()
+    },
+    initApi(api) {
+        if (api instanceof Api) {
+            this.api = api
+        } else {
+            this.api = new Api({
+                origin: this.params.origin,
+                endpoint: this.params.endpoint,
+            })
+        }
     },
     initPaymentRequestApi() {
         this.request = new PaymentRequestApi()
@@ -72,20 +77,6 @@ exports.PaymentButton = Module.extend({
             element.setPaymentRequest(request)
         })
     },
-    createElement(method) {
-        if (this.request.isMethodSupported(method)) return
-        const style = this.params.style
-        const data = this.params.data
-        const element = new PaymentElement({
-            origin: this.params.origin,
-            method: method,
-            color: style.color,
-            mode: style.mode,
-            lang: data.lang,
-            height: style.height,
-        })
-        element.setPaymentRequest(this.request)
-    },
     update(data) {
         this.utils.extend(this.params.data, data || {})
         this.api.scope(() => {
@@ -106,7 +97,6 @@ exports.PaymentButton = Module.extend({
         })
     },
     onSuccess(cx, data) {
-        console.log(data)
         this.trigger('success', data)
     },
     onError(cx, data) {

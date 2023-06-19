@@ -36,7 +36,6 @@ const getSupportedMethods = () => {
     requestDeferred = Deferred()
     const methods = getPaymentMethods()
     const details = PaymentRequestDetails
-
     ;(function check() {
         const item = methods.shift()
         if (item === undefined) {
@@ -50,7 +49,8 @@ const getSupportedMethods = () => {
         const config = item.shift()
         const callback = item.shift()
         if (isFunction(callback) && callback() === false) {
-            return check()
+            setTimeout(check, 25)
+            return false
         }
         const request = getPaymentRequest([config], details, {})
         if (request) {
@@ -58,11 +58,13 @@ const getSupportedMethods = () => {
                 .canMakePayment()
                 .then(function (status) {
                     if (status === true) requestSupported.provider.push(method)
-                    check()
+                    setTimeout(check, 25)
                 })
-                .catch(check)
+                .catch(function () {
+                    setTimeout(check, 25)
+                })
         } else {
-            check()
+            setTimeout(check, 25)
         }
     })()
     return requestDeferred
