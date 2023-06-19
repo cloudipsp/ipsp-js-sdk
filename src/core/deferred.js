@@ -2,24 +2,6 @@ const { isArray, isFunction, hasProp, forEach } = require('./utils')
 const PENDING = 0
 const RESOLVED = 1
 const REJECTED = 2
-
-const asyncCallback = (window.asyncCallback = (() => {
-    let head = {},
-        tail = head
-    const id = Math.random()
-    window.addEventListener('message', (ev) => {
-        if (ev.data !== id) return
-        head = head.next
-        let fn = head.fn
-        delete head.fn
-        fn()
-    })
-    return (fn) => {
-        tail = tail.next = { fn }
-        window.postMessage(id, '*')
-    }
-})())
-
 /**
  * @name Deferred
  * @param [fn]
