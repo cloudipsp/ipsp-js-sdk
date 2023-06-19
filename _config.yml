@@ -1,0 +1,51 @@
+remote_theme: kosatyi/sjt
+
+navigation: true
+projects: true
+
+exclude:
+  - .idea
+  - node_modules
+  - package.json
+  - package-lock.json
+  - Gemfile
+  - Gemfile.lock
+  - gulpfile.js
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
+  - jekyll-paginate
+  - jekyll-redirect-from
+
+baseurl: /ipsp-js-sdk
+
+
+repository: cloudipsp/ipsp-js-sdk
+
+brand: IPSP JS SDK
+title: IPSP JS SDK
+description: Fondy Payment System
+logo: fondy.svg
+
+author:
+  name: Fondy Developer Team
+  url: https://fondy.io/
+
+toolbar:
+  -
+    name: Docs
+    link: /docs/
+  -
+    name: Examples
+    link: /examples/
+
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: default

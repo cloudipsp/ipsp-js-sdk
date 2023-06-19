@@ -1,0 +1,36 @@
+params:
+  -
+    name: merchant id
+    value: 1396424
+  -
+    name: transaction password
+    value: test
+  -
+    name: currency
+    value: EUR, USD, GBP, RUB, UAH
+
+cards:
+    -
+      number:  4444555566661111
+      date: any
+      cvv2: any
+      3ds: yes
+      response: approve
+    -
+      number:  4444111166665555
+      date: any
+      cvv2: any
+      3ds: yes
+      response: decline
+    -
+      number:  4444555511116666
+      date: any
+      cvv2: any
+      3ds: no
+      response: approve
+    -
+      number:  4444111155556666
+      date: any
+      cvv2: any
+      3ds: no
+      response: decline
