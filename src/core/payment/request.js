@@ -127,17 +127,26 @@ const PaymentRequestInterface = Module.extend({
  * @constructor
  */
 const PaymentRequestApi = PaymentRequestInterface.extend({
-    request(method, params, callback, failure) {
+    request(method, params, success, failure) {
         if (this.api) {
             this.api.scope(
                 this.proxy(function () {
                     this.api
                         .request('api.checkout.pay', method, params)
-                        .done(this.proxy(callback))
+                        .done(this.proxy(success))
                         .fail(this.proxy(failure))
                 })
             )
         }
+    },
+    update(data) {
+        this.request('methods', data, 'onUpdate', 'onError')
+    },
+    onUpdate(cx, model) {
+        this.setPayload(model.serialize())
+    },
+    onError(cx, error) {
+        this.trigger('error', error)
     },
     isPending() {
         return this.pendingState === true
@@ -146,7 +155,7 @@ const PaymentRequestApi = PaymentRequestInterface.extend({
         this.pendingState = state
         setTimeout(() => {
             this.trigger('pending', state)
-        }, 25)
+        }, 100)
     },
     pay(method) {
         if (this.isPending()) return
@@ -166,7 +175,7 @@ const PaymentRequestApi = PaymentRequestInterface.extend({
         }
         return response
             .done(function (details) {
-                this.trigger('complete', {
+                this.trigger('details', {
                     payment_system: this.payload.payment_system,
                     data: details,
                 })

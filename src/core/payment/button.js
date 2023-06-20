@@ -55,7 +55,8 @@ exports.PaymentButton = Module.extend({
         this.request.setApi(this.api)
         this.request.setMerchant(this.params.data.merchant_id)
         this.request.getSupportedMethods()
-        this.request.on('complete', this.proxy('callback'))
+        this.request.on('details', this.proxy('onDetails'))
+        this.request.on('error', this.proxy('onError'))
     },
 
     initElements() {
@@ -64,6 +65,15 @@ exports.PaymentButton = Module.extend({
         const origin = this.params.origin
         const appendTo = this.params.element
         const request = this.request
+
+        this.container = this.utils.querySelector(this.params.element)
+
+        this.addCss(this.container, {
+            display: 'flex',
+            gap: '1rem',
+            'flex-direction': 'column',
+        })
+
         forEach(this.params.methods, function (method) {
             const element = new PaymentElement({
                 origin: origin,
@@ -78,16 +88,10 @@ exports.PaymentButton = Module.extend({
         })
     },
     update(data) {
-        this.utils.extend(this.params.data, data || {})
-        this.api.scope(() => {
-            this.api
-                .request('api.checkout.pay', 'methods', this.params.data)
-                .done((model) => {
-                    this.request.setPayload(model.serialize())
-                })
-        })
+        const params = this.utils.extend(this.params.data, data || {})
+        this.request.update(params)
     },
-    callback(cx, data) {
+    onDetails(cx, data) {
         const params = this.utils.extend({}, this.params.data, data)
         this.api.scope(() => {
             this.api

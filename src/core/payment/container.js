@@ -189,7 +189,14 @@ exports.PaymentContainer = Module.extend({
             this.proxy(function () {
                 if (!this.element.classList.contains('pending')) {
                     if (this.params.method === 'apple') {
-                        this.connector.send('pay', this.payment.config)
+                        const payload = this.payment.payload || {}
+                        const apple = payload.provider['apple'] || {}
+                        this.connector.send('pay', {
+                            payment_system: payload.payment_system,
+                            methods: apple.methods,
+                            details: apple.details,
+                            options: apple.options,
+                        })
                     } else {
                         this.payment
                             .setSupported({

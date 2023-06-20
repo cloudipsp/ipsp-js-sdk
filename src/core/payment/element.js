@@ -84,14 +84,12 @@ exports.PaymentElement = Module.extend({
         this.request.pay(this.params.method)
     },
     onSupported(cx, supported) {
-        const provider = Object.values(supported.provider)
-        if (provider.includes(this.params.method)) {
+        if (supported.provider.includes(this.params.method)) {
             this.mount()
         }
     },
     onPayload(cx, payload) {
-        const provider = Object.keys(payload.provider)
-        if (provider.includes(this.params.method)) {
+        if (payload.allowed.includes(this.params.method)) {
             this.show()
         }
     },
