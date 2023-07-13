@@ -160,8 +160,9 @@ exports.PaymentContainer = Module.extend({
     },
     initEvents() {
         this.payment.on(
-            'complete',
+            'details',
             this.proxy(function (cx, data) {
+                this.connector.send('details', data)
                 this.connector.send('complete', data)
             })
         )
