@@ -13,7 +13,7 @@ exports.Event = ClassObject.extend({
         type || (this.events = {})
         let list = this.events[type] || this.empty,
             i = (list.length = callback ? list.length : 0)
-        while (i--) callback === list[i][0] && list.splice(i, 1)
+        while (i--) callback === list[i] && list.splice(i, 1)
         return this
     },
     trigger(type) {
