@@ -1,3 +1,10 @@
+exports.ApiOrigin = 'https://api.fondy.eu'
+
+exports.ApiEndpoint = {
+    gateway: '/checkout/v2/index.html',
+    element: '/checkout/v2/button/element.html',
+}
+
 exports.GooglePayApi = 'https://pay.google.com/gp/p/js/pay.js'
 
 exports.GoogleBaseRequest = {

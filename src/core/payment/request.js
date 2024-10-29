@@ -140,13 +140,26 @@ const PaymentRequestApi = PaymentRequestInterface.extend({
         }
     },
     update(data) {
-        this.request('methods', data, 'onUpdate', 'onError')
+        const defer = Deferred()
+        this.request(
+            'methods',
+            data,
+            function (cx, model) {
+                this.onUpdate(cx, model)
+                defer.resolveWith(this, [model])
+            },
+            function (cx, model) {
+                this.onError(cx, model)
+                defer.rejectWith(this, [model])
+            }
+        )
+        return defer
     },
     onUpdate(cx, model) {
         this.setPayload(model.serialize())
     },
-    onError(cx, error) {
-        this.trigger('error', error)
+    onError(cx, model) {
+        this.trigger('error', model)
     },
     isPending() {
         return this.pendingState === true
@@ -156,6 +169,25 @@ const PaymentRequestApi = PaymentRequestInterface.extend({
         setTimeout(() => {
             this.trigger('pending', state)
         }, 100)
+    },
+    beforeCallback(defer) {
+        defer.resolve()
+    },
+    setBeforeCallback(callback) {
+        this.beforeCallback = callback
+        return this
+    },
+    before() {
+        if (this.isPending()) return
+        this.setPending(true)
+        const defer = Deferred()
+        defer.always(
+            this.proxy(function () {
+                this.setPending(false)
+            })
+        )
+        this.beforeCallback(defer)
+        return defer
     },
     pay(method) {
         if (this.isPending()) return

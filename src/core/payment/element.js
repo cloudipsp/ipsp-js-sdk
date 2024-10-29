@@ -16,7 +16,7 @@ exports.PaymentElement = Module.extend({
         appendTo: null,
         className: 'payment-element',
         origin: 'https://pay.fondy.eu',
-        endpoint: '/latest/checkout/v2/button/element.html',
+        endpoint: '/checkout/v2/button/element.html',
         mode: 'plain',
         color: 'black',
         lang: 'en',
@@ -81,8 +81,15 @@ exports.PaymentElement = Module.extend({
     },
     onClick() {
         if (this.pending) return false
+        this.request
+            .before()
+            .done(this.proxy('onClickDone'))
+            .fail(this.proxy('onClickFail'))
+    },
+    onClickDone() {
         this.request.pay(this.params.method)
     },
+    onClickFail() {},
     onSupported(cx, supported) {
         if (supported.provider.includes(this.params.method)) {
             this.mount()

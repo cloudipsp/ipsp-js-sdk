@@ -3,14 +3,12 @@ const { Module } = require('./module')
 const { Connector } = require('./connector')
 const { Modal } = require('./modal')
 const { Response } = require('./response')
-const { ApiFrameCss } = require('./config')
+const { ApiFrameCss, ApiOrigin, ApiEndpoint } = require('./config')
 
 exports.Api = Module.extend({
     defaults: {
-        origin: 'https://api.fondy.eu',
-        endpoint: {
-            gateway: '/checkout/v2/index.html',
-        },
+        origin: ApiOrigin,
+        endpoint: ApiEndpoint,
         messages: {
             modalHeader:
                 'Now you will be redirected to your bank 3DSecure. If you are not redirected please refer',

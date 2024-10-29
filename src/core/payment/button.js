@@ -3,10 +3,13 @@ const { Api } = require('../api')
 const { PaymentRequestApi } = require('./request')
 const { PaymentElement } = require('./element')
 const { forEach } = require('../utils')
+const { ApiOrigin, ApiEndpoint } = require('../config')
+const { Deferred } = require('../deferred')
 
 exports.PaymentButton = Module.extend({
     defaults: {
-        origin: 'https://api.fondy.eu',
+        origin: ApiOrigin,
+        endpoint: ApiEndpoint,
         methods: ['apple', 'google'],
         element: null,
         style: {
@@ -18,8 +21,12 @@ exports.PaymentButton = Module.extend({
         data: {
             lang: 'en',
         },
+        before() {
+            const defer = Deferred()
+            defer.resolve()
+            return defer
+        },
     },
-
     init(params) {
         this.elements = {}
         this.supported = false
@@ -33,6 +40,7 @@ exports.PaymentButton = Module.extend({
                 params.endpoint
             ),
             style: this.utils.extend({}, this.defaults.style, params.style),
+            before: params.before || this.defaults.before,
             data: this.utils.extend({}, this.defaults.data, params.data),
         }
         this.initApi(params.api)
@@ -54,6 +62,7 @@ exports.PaymentButton = Module.extend({
         this.request = new PaymentRequestApi()
         this.request.setApi(this.api)
         this.request.setMerchant(this.params.data.merchant_id)
+        this.request.setBeforeCallback(this.params.before)
         this.request.getSupportedMethods()
         this.request.on('details', this.proxy('onDetails'))
         this.request.on('error', this.proxy('onError'))
@@ -64,19 +73,18 @@ exports.PaymentButton = Module.extend({
         const data = this.params.data
         const origin = this.params.origin
         const appendTo = this.params.element
+        const endpoint = this.params.endpoint.element
         const request = this.request
-
         this.container = this.utils.querySelector(this.params.element)
-
         this.addCss(this.container, {
             display: 'flex',
             gap: '1rem',
             'flex-direction': 'column',
         })
-
         forEach(this.params.methods, function (method) {
             const element = new PaymentElement({
                 origin: origin,
+                endpoint: endpoint,
                 method: method,
                 appendTo: appendTo,
                 color: style.color,
@@ -88,14 +96,18 @@ exports.PaymentButton = Module.extend({
         })
     },
     update(data) {
-        const params = this.utils.extend(this.params.data, data || {})
-        this.request.update(params)
+        return this.request.update(
+            this.utils.extend(this.params.data, data || {})
+        )
     },
     onDetails(cx, data) {
-        const params = this.utils.extend({}, this.params.data, data)
         this.api.scope(() => {
             this.api
-                .request('api.checkout.form', 'request', params)
+                .request(
+                    'api.checkout.form',
+                    'request',
+                    this.utils.extend({}, this.params.data, data)
+                )
                 .done(this.proxy('onSuccess'))
                 .fail(this.proxy('onError'))
         })
