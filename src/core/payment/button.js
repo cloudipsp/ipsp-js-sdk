@@ -4,7 +4,6 @@ const { PaymentRequestApi } = require('./request')
 const { PaymentElement } = require('./element')
 const { forEach } = require('../utils')
 const { ApiOrigin, ApiEndpoint } = require('../config')
-const { Deferred } = require('../deferred')
 
 exports.PaymentButton = Module.extend({
     defaults: {
