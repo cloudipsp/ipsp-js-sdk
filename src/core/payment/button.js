@@ -21,10 +21,8 @@ exports.PaymentButton = Module.extend({
         data: {
             lang: 'en',
         },
-        before() {
-            const defer = Deferred()
+        before(defer) {
             defer.resolve()
-            return defer
         },
     },
     init(params) {

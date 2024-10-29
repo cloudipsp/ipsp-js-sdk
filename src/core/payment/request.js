@@ -174,7 +174,9 @@ const PaymentRequestApi = PaymentRequestInterface.extend({
         defer.resolve()
     },
     setBeforeCallback(callback) {
-        this.beforeCallback = callback
+        if (isFunction(callback)) {
+            this.beforeCallback = callback
+        }
         return this
     },
     before() {
