@@ -60,11 +60,9 @@ exports.PaymentButton = Module.extend({
         this.request.setApi(this.api)
         this.request.setMerchant(this.params.data.merchant_id)
         this.request.setBeforeCallback(this.params.before)
-        this.request.getSupportedMethods()
         this.request.on('details', this.proxy('onDetails'))
         this.request.on('error', this.proxy('onError'))
     },
-
     initElements() {
         const style = this.params.style
         const data = this.params.data
@@ -91,6 +89,7 @@ exports.PaymentButton = Module.extend({
             })
             element.setPaymentRequest(request)
         })
+        request.getSupportedMethods()
     },
     update(data) {
         return this.request.update(
