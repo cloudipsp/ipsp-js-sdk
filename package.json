@@ -6,6 +6,7 @@
   "license": "MIT",
   "homepage": "https://fondy.eu",
   "main": "src/checkout.js",
+  "unpkg": "dist/checkout.min.js",
   "browser": "dist/checkout.js",
   "author": {
     "name": "CloudIPSP JS Team",
